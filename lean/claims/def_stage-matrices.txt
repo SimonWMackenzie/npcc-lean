@@ -1,0 +1,70 @@
+-- CLAIM-BEGIN def:stage-matrices
+/-- Stage 0 (paper `sec:scaffold`): the seed matrix `M₀ := [1 0]` — one row,
+two columns, value `1` exactly at the first column. -/
+def M0 : Fin 1 → Fin 2 → Bool := fun _ y => decide (y = 0)
+
+/-- The Stage-1 column carrier `C₁ = S_{q₁+5,t₁}(Cols M₀)`: columns of the
+relaxed interlace are the family INDICES (repeats counted). -/
+abbrev C1 (d : ℕ) : Type := Fin (L1 d)
+
+/-- The full Stage-1 row carrier `R₁^full = [q₁+5] × Rows(M₀)`. -/
+abbrev R1full (d : ℕ) : Type := Fin (Params.q1 d + 5) × Fin 1
+
+/-- The Stage-1 row carrier `R₁ = [q₁] × Rows(M₀)` (first `q₁` outer
+blocks; the final five subgame coordinates are reserved for the Stage-4
+local gadget). -/
+abbrev R1 (d : ℕ) : Type := Fin (Params.q1 d) × Fin 1
+
+/-- D4 typed separator, base side: the embedding of the `q₁` ambient
+Stage-1 coordinates into the `q₁+5` full coordinates (`Fin.castAdd`, never
+a raw ℕ offset). -/
+def baseIdx (d : ℕ) (i : Fin (Params.q1 d)) : Fin (Params.q1 d + 5) :=
+  Fin.castAdd 5 i
+
+/-- D4 typed separator, slot side: the embedding of the five reserved
+Stage-4 coordinates (four vector slots `s = 0,1,2,3` and one neutral slot
+`s = 4`; paper indexing `q₁+1, …, q₁+5`). -/
+def slotIdx (d : ℕ) (s : Fin 5) : Fin (Params.q1 d + 5) :=
+  Fin.natAdd (Params.q1 d) s
+
+/-- Stage 1, full form: `M̂₁ := ⟨M₀⟩^{q₁+5, C₁}`, the relaxed interlace of
+the seed by the Stage-1 balanced family. -/
+noncomputable def M1hat (d : ℕ) : R1full d → C1 d → Bool :=
+  relaxedInterlace M0 (S1fam d)
+
+/-- Stage 1: `M₁ := M̂₁[R₁; C₁]`, the row restriction of `M̂₁` to its first
+`q₁` outer blocks, as a total game on the restricted row type (rows embed
+through `baseIdx`; all columns kept). -/
+noncomputable def M1 (d : ℕ) : R1 d → C1 d → Bool :=
+  fun a j => M1hat d (baseIdx d a.1, a.2) j
+
+/-- The tail pattern `tail(γ) ∈ [2⁵]`: the 5-bit pattern a Stage-1 column
+carries on the five reserved slot coordinates. -/
+noncomputable def tail (d : ℕ) (j : C1 d) : Fin (2 ^ 5) :=
+  finFunctionFinEquiv (fun s : Fin 5 => S1fam d j (slotIdx d s))
+
+/-- The Stage-2 row carrier `R₂ = [q₂] × C₁` (outer blocks = padded source
+dimensions). -/
+abbrev R2 (d : ℕ) : Type := Fin (Params.q2 d) × C1 d
+
+/-- The Stage-2 column carrier `C₂` (indices of the Stage-2 family). -/
+abbrev C2 (d : ℕ) : Type := Fin (L2 d)
+
+/-- Stage 2 (the dimension gadget): `M₂ := ⟨M₁ᵀ⟩^{q₂, S_{q₂,t₂}(R₁)}`, the
+relaxed interlace of the TRANSPOSE of `M₁` by the Stage-2 family (transpose
+in the same orientation as `GameIso.transpose` / `D_swap`). -/
+noncomputable def M2 (d : ℕ) : R2 d → C2 d → Bool :=
+  relaxedInterlace (fun (j : C1 d) (a : R1 d) => M1 d a j) (S2fam d)
+
+/-- The Stage-3 row carrier `R₃ = [4] × C₂` (outer blocks = bins; `m = 4`
+hard-wired). -/
+abbrev R3 (d : ℕ) : Type := Fin 4 × C2 d
+
+/-- The Stage-3 column carrier `C₃ = R₂⁴`. -/
+abbrev C3 (d : ℕ) : Type := Fin 4 → R2 d
+
+/-- Stage 3 (the bin gadget): `M₃ := ⟨M₂ᵀ⟩^4`, the CLASSICAL 4-fold
+interlace of the transpose of `M₂`. -/
+noncomputable def M3 (d : ℕ) : R3 d → C3 d → Bool :=
+  interlaceFun (fun (c : C2 d) (r : R2 d) => M2 d r c) 4
+-- CLAIM-END def:stage-matrices

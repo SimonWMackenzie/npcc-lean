@@ -1,0 +1,7 @@
+-- CLAIM-BEGIN aux:robust-accessors
+/-- Accessor extracting the R2 conjunct (the `p = 1` bracket comparison at
+column density `1/2 + δ`) from an `IsRobust` witness. -/
+theorem IsRobust.r2 {X Y : Type*} [Fintype X] [Fintype Y] {f : X → Y → Bool} {δ b : ℝ}
+    (h : IsRobust f δ b) :
+    D f ≤ Dfamily (interlaceFun f 1) (bracketGE X Y 1 ((2 : ℝ) ^ (-b)) (1 / 2 + δ)) :=
+-- CLAIM-END aux:robust-accessors

@@ -1,0 +1,47 @@
+-- CLAIM-BEGIN def:powtwo-normalise
+/-- `ceilpowtwo(z)`: the least power of two that is at least `z`, rendered
+EXACTLY over ℕ as `2 ^ Nat.clog 2 z` (so `ceilPowTwo 0 = 1`; the paper only
+consumes it at `z ≥ 1`). The two defining facts are the companions
+`le_ceilPowTwo` and `ceilPowTwo_le_pow` below. -/
+def ceilPowTwo (z : ℕ) : ℕ := 2 ^ Nat.clog 2 z
+
+/-- `z ≤ ceilPowTwo z` (upper adjoint side of `Nat.clog`). -/
+theorem le_ceilPowTwo (z : ℕ) : z ≤ ceilPowTwo z :=
+  Nat.le_pow_clog one_lt_two z
+
+/-- The typed padding equivalence (Deep Think delta: padded coordinates are
+distinguishable from original coordinates IN THE TYPES): the coordinate set
+of a `d`-dimensional instance padded to `D ≥ d` dimensions is the tagged sum
+of the original `Fin d` and the padding block `Fin (D − d)`. -/
+def padCoordEquiv {d D : ℕ} (h : d ≤ D) : (Fin d ⊕ Fin (D - d)) ≃ Fin D :=
+  finSumFinEquiv.trans (finCongr (Nat.add_sub_cancel' h))
+
+/-- Power-of-two normalisation (paper `sec:encoding-interface`): pad the
+preprocessed instance to ambient dimension `D := ceilpowtwo(max{d, dstar})`
+by trailing zero coordinates. Original coordinates enter through
+`Sum.inl`, padding through `Sum.inr` (identically `false`); the anchors are
+carried over unchanged and stay all-zero.
+
+`dstar` is passed EXPLICITLY: the paper's `d_star` is the constant delivered
+by the (still open) `lem:large-d-checklist` via `Classical.choice` (D3), so
+this definition cannot yet refer to it — the composed reduction will
+instantiate `dstar := d_star` once that obligation lands (RATIFICATION
+FLAG). -/
+def normalizeInstance (dstar : ℕ) (I : PreprocessedInstance) :
+    PreprocessedInstance where
+  d := ceilPowTwo (max I.d dstar)
+  n := I.n
+  v := fun i β =>
+    Sum.elim (fun α => I.v i α) (fun _ => false)
+      ((padCoordEquiv
+        (le_trans (le_max_left I.d dstar) (le_ceilPowTwo _))).symm β)
+  anchor := I.anchor
+  anchor_injective := I.anchor_injective
+  anchor_zero := by
+    intro p β
+    rcases (padCoordEquiv
+        (le_trans (le_max_left I.d dstar) (le_ceilPowTwo _))).symm β
+      with α | γ
+    · simp [I.anchor_zero]
+    · simp
+-- CLAIM-END def:powtwo-normalise

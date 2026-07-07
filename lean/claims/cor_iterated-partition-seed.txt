@@ -1,0 +1,21 @@
+-- CLAIM-BEGIN cor:iterated-partition-seed
+/-- Paper `cor:iterated-partition-seed`: under the hypotheses of
+`lem:new-partition`, three-rung seed bounds at a real level `H`
+(`comp(y) ≥ H`, `comp(y/2) ≥ H−1`, `comp(y/4) ≥ H−2`) give the scalar
+conclusion `comp⟨f, ⌊2^k β^s p⌋, 2^k x, y^{ρ^s}⟩ ≥ k + H`. -/
+theorem iterated_partition_seed {X Y : Type*} [Fintype X] [Fintype Y]
+    (f : X → Y → Bool) {ρ : ℝ} (hρ : 2 < ρ) (k s p : ℕ) (hs : s ≤ k)
+    (hp : 1 ≤ p) {x y : ℝ} (hx0 : 0 < x) (hxk : x ≤ (2 : ℝ) ^ (-(k : ℝ)))
+    (hy0 : 0 < y) (hy1 : y ≤ 1)
+    (h1 : 1 ≤ Dfamily (interlaceFun f p) (bracketGE X Y p x (y / 4)))
+    (hside : (ρ - 1) ^ k ≤ ρ ^ (k - s)) {H : ℝ}
+    (hH1 : H ≤ (Dfamily (interlaceFun f p) (bracketGE X Y p x y) : ℝ))
+    (hH2 : H - 1 ≤
+      (Dfamily (interlaceFun f p) (bracketGE X Y p x (y / 2)) : ℝ))
+    (hH4 : H - 2 ≤
+      (Dfamily (interlaceFun f p) (bracketGE X Y p x (y / 4)) : ℝ)) :
+    (k : ℝ) + H ≤
+      (Dfamily (interlaceFun f (gridFloor ρ k s p))
+        (bracketGE X Y (gridFloor ρ k s p) ((2 : ℝ) ^ (k : ℕ) * x)
+          (y ^ (ρ ^ s))) : ℝ) :=
+-- CLAIM-END cor:iterated-partition-seed

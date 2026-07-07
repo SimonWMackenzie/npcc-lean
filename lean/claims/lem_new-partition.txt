@@ -1,0 +1,21 @@
+-- CLAIM-BEGIN lem:new-partition
+/-- Paper `lem:new-partition` (Iterated density amplification, App. A): for
+`2 < ρ`, `β = (ρ−1)/(ρ−2)`, `0 ≤ s ≤ k`, `p ≥ 1`, `0 < x ≤ 2^{−k}`,
+`0 < y ≤ 1`, if `comp⟨f,p,x,y/4⟩ ≥ 1` and `(ρ−1)^k ≤ ρ^{k−s}` then both the
+bundled (Λ) and scalar forms of
+`Λ_f(⌊2^k β^s p⌋, 2^k x, y^{ρ^s}) ≥ k + Λ_f(p,x,y)` hold. Exponents `ρ^s`,
+`(ρ−1)^k`, `ρ^{k−s}` are real powers with ℕ exponents (`k−s` is
+ℕ-subtraction under `s ≤ k`); `y ^ (ρ^s)` is rpow. -/
+theorem iterated_density_amplification {X Y : Type*} [Fintype X] [Fintype Y]
+    (f : X → Y → Bool) {ρ : ℝ} (hρ : 2 < ρ) (k s p : ℕ) (hs : s ≤ k)
+    (hp : 1 ≤ p) {x y : ℝ} (hx0 : 0 < x) (hxk : x ≤ (2 : ℝ) ^ (-(k : ℝ)))
+    (hy0 : 0 < y) (hy1 : y ≤ 1)
+    (h1 : 1 ≤ Dfamily (interlaceFun f p) (bracketGE X Y p x (y / 4)))
+    (hside : (ρ - 1) ^ k ≤ ρ ^ (k - s)) :
+    k + LambdaGE f p x y ≤
+        LambdaGE f (gridFloor ρ k s p) ((2 : ℝ) ^ (k : ℕ) * x) (y ^ (ρ ^ s)) ∧
+    k + LambdaGE f p x y ≤
+        Dfamily (interlaceFun f (gridFloor ρ k s p))
+          (bracketGE X Y (gridFloor ρ k s p) ((2 : ℝ) ^ (k : ℕ) * x)
+            (y ^ (ρ ^ s))) :=
+-- CLAIM-END lem:new-partition

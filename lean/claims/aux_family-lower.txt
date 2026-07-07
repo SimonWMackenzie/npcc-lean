@@ -1,0 +1,16 @@
+-- CLAIM-BEGIN aux:family-lower
+/-- Counting lower bound for balanced families (scaffold prose fact, no paper
+label). For a `(q,t)`-balanced family `S : Fin L → Fin q → Y` with accuracy
+`ε < 1` and `t ≤ q` (so a `t`-element coordinate set exists), the lower side
+of balancedness makes every pattern on a fixed `t`-element coordinate set
+occur among the `S j`; the restriction map to those coordinates is therefore
+onto, giving `|Y|^t ≤ L` and in particular the form the scaffold consumes,
+stated division-safely as `|Y|^t / (1+ε) ≤ L`. (Balancedness at the empty
+coordinate set forces `ε ≥ 0`, so the division is by a positive number.)
+Instantiated at the Stage-1/Stage-2 families this yields the size facts
+`|C₁| ≥ 2^{t₁}/(1+ε) ≥ 2^{t₁-1}` and `|C₂| ≥ |R₁|^{t₂}/(1+ε) ≥ |R₁|^{t₂}/2`. -/
+theorem balanced_family_card_lower {Y : Type*} [DecidableEq Y] [Fintype Y]
+    {q L t : ℕ} {S : Fin L → Fin q → Y} {ε : ℝ}
+    (hS : IsBalancedFamily t S ε) (hε : ε < 1) (htq : t ≤ q) :
+    ((Fintype.card Y : ℝ) ^ t) / (1 + ε) ≤ (L : ℝ) :=
+-- CLAIM-END aux:family-lower

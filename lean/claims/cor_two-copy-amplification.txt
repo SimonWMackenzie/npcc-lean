@@ -1,0 +1,10 @@
+-- CLAIM-BEGIN cor:two-copy-amplification
+/-- Paper `cor:two-copy-amplification`: the top rung of
+`robust_two_copy_ladder` (same F1 guard). -/
+theorem two_copy_amplification {X Y : Type*} [Fintype X] [Fintype Y]
+    {f : X → Y → Bool} {δ b : ℝ}
+    (h : IsRobust f δ b) (hb : 1 ≤ b) (hδ0 : 0 < δ) (hδ : δ ≤ 1 / 2)
+    (hD : 2 ≤ D f) :
+    (D f : ℝ) + 1 ≤ (Dfamily (interlaceFun f 2)
+        (bracketGE X Y 2 ((2 : ℝ) ^ (1 - b)) ((1 / 2 + δ) ^ 2)) : ℝ) :=
+-- CLAIM-END cor:two-copy-amplification

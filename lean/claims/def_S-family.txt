@@ -1,0 +1,41 @@
+-- CLAIM-BEGIN def:S-family
+/-- Paper `rem:balanced-columns-exist`: the accuracy at which every scaffold
+family is drawn, `ε_{q,t} := (2qt)^{−c}`. The absolute exponent is pinned to
+the AGHP axiom's own constant `c := aghpConstant` (RATIFICATION FLAG: the
+paper only demands "a sufficiently large absolute constant"; if the Stage-1
+threshold package later needs a larger exponent, this def is the single
+point of change). -/
+noncomputable def epsQT (q t : ℕ) : ℝ :=
+  ((2 * q * t : ℕ) : ℝ) ^ (-(aghpConstant : ℤ))
+
+/-- The scaffold's balanced-family selector `S_{q,t}(Y)`: the AGHP family
+over alphabet `Y` at accuracy `ε_{q,t}`, chosen ONCE (choice inside
+`balancedFamilyData`); downstream stage isomorphisms must TRANSPORT it and
+never re-choose (GameIso ruling). -/
+noncomputable def scaffoldFamily (q t : ℕ) (Y : Type) [Fintype Y]
+    [DecidableEq Y] : (L : ℕ) × (Fin L → Fin q → Y) :=
+  balancedFamilyData q t Y (epsQT q t)
+
+/-- The size of the Stage-1 column family `C₁ = S_{q₁+5,t₁}(Cols M₀)`
+(alphabet `Fin 2 = Cols M₀`). -/
+noncomputable def L1 (d : ℕ) : ℕ :=
+  (scaffoldFamily (Params.q1 d + 5) (Params.t1 d) (Fin 2)).1
+
+/-- The Stage-1 column family `C₁` itself, as an indexed family (repeats
+allowed and counted; columns of `M̂₁` are the family INDICES). -/
+noncomputable def S1fam (d : ℕ) :
+    Fin (L1 d) → Fin (Params.q1 d + 5) → Fin 2 :=
+  (scaffoldFamily (Params.q1 d + 5) (Params.t1 d) (Fin 2)).2
+
+/-- The size of the Stage-2 column family `S_{q₂,t₂}(R₁)` (alphabet
+`Fin q₁ × Fin 1 = R₁`, the row set of `M₁`). -/
+noncomputable def L2 (d : ℕ) : ℕ :=
+  (scaffoldFamily (Params.q2 d) (Params.t2 d)
+    (Fin (Params.q1 d) × Fin 1)).1
+
+/-- The Stage-2 column family `S_{q₂,t₂}(R₁)` itself. -/
+noncomputable def S2fam (d : ℕ) :
+    Fin (L2 d) → Fin (Params.q2 d) → Fin (Params.q1 d) × Fin 1 :=
+  (scaffoldFamily (Params.q2 d) (Params.t2 d)
+    (Fin (Params.q1 d) × Fin 1)).2
+-- CLAIM-END def:S-family

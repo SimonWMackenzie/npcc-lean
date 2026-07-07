@@ -1,0 +1,12 @@
+-- CLAIM-BEGIN aux:m3-complexity
+/-- Stage-3 exact complexity.  Alice first identifies one of the four Stage-3
+row blocks, reducing each branch to `M2ᵀ`; the lower bound is the `w = 2`
+case of `power_of_two_lower` for the robust transpose of `M2`, followed by the
+subgame-to-whole-game comparison. -/
+theorem M3_complexity (d : Nat) (hchk : Checklist d)
+    (hrobM2 :
+      IsRobust (fun (c : C2 d) (r : R2 d) => M2 d r c)
+        Params.delta (Params.b2 d))
+    (hD2 : 2 <= D (fun (c : C2 d) (r : R2 d) => M2 d r c)) :
+    D (M3 d) = D (M2 d) + 2 := by
+-- CLAIM-END aux:m3-complexity

@@ -1,0 +1,27 @@
+-- CLAIM-BEGIN cor:stage1-chosen-dense-threshold
+/-- Paper `cor:stage1-chosen-dense-threshold` (Chosen-coordinate dense
+Stage-1 threshold, App C.2) — THE lemma the final NO-case contradiction
+fires, also consumed by the Stage-4 gadget lemmas. Same dense data as
+`cor:stage1-dense-threshold` (`S'` a `Finset` of `S₁` indices, REAL density
+`|S'| ≥ (1−ρ)|S₁|`, `ρ ∈ [0,1)`, STRICT gate `ρ < (1−ε₁)/2`). The chosen
+coordinate set `Q ⊆ [2^a+3]` with `|Q| ≥ 2^a+1` enters as an INJECTIVE
+enumeration `e : Fin u → Fin (q₁+5)` with `u ≥ q₁+3` (the paper's `2^a+1`
+via `q1_add_three_eq`); per the risk ledger the quantification is over EVERY
+such `Q` — `e` is arbitrary injective, never just an initial segment — and
+the game is `HlocalAtSub`, the extraction of the relaxed interlace to
+`Q × Rows(M₀)` over the subfamily columns `S'`. Conclusion:
+`comp ≥ B_cap+1 = a+2` (numeric, as `lem:stage1-threshold` pins `B_cap`).
+Proof: one instantiation of the generic dense heavy-path lower bound
+(`stage1_dense_lower_at`); the paper's trim-to-`Q'`-then-apply route
+collapses because the shared rectangle bound (`stage1_rect_bound_at`) is
+generic in the enumeration, exactly as the paper's own proof remarks. -/
+theorem stage1_chosen_dense_threshold (d : ℕ) (hd : 2 ≤ d)
+    (hbal : Params.t1 d ≤ Params.q1 d + 5)
+    (hta : Params.a d + 2 ≤ Params.t1 d)
+    {ρ : ℝ} (hρ0 : 0 ≤ ρ) (hρ1 : ρ < 1)
+    (hρ : ρ < (1 - epsQT (Params.q1 d + 5) (Params.t1 d)) / 2)
+    (S' : Finset (C1 d)) (hS' : (1 - ρ) * (L1 d : ℝ) ≤ (S'.card : ℝ))
+    {u : ℕ} (e : Fin u → Fin (Params.q1 d + 5))
+    (he : Function.Injective e) (hu : Params.q1 d + 3 ≤ u) :
+    Params.a d + 2 ≤ D (HlocalAtSub d (S1fam d) S' e) :=
+-- CLAIM-END cor:stage1-chosen-dense-threshold

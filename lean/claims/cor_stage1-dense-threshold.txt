@@ -1,0 +1,32 @@
+-- CLAIM-BEGIN cor:stage1-dense-threshold
+/-- Paper `cor:stage1-dense-threshold` (App C.2): the Stage-1 threshold
+survives on DENSE subfamilies of `S₁`. Data: `S' ⊆ S₁` enters as a `Finset`
+of family indices (the game `𝓗_r(S')` is `HlocalSub`, the column-subtype
+restriction of `𝓗_r(S₁)` — transport, never re-choice), with REAL density
+`|S'| ≥ (1−ρ)|S₁|` (no ℕ truncation) for `ρ ∈ [0,1)` under the STRICT
+risk-ledger gate `ρ < (1−ε₁)/2` (never weakened; `ε₁ = ε_{2^a+3,t₁}` is
+`epsQT (q₁+5) t₁` via `q1_add_five_eq`). For `0 ≤ ℓ ≤ 4` the paper's
+`G'_ℓ := 𝓗_{2^a−1+ℓ}(S')` is spelled underflow-free with row count
+`r := q₁+1+ℓ` (`= 2^a−1+ℓ` under `2 ≤ d` by `Params.two_pow_a`); the
+conclusions are `ℓ ≤ 1 → comp G'_ℓ ≤ B_cap` and `ℓ ≥ 2 → comp G'_ℓ ≥
+B_cap+1` with the budget numeric: `B_cap = a+1` exactly as
+`lem:stage1-threshold` pins it (defeq to `Bcap d` of NPCC/Scaffold.lean).
+Large-`d` gates `hbal`/`hta` exactly as in `lem:stage1-threshold`. The paper
+proof re-runs the rectangle argument on `S'`; here both branches INSTANTIATE
+the shared generic machinery (`stage1_dense_cap_upper`;
+`stage1_dense_lower_at` at the initial-segment enumeration `Fin.castLE`),
+per the ledger's instantiate-don't-copy requirement. -/
+theorem stage1_dense_threshold (d : ℕ) (hd : 2 ≤ d)
+    (hbal : Params.t1 d ≤ Params.q1 d + 5)
+    (hta : Params.a d + 2 ≤ Params.t1 d)
+    {ρ : ℝ} (hρ0 : 0 ≤ ρ) (hρ1 : ρ < 1)
+    (hρ : ρ < (1 - epsQT (Params.q1 d + 5) (Params.t1 d)) / 2)
+    (S' : Finset (C1 d)) (hS' : (1 - ρ) * (L1 d : ℝ) ≤ (S'.card : ℝ))
+    (ℓ : ℕ) (hℓ : ℓ ≤ 4) :
+    (ℓ ≤ 1 →
+      D (HlocalSub d (S1fam d) S' (Params.q1 d + 1 + ℓ) (by omega))
+        ≤ Params.a d + 1) ∧
+    (2 ≤ ℓ →
+      Params.a d + 2 ≤
+        D (HlocalSub d (S1fam d) S' (Params.q1 d + 1 + ℓ) (by omega))) :=
+-- CLAIM-END cor:stage1-dense-threshold

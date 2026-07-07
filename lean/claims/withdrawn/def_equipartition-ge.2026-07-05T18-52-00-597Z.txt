@@ -1,0 +1,15 @@
+-- CLAIM-BEGIN def:equipartition-ge
+/-- Paper `def:equipartition` ((Q,T)-Equipartitioned Row Set), `≥`-form.
+
+Encoding: as in the verified artifact (`Workspace.Types.Equipartition`), the
+paper's row set `[k] × X` (with `|X| = m`) is flattened to natural-number
+indices, block `q` being the interval `[m*q, m*(q+1))`; the paper's slice
+`R_q = {x ∈ X : (q,x) ∈ R}` is `R`'s intersection with block `q`. The paper
+requires `|R_q| ≥ T` for every `q ∈ Q` — the `≥`-form, in contrast to the
+artifact's exact-cardinality `IsEquipartitioned` (see bridge:equipartition).
+The paper's side conditions `T ≥ 1` and `Q ⊆ [k]` are hypotheses at use
+sites, not baked into the predicate (matching the artifact's convention that
+the predicate says nothing about indices outside the referenced blocks). -/
+def IsEquipartitionedGE (R : Finset ℕ) (m : ℕ) (Q : Finset ℕ) (T : ℕ) : Prop :=
+  ∀ q ∈ Q, T ≤ (R.filter (fun i => m * q ≤ i ∧ i < m * (q + 1))).card
+-- CLAIM-END def:equipartition-ge

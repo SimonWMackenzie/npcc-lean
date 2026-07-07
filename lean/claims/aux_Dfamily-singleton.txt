@@ -1,0 +1,9 @@
+-- CLAIM-BEGIN aux:Dfamily-singleton
+/-- Family complexity of a singleton family collapses to the depth-complexity
+of the single induced subgame: `comp{RC} = D (subgame f R C)`. The existential
+membership constraint `∃ RC' ∈ {RC}, d = D (subgame f RC'.1 RC'.2)` forces
+`RC' = RC`, so the index set is the singleton `{D (subgame f RC.1 RC.2)}` and
+`sInf` of a singleton returns its element. -/
+theorem Dfamily.singleton {A B : Type*} (f : A → B → Bool) (RC : Finset A × Finset B) :
+    Dfamily f {RC} = D (subgame f RC.1 RC.2) :=
+-- CLAIM-END aux:Dfamily-singleton

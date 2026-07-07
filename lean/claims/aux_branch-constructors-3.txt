@@ -1,0 +1,422 @@
+-- CLAIM-BEGIN aux:branch-constructors-3
+
+/-- Concatenate fixed-width transcript codes, with the earlier code occupying
+the high-order bits. This matches `bitCons`, where the next actual bit is
+stored in the upper half of the code. -/
+def prefixCodeAppend {t1 t2 : Nat}
+    (c1 : Fin (2 ^ t1)) (c2 : Fin (2 ^ t2)) : Fin (2 ^ (t1 + t2)) :=
+  ⟨c1.1 * 2 ^ t2 + c2.1, by
+    have hc1 : c1.1 < 2 ^ t1 := c1.2
+    have hc2 : c2.1 < 2 ^ t2 := c2.2
+    have hstep : c1.1 * 2 ^ t2 + c2.1 < (c1.1 + 1) * 2 ^ t2 := by
+      calc
+        c1.1 * 2 ^ t2 + c2.1 < c1.1 * 2 ^ t2 + 2 ^ t2 :=
+          Nat.add_lt_add_left hc2 _
+        _ = (c1.1 + 1) * 2 ^ t2 := by ring
+    have hcap : (c1.1 + 1) * 2 ^ t2 <= 2 ^ t1 * 2 ^ t2 := by
+      exact Nat.mul_le_mul_right _ (Nat.succ_le_of_lt hc1)
+    calc
+      c1.1 * 2 ^ t2 + c2.1 < (c1.1 + 1) * 2 ^ t2 := hstep
+      _ <= 2 ^ t1 * 2 ^ t2 := hcap
+      _ = 2 ^ (t1 + t2) := by rw [Nat.pow_add]⟩
+
+@[simp] theorem prefixCodeAppend_val {t1 t2 : Nat}
+    (c1 : Fin (2 ^ t1)) (c2 : Fin (2 ^ t2)) :
+    (Protocol.prefixCodeAppend c1 c2).1 = c1.1 * 2 ^ t2 + c2.1 :=
+  rfl
+
+theorem prefixCodeAppend_zero_left {t2 : Nat} (c2 : Fin (2 ^ t2)) :
+    Protocol.prefixCodeAppend (Protocol.zeroPow2 0) c2 =
+      Fin.cast (by simp) c2 := by
+  apply Fin.ext
+  simp [Protocol.prefixCodeAppend, Protocol.zeroPow2]
+
+theorem prefixCodeAppend_left {t1 t2 : Nat}
+    (c1 : Fin (2 ^ t1)) (c2 : Fin (2 ^ t2)) :
+    (Protocol.prefixCodeAppend c1 c2).1 / 2 ^ t2 = c1.1 := by
+  have hp : 0 < 2 ^ t2 := Nat.two_pow_pos t2
+  calc
+    (Protocol.prefixCodeAppend c1 c2).1 / 2 ^ t2 =
+        (2 ^ t2 * c1.1 + c2.1) / 2 ^ t2 := by
+          rw [Protocol.prefixCodeAppend_val, Nat.mul_comm]
+    _ = c1.1 + c2.1 / 2 ^ t2 := by
+          exact Nat.mul_add_div hp c1.1 c2.1
+    _ = c1.1 := by
+          rw [Nat.div_eq_of_lt c2.2, Nat.add_zero]
+
+theorem prefixCodeAppend_right {t1 t2 : Nat}
+    (c1 : Fin (2 ^ t1)) (c2 : Fin (2 ^ t2)) :
+    (Protocol.prefixCodeAppend c1 c2).1 % 2 ^ t2 = c2.1 := by
+  calc
+    (Protocol.prefixCodeAppend c1 c2).1 % 2 ^ t2 =
+        (c2.1 + 2 ^ t2 * c1.1) % 2 ^ t2 := by
+          rw [Protocol.prefixCodeAppend_val, Nat.mul_comm, Nat.add_comm]
+    _ = c2.1 % 2 ^ t2 := by
+          exact Nat.add_mul_mod_self_left c2.1 (2 ^ t2) c1.1
+    _ = c2.1 := Nat.mod_eq_of_lt c2.2
+
+theorem prefixCodeAppend_inj {t1 t2 : Nat}
+    {c1 d1 : Fin (2 ^ t1)} {c2 d2 : Fin (2 ^ t2)} :
+    Protocol.prefixCodeAppend c1 c2 = Protocol.prefixCodeAppend d1 d2 <->
+      c1 = d1 ∧ c2 = d2 := by
+  constructor
+  · intro h
+    have hleft :
+        (Protocol.prefixCodeAppend c1 c2).1 / 2 ^ t2 =
+          (Protocol.prefixCodeAppend d1 d2).1 / 2 ^ t2 := by
+      rw [h]
+    have hright :
+        (Protocol.prefixCodeAppend c1 c2).1 % 2 ^ t2 =
+          (Protocol.prefixCodeAppend d1 d2).1 % 2 ^ t2 := by
+      rw [h]
+    constructor
+    · apply Fin.ext
+      rw [Protocol.prefixCodeAppend_left c1 c2,
+        Protocol.prefixCodeAppend_left d1 d2] at hleft
+      exact hleft
+    · apply Fin.ext
+      rw [Protocol.prefixCodeAppend_right c1 c2,
+        Protocol.prefixCodeAppend_right d1 d2] at hright
+      exact hright
+  · rintro ⟨rfl, rfl⟩
+    rfl
+
+theorem actualPrefixCodeRaw_restrictSub {A B Z : Type*}
+    (R : Finset A) (C : Finset B) (P : Protocol A B Z)
+    (k : Nat) (a : {a // a ∈ R}) (b : {b // b ∈ C}) :
+    Protocol.actualPrefixCodeRaw k (Protocol.restrictSub R C P) a b =
+      Protocol.actualPrefixCodeRaw k P a.1 b.1 := by
+  induction k generalizing P with
+  | zero =>
+      rfl
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          rfl
+      | aNode q l r =>
+          simp only [Protocol.restrictSub, Protocol.actualPrefixCodeRaw]
+          by_cases hq : q a.1
+          · rw [if_pos hq, if_pos hq, ih r]
+          · rw [if_neg hq, if_neg hq, ih l]
+      | bNode q l r =>
+          simp only [Protocol.restrictSub, Protocol.actualPrefixCodeRaw]
+          by_cases hq : q b.1
+          · rw [if_pos hq, if_pos hq, ih r]
+          · rw [if_neg hq, if_neg hq, ih l]
+
+theorem actualSideListRaw_restrictSub {A B Z : Type*}
+    (R : Finset A) (C : Finset B) (P : Protocol A B Z)
+    (k : Nat) (a : {a // a ∈ R}) (b : {b // b ∈ C}) :
+    Protocol.actualSideListRaw k (Protocol.restrictSub R C P) a b =
+      Protocol.actualSideListRaw k P a.1 b.1 := by
+  induction k generalizing P with
+  | zero =>
+      rfl
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          rfl
+      | aNode q l r =>
+          simp only [Protocol.restrictSub, Protocol.actualSideListRaw]
+          by_cases hq : q a.1
+          · rw [if_pos hq, if_pos hq, ih r]
+          · rw [if_neg hq, if_neg hq, ih l]
+      | bNode q l r =>
+          simp only [Protocol.restrictSub, Protocol.actualSideListRaw]
+          by_cases hq : q b.1
+          · rw [if_pos hq, if_pos hq, ih r]
+          · rw [if_neg hq, if_neg hq, ih l]
+
+theorem actualSubtreeAtRaw_restrictSub {A B Z : Type*}
+    (R : Finset A) (C : Finset B) (P : Protocol A B Z)
+    (k : Nat) (w : Fin (2 ^ k)) :
+    Protocol.actualSubtreeAtRaw k (Protocol.restrictSub R C P) w =
+      Protocol.restrictSub R C (Protocol.actualSubtreeAtRaw k P w) := by
+  induction k generalizing P with
+  | zero =>
+      rfl
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          rfl
+      | aNode q l r =>
+          simp only [Protocol.restrictSub, Protocol.actualSubtreeAtRaw]
+          by_cases hw : Protocol.bitHead w
+          · rw [if_pos hw, if_pos hw, ih r]
+          · rw [if_neg hw, if_neg hw, ih l]
+      | bNode q l r =>
+          simp only [Protocol.restrictSub, Protocol.actualSubtreeAtRaw]
+          by_cases hw : Protocol.bitHead w
+          · rw [if_pos hw, if_pos hw, ih r]
+          · rw [if_neg hw, if_neg hw, ih l]
+
+namespace BranchAt
+
+noncomputable def liftRows {A B : Type*} [DecidableEq A]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1)
+    (b2 : Protocol.BranchAt b1.residual (subgame G b1.rows b1.cols) t2) :
+    Finset A :=
+  b2.rows.map
+    ⟨Subtype.val, by
+      intro x y h
+      exact Subtype.ext h⟩
+
+noncomputable def liftCols {A B : Type*} [DecidableEq B]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1)
+    (b2 : Protocol.BranchAt b1.residual (subgame G b1.rows b1.cols) t2) :
+    Finset B :=
+  b2.cols.map
+    ⟨Subtype.val, by
+      intro x y h
+      exact Subtype.ext h⟩
+
+theorem mem_liftRows {A B : Type*} [DecidableEq A]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1)
+    (b2 : Protocol.BranchAt b1.residual (subgame G b1.rows b1.cols) t2)
+    (a : A) :
+    a ∈ liftRows b1 b2 <->
+      ∃ ha : a ∈ b1.rows, (⟨a, ha⟩ : {a // a ∈ b1.rows}) ∈ b2.rows := by
+  constructor
+  · intro h
+    rcases (Finset.mem_map.mp h) with ⟨x, hx, hxval⟩
+    refine ⟨by simp [hxval.symm, x.2], ?_⟩
+    have hsub : (⟨a, by simp [hxval.symm, x.2]⟩ :
+        {a // a ∈ b1.rows}) = x := by
+      exact Subtype.ext hxval.symm
+    simpa [hsub] using hx
+  · rintro ⟨ha, hx⟩
+    exact Finset.mem_map.mpr ⟨⟨a, ha⟩, hx, rfl⟩
+
+theorem mem_liftCols {A B : Type*} [DecidableEq B]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1)
+    (b2 : Protocol.BranchAt b1.residual (subgame G b1.rows b1.cols) t2)
+    (b : B) :
+    b ∈ liftCols b1 b2 <->
+      ∃ hb : b ∈ b1.cols, (⟨b, hb⟩ : {b // b ∈ b1.cols}) ∈ b2.cols := by
+  constructor
+  · intro h
+    rcases (Finset.mem_map.mp h) with ⟨x, hx, hxval⟩
+    refine ⟨by simp [hxval.symm, x.2], ?_⟩
+    have hsub : (⟨b, by simp [hxval.symm, x.2]⟩ :
+        {b // b ∈ b1.cols}) = x := by
+      exact Subtype.ext hxval.symm
+    simpa [hsub] using hx
+  · rintro ⟨hb, hx⟩
+    exact Finset.mem_map.mpr ⟨⟨b, hb⟩, hx, rfl⟩
+
+end BranchAt
+
+noncomputable def dominantIndex {ι X : Type*} [DecidableEq ι]
+    {L : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T) (j : Fin L) : ι :=
+  Classical.choose (ExistsUnique.exists (hNW j))
+
+theorem dominantIndex_spec {ι X : Type*} [DecidableEq ι]
+    {L : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T) (j : Fin L) :
+    dominantIndex Q Rin lab hNW j ∈ Q ∧
+      T0 - (Q.card - 1) * T <=
+        (Rin.filter
+          (fun p => lab p = j ∧ p.1 = dominantIndex Q Rin lab hNW j)).card ∧
+      ∀ i' ∈ Q, i' ≠ dominantIndex Q Rin lab hNW j ->
+        (Rin.filter (fun p => lab p = j ∧ p.1 = i')).card < T := by
+  exact Classical.choose_spec (ExistsUnique.exists (hNW j))
+
+theorem dominantIndex_unique {ι X : Type*} [DecidableEq ι]
+    {L : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T) (j : Fin L)
+    {i : ι}
+    (hi : i ∈ Q ∧
+      T0 - (Q.card - 1) * T <=
+        (Rin.filter (fun p => lab p = j ∧ p.1 = i)).card ∧
+      ∀ i' ∈ Q, i' ≠ i ->
+        (Rin.filter (fun p => lab p = j ∧ p.1 = i')).card < T) :
+    i = dominantIndex Q Rin lab hNW j := by
+  exact ExistsUnique.unique (hNW j) hi
+    (dominantIndex_spec Q Rin lab hNW j)
+
+noncomputable def alphaOfCode {ι X : Type*} [DecidableEq ι]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L) (j : Fin (2 ^ t)) : ι :=
+  dominantIndex Q Rin lab hNW (labelOfCode j)
+
+theorem alphaOfCode_spec {ι X : Type*} [DecidableEq ι]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L) (j : Fin (2 ^ t)) :
+    alphaOfCode Q Rin lab hNW labelOfCode j ∈ Q ∧
+      T0 - (Q.card - 1) * T <=
+        (Rin.filter
+          (fun p => lab p = labelOfCode j ∧
+            p.1 = alphaOfCode Q Rin lab hNW labelOfCode j)).card ∧
+      ∀ i' ∈ Q, i' ≠ alphaOfCode Q Rin lab hNW labelOfCode j ->
+        (Rin.filter (fun p => lab p = labelOfCode j ∧ p.1 = i')).card < T := by
+  exact dominantIndex_spec Q Rin lab hNW (labelOfCode j)
+
+theorem alphaOfCode_eq_of_labelOfCode_eq {ι X : Type*} [DecidableEq ι]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L) {j1 j2 : Fin (2 ^ t)}
+    (h : labelOfCode j1 = labelOfCode j2) :
+    alphaOfCode Q Rin lab hNW labelOfCode j1 =
+      alphaOfCode Q Rin lab hNW labelOfCode j2 := by
+  simp [alphaOfCode, h]
+
+noncomputable def YofCode {ι X : Type*} [Fintype X]
+    [DecidableEq ι] [DecidableEq X]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L) (j : Fin (2 ^ t)) :
+    Finset X :=
+  let i := alphaOfCode Q Rin lab hNW labelOfCode j
+  Finset.univ.filter fun x => (i, x) ∈ Rin ∧ lab (i, x) = labelOfCode j
+
+theorem dominant_fiber_card_eq_YofCode {ι X : Type*} [Fintype X]
+    [DecidableEq ι] [DecidableEq X]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L) (j : Fin (2 ^ t)) :
+    (Rin.filter
+      (fun p => lab p = labelOfCode j ∧
+        p.1 = alphaOfCode Q Rin lab hNW labelOfCode j)).card =
+      (YofCode Q Rin lab hNW labelOfCode j).card := by
+  classical
+  let i := alphaOfCode Q Rin lab hNW labelOfCode j
+  let s := Rin.filter (fun p => lab p = labelOfCode j ∧ p.1 = i)
+  let u : Finset X :=
+    Finset.univ.filter fun x => (i, x) ∈ Rin ∧ lab (i, x) = labelOfCode j
+  have hcard : s.card = u.card := by
+    refine Finset.card_bij
+      (fun p (_hp : p ∈ s) => p.2)
+      ?hi ?hinj ?hsurj
+    · intro p hp
+      rw [Finset.mem_filter]
+      rw [Finset.mem_filter] at hp
+      refine ⟨Finset.mem_univ p.2, ?_⟩
+      rcases hp with ⟨hR, hlab, hfst⟩
+      cases p with
+      | mk pi px =>
+          simp only at hfst hR hlab ⊢
+          subst pi
+          exact ⟨hR, hlab⟩
+    · intro p hp q hq hpq
+      rw [Finset.mem_filter] at hp hq
+      rcases hp with ⟨_hpR, _hplab, hpfst⟩
+      rcases hq with ⟨_hqR, _hqlab, hqfst⟩
+      cases p with
+      | mk pi px =>
+          cases q with
+          | mk qi qx =>
+              simp only at hpq hpfst hqfst
+              subst px
+              subst pi
+              subst qi
+              rfl
+    · intro x hx
+      rw [Finset.mem_filter] at hx
+      rcases hx with ⟨_hxuniv, hxR, hxlab⟩
+      refine ⟨(i, x), ?_, rfl⟩
+      rw [Finset.mem_filter]
+      exact ⟨hxR, hxlab, rfl⟩
+  simpa [s, u, YofCode, i] using hcard
+
+theorem YofCode_card_ge {ι X : Type*} [Fintype X]
+    [DecidableEq ι] [DecidableEq X]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L) (j : Fin (2 ^ t)) :
+    T0 - (Q.card - 1) * T <=
+      (YofCode Q Rin lab hNW labelOfCode j).card := by
+  have hspec := alphaOfCode_spec Q Rin lab hNW labelOfCode j
+  rw [← dominant_fiber_card_eq_YofCode Q Rin lab hNW labelOfCode j]
+  exact hspec.2.1
+
+theorem YofCode_card_ge_of_lowerBound {ι X : Type*} [Fintype X]
+    [DecidableEq ι] [DecidableEq X]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T K : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L) (j : Fin (2 ^ t))
+    (hK : K <= T0 - (Q.card - 1) * T) :
+    K <= (YofCode Q Rin lab hNW labelOfCode j).card := by
+  exact le_trans hK (YofCode_card_ge Q Rin lab hNW labelOfCode j)
+
+def alphaOfCode_surj_on_Q {ι X : Type*} [DecidableEq ι]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L) : Prop :=
+  ∀ i ∈ Q, ∃ j : Fin (2 ^ t), alphaOfCode Q Rin lab hNW labelOfCode j = i
+
+noncomputable def codeOfAlpha {ι X : Type*} [DecidableEq ι]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L)
+    (hsurj : alphaOfCode_surj_on_Q Q Rin lab hNW labelOfCode)
+    (i : ι) (hi : i ∈ Q) : Fin (2 ^ t) :=
+  Classical.choose (hsurj i hi)
+
+theorem alphaOf_codeOfAlpha {ι X : Type*} [DecidableEq ι]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L)
+    (hsurj : alphaOfCode_surj_on_Q Q Rin lab hNW labelOfCode)
+    (i : ι) (hi : i ∈ Q) :
+    alphaOfCode Q Rin lab hNW labelOfCode
+        (codeOfAlpha Q Rin lab hNW labelOfCode hsurj i hi) = i :=
+  Classical.choose_spec (hsurj i hi)
+
+noncomputable def Yalpha {ι X : Type*} [Fintype X]
+    [DecidableEq ι] [DecidableEq X]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L)
+    (hsurj : alphaOfCode_surj_on_Q Q Rin lab hNW labelOfCode)
+    (i : ι) (hi : i ∈ Q) : Finset X :=
+  YofCode Q Rin lab hNW labelOfCode
+    (codeOfAlpha Q Rin lab hNW labelOfCode hsurj i hi)
+
+theorem Yalpha_card_ge {ι X : Type*} [Fintype X]
+    [DecidableEq ι] [DecidableEq X]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L)
+    (hsurj : alphaOfCode_surj_on_Q Q Rin lab hNW labelOfCode)
+    (i : ι) (hi : i ∈ Q) :
+    T0 - (Q.card - 1) * T <=
+      (Yalpha Q Rin lab hNW labelOfCode hsurj i hi).card := by
+  exact YofCode_card_ge Q Rin lab hNW labelOfCode
+    (codeOfAlpha Q Rin lab hNW labelOfCode hsurj i hi)
+
+theorem Yalpha_card_ge_of_lowerBound {ι X : Type*} [Fintype X]
+    [DecidableEq ι] [DecidableEq X]
+    {L t : Nat} (Q : Finset ι) (Rin : Finset (ι × X))
+    (lab : ι × X -> Fin L) {T0 T K : Nat}
+    (hNW : NoWasteConclusion Q Rin lab T0 T)
+    (labelOfCode : Fin (2 ^ t) -> Fin L)
+    (hsurj : alphaOfCode_surj_on_Q Q Rin lab hNW labelOfCode)
+    (i : ι) (hi : i ∈ Q)
+    (hK : K <= T0 - (Q.card - 1) * T) :
+    K <= (Yalpha Q Rin lab hNW labelOfCode hsurj i hi).card := by
+  exact le_trans hK
+    (Yalpha_card_ge Q Rin lab hNW labelOfCode hsurj i hi)
+
+-- CLAIM-END aux:branch-constructors-3

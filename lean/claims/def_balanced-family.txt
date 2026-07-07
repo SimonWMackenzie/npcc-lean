@@ -1,0 +1,17 @@
+-- CLAIM-BEGIN def:balanced-family
+/-- Paper `def:balanced-columns` ((q,t)-balanced column family with accuracy
+`ε`), typed over an INDEXED family `S : Fin L → (Fin q → Y)` (multiplicity
+counts: the probability is over the uniform index `j : Fin L`). The paper's
+two-sided bound `Pr[𝐲|_J = 𝐚] = |Y|^{-|J|} ± ε·|Y|^{-|J|}` is the absolute-
+value inequality below; patterns are quantified as total functions read only
+on `J`. `L > 0` is carried by the predicate so the probability is
+well-formed. -/
+def IsBalancedFamily {Y : Type*} [DecidableEq Y] [Fintype Y]
+    {q L : ℕ} (t : ℕ) (S : Fin L → Fin q → Y) (ε : ℝ) : Prop :=
+  0 < L ∧
+  ∀ J : Finset (Fin q), J.card ≤ t → ∀ a : Fin q → Y,
+    |((Finset.univ.filter
+          (fun j : Fin L => ∀ γ ∈ J, S j γ = a γ)).card : ℝ) / (L : ℝ)
+      - 1 / (Fintype.card Y : ℝ) ^ J.card|
+    ≤ ε / (Fintype.card Y : ℝ) ^ J.card
+-- CLAIM-END def:balanced-family

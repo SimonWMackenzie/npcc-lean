@@ -1,0 +1,66 @@
+-- CLAIM-BEGIN aux:m3-sync
+/-- Ambient Stage-3 synchronization data in the exact branch shape consumed by
+`M3FuzzyLeavesData`.
+
+The theorem below packages the output of the budget synchronization step once
+that step has supplied Bob-onlyness on each ambient bin residual.  It is local
+to Stage 3 because the depth, indexing, and target game are the `M3` ones. -/
+structure M3AmbientSyncData
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2) where
+  dimBranch :
+    Fin 4 -> Fin (Params.q2 d) ->
+      Protocol.BranchAt P (M3 d) (2 + Nat.clog 2 (Params.q2 d))
+  dim_sideTrace :
+    forall p alpha,
+      (dimBranch p alpha).sideTrace =
+        (binBranch p).sideTrace ++
+          List.replicate (Nat.clog 2 (Params.q2 d))
+            Protocol.ActualBitSide.bob
+  dim_extends :
+    forall p alpha, Protocol.BranchExtends (binBranch p) (dimBranch p alpha)
+
+/-- Consumer-shaped ambient synchronization for Stage 3.
+
+Given a depth-2 ambient bin branch and, below it, a synchronized Bob-only
+segment of length `clog q2` with one live code for each `alpha`, compose the two
+actual branches into ambient depth `2 + clog q2` branches.  The proof is the
+live `BranchAt.compose_colPrefix` constructor plus the promoted side-trace and
+extension lemmas. -/
+theorem M3_ambient_sync_from_colPrefix
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (codeOfAlpha :
+      Fin 4 -> Fin (Params.q2 d) -> Fin (2 ^ Nat.clog 2 (Params.q2 d)))
+    (hcol : forall p,
+      Protocol.FirstKColBitsOn
+        (Finset.univ : Finset {a // a ∈ (binBranch p).rows})
+        (Finset.univ : Finset {b // b ∈ (binBranch p).cols})
+        (Nat.clog 2 (Params.q2 d)) (binBranch p).residual)
+    (hcols : forall p alpha,
+      (Protocol.colPrefixCols (Nat.clog 2 (Params.q2 d))
+        (binBranch p).residual (codeOfAlpha p alpha)).Nonempty) :
+    Nonempty (M3AmbientSyncData d P binBranch) := by
+  refine ⟨
+    { dimBranch := fun p alpha =>
+        Protocol.BranchAt.compose_colPrefix (binBranch p) (codeOfAlpha p alpha)
+          (hcol p) (hcols p alpha)
+      dim_sideTrace := ?_
+      dim_extends := ?_ }⟩
+  · intro p alpha
+    unfold Protocol.BranchAt.compose_colPrefix Protocol.BranchAt.compose
+    simp [Protocol.mkBranchAt_of_colPrefix, Protocol.branchAt_of_swap,
+      Protocol.mkBranchAt_of_rowPrefix, Protocol.ActualBitSide.swap]
+  · intro p alpha
+    exact Protocol.BranchAt.branchExtends_compose_left
+      (binBranch p)
+      (Protocol.mkBranchAt_of_colPrefix
+        (binBranch p).residual
+        (subgame (M3 d) (binBranch p).rows (binBranch p).cols)
+        (Nat.clog 2 (Params.q2 d)) (codeOfAlpha p alpha)
+        (hcol p) (binBranch p).residual_computes
+        (by
+          obtain ⟨a, ha⟩ := (binBranch p).rows_nonempty
+          exact ⟨⟨a, ha⟩, Finset.mem_univ _⟩)
+        (hcols p alpha))
+-- CLAIM-END aux:m3-sync

@@ -1,0 +1,80 @@
+-- CLAIM-BEGIN aux:m3-budget
+/-- The exact ambient target that the Stage-3 budget-forces-structure argument
+must supply to the `aux:m3-sync` adapter.
+
+The first field is the desired survivor-guarded Bob-only shape of every bin
+residual.  The second field is the per-alpha live column-prefix witness needed
+by `Protocol.mkBranchAt_of_colPrefix`. -/
+def M3BudgetColumnTarget
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (codeOfAlpha :
+      Fin 4 -> Fin (Params.q2 d) -> Fin (2 ^ Nat.clog 2 (Params.q2 d))) :
+    Prop :=
+  (forall p,
+    Protocol.FirstKColBitsOn
+      (Finset.univ : Finset {a // a ∈ (binBranch p).rows})
+      (Finset.univ : Finset {b // b ∈ (binBranch p).cols})
+      (Nat.clog 2 (Params.q2 d)) (binBranch p).residual) ∧
+  (forall p alpha,
+    (Protocol.colPrefixCols (Nat.clog 2 (Params.q2 d))
+      (binBranch p).residual (codeOfAlpha p alpha)).Nonempty)
+
+/-- Certified budget ledger for an ambient Stage-3 bin residual.
+
+After the two actual bin bits, every residual has cost at most `D (M2 d)`.
+This is the exact cost side of the intended stopping-time contradiction; the
+missing part is the structural induction that turns this tight residual budget
+and the dense Stage-2 floors into `M3BudgetColumnTarget`. -/
+theorem M3_binResidual_cost_le_M2
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (hcost : P.cost <= D (M2 d) + 2) :
+    forall p, (binBranch p).residual.cost <= D (M2 d) := by
+  intro p
+  have hbranch : 2 + (binBranch p).residual.cost <= P.cost :=
+    (binBranch p).cost_after_actualBits
+  omega
+
+/-- Each ambient bin residual is an explicit protocol for its induced Stage-3
+subgame, so its subgame complexity is bounded by the residual cost. -/
+theorem M3_binResidual_subgame_D_le_cost
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2) :
+    forall p,
+      D (subgame (M3 d) (binBranch p).rows (binBranch p).cols) <=
+        (binBranch p).residual.cost := by
+  intro p
+  have hmem :
+      (binBranch p).residual.cost ∈
+        AchievableCosts
+          (subgame (M3 d) (binBranch p).rows (binBranch p).cols) := by
+    exact ⟨(binBranch p).residual, rfl, (binBranch p).residual_computes⟩
+  simpa [D] using Nat.sInf_le hmem
+
+/-- Combined certified budget consequence for the induced bin subgames. -/
+theorem M3_binResidual_subgame_D_le_M2
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (hcost : P.cost <= D (M2 d) + 2) :
+    forall p,
+      D (subgame (M3 d) (binBranch p).rows (binBranch p).cols) <=
+        D (M2 d) := by
+  intro p
+  exact le_trans
+    (M3_binResidual_subgame_D_le_cost d P binBranch p)
+    (M3_binResidual_cost_le_M2 d P binBranch hcost p)
+
+/-- Once the missing budget column target has been proved, the live sync
+adapter immediately returns the ambient branch family. -/
+theorem M3_ambient_sync_from_budget_target
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (codeOfAlpha :
+      Fin 4 -> Fin (Params.q2 d) -> Fin (2 ^ Nat.clog 2 (Params.q2 d)))
+    (htarget : M3BudgetColumnTarget d P binBranch codeOfAlpha) :
+    Nonempty (M3AmbientSyncData d P binBranch) := by
+  exact
+    M3_ambient_sync_from_colPrefix d P binBranch codeOfAlpha
+      htarget.1 htarget.2
+-- CLAIM-END aux:m3-budget

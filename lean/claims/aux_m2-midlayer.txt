@@ -1,0 +1,73 @@
+-- CLAIM-BEGIN aux:m2-midlayer
+/-- Stage-2 `q₂` is a power of two by construction, with the exact `clog`
+exponent.  This is the local Stage-2 copy of the bridge used by the direct
+row-index protocol. -/
+private theorem q2_eq_two_pow_clog_stage2 (d : ℕ) :
+    Params.q2 d = 2 ^ Nat.clog 2 (Params.q2 d) := by
+  have h : Nat.clog 2 (Params.q2 d) = Nat.clog 2 d := by
+    rw [show Params.q2 d = 2 ^ Nat.clog 2 d from rfl,
+      Nat.clog_pow 2 _ one_lt_two]
+  rw [h]
+  rfl
+
+/-- Direct Stage-2 upper bound: Alice announces the outer Stage-2 row index
+and the remaining branch maps each Stage-2 column to the corresponding
+`M1T` column. -/
+theorem M2_upper_bound (d : ℕ)
+    (hclog : Nat.clog 2 (Params.q2 d) = Nat.log 2 (Params.q2 d)) :
+    D (M2 d) ≤ D (M1 d) + Nat.log 2 (Params.q2 d) := by
+  classical
+  let Qlog := Nat.clog 2 (Params.q2 d)
+  have hqpow : Params.q2 d = 2 ^ Qlog := q2_eq_two_pow_clog_stage2 d
+  let σ : R2 d → Fin (2 ^ Qlog) := fun r => Fin.cast hqpow r.1
+  have hpart : D (M2 d) ≤ Qlog + D (M1 d) := by
+    refine comp_le_partition (M2 d) Qlog (D (M1 d)) σ ?_
+    intro k
+    let α : Fin (Params.q2 d) := Fin.cast hqpow.symm k
+    have hmap :
+        D (fun (x : {x : R2 d // σ x = k}) (c : C2 d) =>
+          M1T d x.val.2 (S2fam d c α)) ≤ D (M1T d) :=
+      D_mapNodes_le (M1T d)
+        (fun x : {x : R2 d // σ x = k} => x.val.2)
+        (fun c : C2 d => S2fam d c α)
+    have hbranch :
+        (fun (x : {x : R2 d // σ x = k}) (c : C2 d) => M2 d x.val c)
+          =
+        (fun (x : {x : R2 d // σ x = k}) (c : C2 d) =>
+          M1T d x.val.2 (S2fam d c α)) := by
+      funext x c
+      have hxα : α = x.val.1 := by
+        dsimp [α, σ] at x ⊢
+        simpa using (congrArg (Fin.cast hqpow.symm) x.property).symm
+      rw [M2_apply, M1T, ← hxα]
+    have hswap : D (M1T d) = D (M1 d) := by
+      simpa [M1T] using comp_transpose (M1 d)
+    simpa [hbranch, hswap] using hmap
+  dsimp [Qlog] at hpart
+  rw [hclog] at hpart
+  omega
+
+/-- Copy-count bridge for the Stage-2 hard seed.  Under the expected large-`d`
+gate `5 ≤ log t2`, the hard-seed copy count is `(9 * t2) / 16`. -/
+theorem M2_hard_seed_copies_eq_nine_mul_t2_div_sixteen (d : ℕ)
+    (hlogt : 5 ≤ Nat.log 2 (Params.t2 d)) :
+    M2_hard_seed_copies d = (9 * Params.t2 d) / 16 := by
+  let n := Nat.log 2 (Params.t2 d)
+  have ht : Params.t2 d = 2 ^ n := by
+    simpa [n] using t2_eq_two_pow_log d
+  have hsplit : 2 ^ n = 32 * 2 ^ (n - 5) := by
+    have hn : n = 5 + (n - 5) := by omega
+    rw [hn, pow_add]
+    norm_num
+  have hdiv :
+      (9 * (32 * 2 ^ (n - 5))) / 16 = 18 * 2 ^ (n - 5) := by
+    rw [show 9 * (32 * 2 ^ (n - 5)) = 16 * (18 * 2 ^ (n - 5)) by ring]
+    rw [mul_comm 16 (18 * 2 ^ (n - 5))]
+    exact Nat.mul_div_left _ (by norm_num : 0 < 16)
+  calc
+    M2_hard_seed_copies d = 18 * 2 ^ (n - 5) := by
+      simp [M2_hard_seed_copies, Params.jSurplus, n]
+    _ = (9 * (32 * 2 ^ (n - 5))) / 16 := hdiv.symm
+    _ = (9 * 2 ^ n) / 16 := by rw [hsplit]
+    _ = (9 * Params.t2 d) / 16 := by rw [ht]
+-- CLAIM-END aux:m2-midlayer

@@ -1,0 +1,149 @@
+-- CLAIM-BEGIN aux:branch-constructors
+noncomputable def mkBranchAt_of_rowPrefix [Fintype A] [Fintype B]
+    (P : Protocol A B Bool) (G : A → B → Bool) (t : Nat) (j : Fin (2 ^ t))
+    (hrow : Protocol.FirstKRowBitsOn
+      (Finset.univ : Finset A) (Finset.univ : Finset B) t P)
+    (hP : P.Computes G)
+    (hrows : (Protocol.rowPrefixRows t P j).Nonempty)
+    (hcols : (Finset.univ : Finset B).Nonempty) :
+    Protocol.BranchAt P G t where
+  rows := Protocol.rowPrefixRows t P j
+  cols := (Finset.univ : Finset B)
+  transcript := j
+  sideTrace := List.replicate t Protocol.ActualBitSide.alice
+  residual :=
+    Protocol.restrictSub (Protocol.rowPrefixRows t P j)
+      (Finset.univ : Finset B)
+      (Protocol.actualSubtreeAtRaw t P j)
+  rows_nonempty := hrows
+  cols_nonempty := hcols
+  sideTrace_length := by simp
+  sideTrace_eq := by
+    intro a ha b hb
+    exact Protocol.actualSideListRaw_eq_replicate_alice_of_firstKRowBitsOn
+      (Finset.univ : Finset A) (Finset.univ : Finset B) t P hrow
+      (Finset.mem_univ a) (Finset.mem_univ b)
+  rectangle_transcript := by
+    intro a ha b hb
+    have hprefix : Protocol.prefixCodeRaw t P a = j := by
+      exact (Finset.mem_filter.mp ha).2
+    calc
+      Protocol.actualPrefixCodeRaw t P a b =
+          Protocol.prefixCodeRaw t P a := by
+            exact Protocol.actualPrefixCodeRaw_eq_prefixCodeRaw_of_firstKRowBitsOn
+              (Finset.univ : Finset A) (Finset.univ : Finset B) t P hrow
+              (Finset.mem_univ a) (Finset.mem_univ b)
+      _ = j := hprefix
+  rows_reachable := by
+    intro a
+    constructor
+    · intro ha
+      obtain ⟨b0, hb0⟩ := hcols
+      refine ⟨b0, hb0, ?_⟩
+      have hprefix : Protocol.prefixCodeRaw t P a = j := (Finset.mem_filter.mp ha).2
+      calc
+        Protocol.actualPrefixCodeRaw t P a b0 =
+            Protocol.prefixCodeRaw t P a := by
+              exact Protocol.actualPrefixCodeRaw_eq_prefixCodeRaw_of_firstKRowBitsOn
+                (Finset.univ : Finset A) (Finset.univ : Finset B) t P hrow
+                (Finset.mem_univ a) (Finset.mem_univ b0)
+        _ = j := hprefix
+    · rintro ⟨b, hb, hcode⟩
+      rw [Protocol.rowPrefixRows, Finset.mem_filter]
+      refine ⟨Finset.mem_univ a, ?_⟩
+      calc
+        Protocol.prefixCodeRaw t P a =
+            Protocol.actualPrefixCodeRaw t P a b := by
+              exact (Protocol.actualPrefixCodeRaw_eq_prefixCodeRaw_of_firstKRowBitsOn
+                (Finset.univ : Finset A) (Finset.univ : Finset B) t P hrow
+                (Finset.mem_univ a) (Finset.mem_univ b)).symm
+        _ = j := hcode
+  cols_reachable := by
+    intro b
+    constructor
+    · intro hb
+      obtain ⟨a0, ha0⟩ := hrows
+      refine ⟨a0, ha0, ?_⟩
+      have hprefix : Protocol.prefixCodeRaw t P a0 = j := (Finset.mem_filter.mp ha0).2
+      calc
+        Protocol.actualPrefixCodeRaw t P a0 b =
+            Protocol.prefixCodeRaw t P a0 := by
+              exact Protocol.actualPrefixCodeRaw_eq_prefixCodeRaw_of_firstKRowBitsOn
+                (Finset.univ : Finset A) (Finset.univ : Finset B) t P hrow
+                (Finset.mem_univ a0) (Finset.mem_univ b)
+        _ = j := hprefix
+    · rintro ⟨a, ha, hcode⟩
+      exact Finset.mem_univ b
+  residual_eq_actual := rfl
+  residual_eval_eq := by
+    intro a b
+    rw [Protocol.eval_restrictSub]
+    rw [Protocol.actualSubtreeAtRaw_eq_rowSubtreeAtRaw_of_firstKRowBitsOn
+      (Finset.univ : Finset A) (Finset.univ : Finset B) t P j hrow hrows hcols]
+    exact Protocol.eval_rowSubtreeAtRaw_eq_of_prefix
+      (Finset.univ : Finset A) (Finset.univ : Finset B) t P j hrow
+      (Finset.mem_univ a.val) (Finset.mem_univ b.val)
+      (by exact (Finset.mem_filter.mp a.2).2)
+  residual_computes := by
+    intro a b
+    rw [Protocol.eval_restrictSub]
+    have heval :=
+      Protocol.eval_rowSubtreeAtRaw_eq_of_prefix
+        (Finset.univ : Finset A) (Finset.univ : Finset B) t P j hrow
+        (Finset.mem_univ a.val) (Finset.mem_univ b.val)
+        (by
+          have hprefix : Protocol.prefixCodeRaw t P a.val = j :=
+            (Finset.mem_filter.mp a.2).2
+          exact hprefix)
+    rw [← Protocol.actualSubtreeAtRaw_eq_rowSubtreeAtRaw_of_firstKRowBitsOn
+      (Finset.univ : Finset A) (Finset.univ : Finset B) t P j hrow
+      ?_ hcols] at heval
+    · rw [heval]
+      simpa [NPCC.subgame] using hP a.val b.val
+    · exact hrows
+  restricted_residual_computes := by
+    exact Protocol.computes_restrictSub_restrict
+      (Protocol.rowPrefixRows t P j) (Finset.univ : Finset B) P hP
+  restrict_evalDepth_ledger := by
+    intro a ha b hb
+    exact Protocol.evalDepth_restrict_add_foldCount_of_mem
+      (Protocol.rowPrefixRows t P j) (Finset.univ : Finset B) P ha hb
+  actualDepth_eq := by
+    intro a ha b hb
+    have hcode : Protocol.actualPrefixCodeRaw t P a b = j := by
+      have hprefix : Protocol.prefixCodeRaw t P a = j := (Finset.mem_filter.mp ha).2
+      calc
+        Protocol.actualPrefixCodeRaw t P a b =
+            Protocol.prefixCodeRaw t P a := by
+              exact Protocol.actualPrefixCodeRaw_eq_prefixCodeRaw_of_firstKRowBitsOn
+                (Finset.univ : Finset A) (Finset.univ : Finset B) t P hrow
+                (Finset.mem_univ a) (Finset.mem_univ b)
+        _ = j := hprefix
+    rw [Protocol.evalDepth_restrictSub]
+    exact Protocol.evalDepth_eq_add_actualSubtreeAtRaw_of_firstKRowBitsOn
+      (Finset.univ : Finset A) (Finset.univ : Finset B) t P j hrow
+      (Finset.mem_univ a) (Finset.mem_univ b) hcode
+  cost_after_actualBits := by
+    rw [Protocol.cost_restrictSub]
+    have hcost :=
+      Protocol.actualSubtreeAtRaw_cost_le_of_firstKRowBitsOn
+        (Finset.univ : Finset A) (Finset.univ : Finset B) t P j hrow hrows hcols
+    obtain ⟨a0, ha0⟩ := hrows
+    obtain ⟨b0, hb0⟩ := hcols
+    have hcode : Protocol.actualPrefixCodeRaw t P a0 b0 = j := by
+      have hprefix : Protocol.prefixCodeRaw t P a0 = j := (Finset.mem_filter.mp ha0).2
+      calc
+        Protocol.actualPrefixCodeRaw t P a0 b0 =
+            Protocol.prefixCodeRaw t P a0 := by
+              exact Protocol.actualPrefixCodeRaw_eq_prefixCodeRaw_of_firstKRowBitsOn
+                (Finset.univ : Finset A) (Finset.univ : Finset B) t P hrow
+                (Finset.mem_univ a0) (Finset.mem_univ b0)
+        _ = j := hprefix
+    have hdepth :=
+      Protocol.evalDepth_eq_add_actualSubtreeAtRaw_of_firstKRowBitsOn
+        (Finset.univ : Finset A) (Finset.univ : Finset B) t P j hrow
+        (Finset.mem_univ a0) (Finset.mem_univ b0) hcode
+    have hdepth_le := Protocol.evalDepth_le_cost P a0 b0
+    have ht_le : t ≤ P.cost := by omega
+    omega
+-- CLAIM-END aux:branch-constructors

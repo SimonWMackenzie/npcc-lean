@@ -1,0 +1,16 @@
+-- CLAIM-BEGIN aux:upper-row-id
+/-- Row-identification upper bound (the reduction's "direct protocol"; no
+paper label). If the rows of `g : A → B → Bool` factor through at most `2 ^ a`
+distinct row behaviours — a row-type map `τ : A → Fin (2 ^ a)` and a table
+`ρ : Fin (2 ^ a) → B → Bool` of class behaviours with `g x y = ρ (τ x) y` —
+and each class behaviour, viewed as the one-row game
+`fun (_ : Unit) y => ρ k y`, admits a protocol of depth at most `c`, then
+`D g ≤ a + c`: Alice announces the `a` bits of her row type, then the parties
+run the class subprotocol. The ledger's `a + 1` headline is the `c = 1`
+instance (Bob answers the single bit), `comp_le_of_row_types_succ`. -/
+theorem comp_le_of_row_types {A B : Type*} [Fintype A] [Fintype B]
+    (g : A → B → Bool) (a c : ℕ) (τ : A → Fin (2 ^ a)) (ρ : Fin (2 ^ a) → B → Bool)
+    (hτ : ∀ x y, g x y = ρ (τ x) y)
+    (hρ : ∀ k, D (fun (_ : Unit) (y : B) => ρ k y) ≤ c) :
+    D g ≤ a + c :=
+-- CLAIM-END aux:upper-row-id

@@ -1,0 +1,9 @@
+-- CLAIM-BEGIN cor:M1-complexity
+/-- Paper `cor:M1-complexity`: at the Stage-1 large-`d` gate,
+`comp M1 = comp M0 + log t1 + log r1 = a + 1 = B_cap`. The lower bound is
+`M1_low_column_stage2` on the canonical full-density `r' = r1` slice; the
+upper bound is the row-identification protocol. -/
+theorem M1_complexity (d : ℕ) (hpow : IsPow2 d)
+    (hlog : 64 ≤ Nat.log 2 d) :
+    D (M1 d) = Params.a d + 1 := by
+-- CLAIM-END cor:M1-complexity

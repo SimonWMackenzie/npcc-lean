@@ -1,0 +1,14 @@
+-- CLAIM-BEGIN cor:power-of-two
+/-- Paper `cor:power-of-two` (Power-of-two lower bound): for `(δ,b)`-robust
+`f` with `1 ≤ b`, `D f ≥ 2` (F1 guard) and `y₀ = (1/2+δ)²`: every power of
+two `u = 2^w` with `2 ≤ u ≤ 2^b` (rendered by the exponent: `1 ≤ w`,
+`w ≤ b`) satisfies `comp⟨f, 2^w, 2^w·2^{−b}, y₀⟩ ≥ D f + w` (the paper's
+`comp M + log u`). -/
+theorem power_of_two_lower {X Y : Type*} [Fintype X] [Fintype Y]
+    {f : X → Y → Bool} {δ b : ℝ}
+    (h : IsRobust f δ b) (hb : 1 ≤ b) (hδ0 : 0 < δ) (hδ : δ ≤ 1 / 2)
+    (hD : 2 ≤ D f) (w : ℕ) (hw1 : 1 ≤ w) (hwb : (w : ℝ) ≤ b) :
+    D f + w ≤ Dfamily (interlaceFun f (2 ^ w))
+      (bracketGE X Y (2 ^ w)
+        ((2 : ℝ) ^ (w : ℕ) * (2 : ℝ) ^ (-b)) ((1 / 2 + δ) ^ 2)) :=
+-- CLAIM-END cor:power-of-two

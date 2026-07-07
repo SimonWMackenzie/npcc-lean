@@ -1,0 +1,19 @@
+-- CLAIM-BEGIN lem:two-copy-ladder
+/-- Paper `lem:two-copy-ladder`: one-copy lower bounds at the three coupled
+densities `y, y/2, y/4` (levels `H, H−1, H−2`, `H` real) lift through the
+two-copy interlace to bounds at row density `2x` and densities
+`y², y²/2, y²/4` (levels `H+1, H, H−1`). The paper's `M` is any Boolean
+matrix — here any typed game `f` over Fintypes; `comp⟨M,k,·,·⟩` is
+`Dfamily (interlaceFun f k) (bracketGE X Y k · ·)`; comparisons are ℝ-cast
+since `H ∈ ℝ` (the paper's convention). Hypothesis order matches the paper:
+`0 < x ≤ 1/2`, `0 < y ≤ 1`. -/
+theorem two_copy_ladder {X Y : Type*} [Fintype X] [Fintype Y]
+    (f : X → Y → Bool) {x y H : ℝ}
+    (hx0 : 0 < x) (hx : x ≤ 1 / 2) (hy0 : 0 < y) (hy1 : y ≤ 1)
+    (h4 : H - 2 ≤ (Dfamily (interlaceFun f 1) (bracketGE X Y 1 x (y / 4)) : ℝ))
+    (h2 : H - 1 ≤ (Dfamily (interlaceFun f 1) (bracketGE X Y 1 x (y / 2)) : ℝ))
+    (h1 : H ≤ (Dfamily (interlaceFun f 1) (bracketGE X Y 1 x y) : ℝ)) :
+    H - 1 ≤ (Dfamily (interlaceFun f 2) (bracketGE X Y 2 (2 * x) (y ^ 2 / 4)) : ℝ) ∧
+    H ≤ (Dfamily (interlaceFun f 2) (bracketGE X Y 2 (2 * x) (y ^ 2 / 2)) : ℝ) ∧
+    H + 1 ≤ (Dfamily (interlaceFun f 2) (bracketGE X Y 2 (2 * x) (y ^ 2)) : ℝ) :=
+-- CLAIM-END lem:two-copy-ladder

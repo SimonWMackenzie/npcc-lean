@@ -1,0 +1,220 @@
+-- CLAIM-BEGIN lem:M2-robust
+theorem M2_robust (d : ℕ) (hpow : IsPow2 d)
+    (hlog256 : 256 ≤ Nat.log 2 d)
+    (hlarge : Checklist d)
+    (hm0_le : (Classical.choose
+        (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+          Params.delta (by norm_num [Params.delta])
+          (by norm_num [Params.delta])) : ℕ) ≤ Nat.log 2 (Params.t2 d))
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hp1 : 2 ^ M2_T d ≤ 2 * M2_hard_seed_copies d)
+    (hp2 : M2_hard_seed_copies d ≤ 2 ^ M2_T d)
+    (hxseed_le_one : M2_hard_seed_rowDensity d ≤ 1)
+    (hrow_threshold :
+      ⌈(2 : ℝ) ^ (Nat.log 2 (Params.r2 d) : ℕ) *
+        M2_hard_seed_rowDensity d * (Fintype.card (C1 d) : ℝ)⌉₊
+          ≤ Fintype.card (C1 d))
+    (hseed_bridge : M2_hard_seed_columnDensity d ≤
+      Params.h2 d *
+        (2 : ℝ) ^ (-((M2_T d + D (M1T d) : ℕ) : ℝ)) /
+          (1 + epsQT (Params.q2 d) (Params.t2 d)))
+    (hy_le_one : M1_stage2_terminal_density d ≤ 1)
+    (hrowTerm : 9 * Params.t1 d ≤
+      16 * ⌈(Fintype.card (R1 d) : ℝ) * M1_stage2_terminal_density d⌉₊)
+    (hcolTerm : (2 : ℝ) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : ℤ))
+        * (Fintype.card (C1 d) : ℝ) ≤
+      (⌈(Fintype.card (C1 d) : ℝ) *
+        ((2 : ℝ) ^ (-(Params.b1 d : ℤ)))⌉₊ : ℝ))
+    (hresidual_density : ∀ c ≤ M2_T d + D (M1T d),
+      1 / 2 + Params.delta ≤
+          yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c ∧
+        yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c ≤ 1)
+    (hRlog_ge2 : 2 ≤ Nat.log 2 (Params.r2 d))
+    (hx_top : (2 : ℝ) ^ Nat.log 2 (Params.r2 d) *
+        M2_hard_seed_rowDensity d ≤ 1 / 2 + Params.delta)
+    (hx_mid : (2 : ℝ) ^ (Nat.log 2 (Params.r2 d) - 1) *
+        M2_hard_seed_rowDensity d ≤ 1 / 4 + Params.delta / 2)
+    (hx_low : (2 : ℝ) ^ (Nat.log 2 (Params.r2 d) - 2) *
+        M2_hard_seed_rowDensity d ≤ 1 / 8 + Params.delta / 4)
+    (hbalance_top :
+      M2_robust_balance_gate d (Nat.log 2 (Params.r2 d)) (1 / 2 + Params.delta))
+    (hbalance_mid :
+      M2_robust_balance_gate d (Nat.log 2 (Params.r2 d) - 1)
+        (1 / 4 + Params.delta / 2))
+    (hbalance_low :
+      M2_robust_balance_gate d (Nat.log 2 (Params.r2 d) - 2)
+        (1 / 8 + Params.delta / 4)) :
+    IsRobust (fun (c : C2 d) (r : R2 d) => M2 d r c) Params.delta (Params.b2 d) := by
+  classical
+  let MT : C2 d → R2 d → Bool := fun c r => M2 d r c
+  change IsRobust MT Params.delta (Params.b2 d)
+  let T : ℕ := M2_T d
+  let R : ℕ := Nat.log 2 (Params.r2 d)
+  have hlog64 : 64 ≤ Nat.log 2 d := by omega
+  have hqcast : 2 ^ (R + T) = Params.q2 d := by
+    calc
+      2 ^ (R + T) = 2 ^ R * 2 ^ T := by rw [pow_add]
+      _ = Params.r2 d * Params.t2 d := by
+        dsimp [R, T]
+        rw [← hr2pow, ← t2_eq_two_pow_M2_T d]
+      _ = Params.q2 d := hlarge.q2_eq.symm
+  have hQeq : R + T = Nat.log 2 (Params.q2 d) := by
+    rw [← hqcast, log_two_pow]
+  have hM1comp : D (M1 d) = Params.a d + 1 := M1_complexity d hpow hlog64
+  have hcomp := M2_complexity d hpow hlog256 hlarge hm0_le hr2pow hp1 hp2
+    hxseed_le_one hrow_threshold hseed_bridge hy_le_one hrowTerm hcolTerm
+    hresidual_density
+  have htr : D MT = D (M2 d) := by
+    simpa [MT] using comp_transpose (M2 d)
+  have hswap : D (M1T d) = D (M1 d) := by
+    simpa [M1T] using comp_transpose (M1 d)
+  have hh0 : 0 < Params.h2 d := Params.h2_pos
+  have hh1 : Params.h2 d ≤ 1 := by
+    unfold Params.h2
+    rw [two_zpow_neg_nat_eq_rpow_neg_nat_stage2 (Params.b2 d)]
+    apply Real.rpow_le_one_of_one_le_of_nonpos (by norm_num : (1 : ℝ) ≤ 2)
+    exact neg_nonpos.mpr (Nat.cast_nonneg _)
+  have hC1card_pos : 0 < Fintype.card (C1 d) := by
+    simpa [C1, Fintype.card_fin] using L1_pos d hlarge.t1_le_q1_add_five
+  have hR2card : 1 ≤ Fintype.card (R2 d) := by
+    exact Nat.succ_le_of_lt (by
+      simpa [R2, C1, Fintype.card_prod, Fintype.card_fin] using
+        Nat.mul_pos (Params.q2_pos d) hC1card_pos)
+  have hC2card : 1 ≤ Fintype.card (C2 d) := by
+    simpa [C2, Fintype.card_fin] using
+      L2_pos d hlarge.t2_le_q2 hlarge.one_le_q1
+  have htop_orig : D (M1T d) + (R + T) ≤
+      Dfamily (interlaceFun (M2 d) 1)
+        (bracketGE (R2 d) (C2 d) 1 (1 / 2 + Params.delta) (Params.h2 d)) := by
+    simpa [R, T] using
+      M2_family_lower_from_localized d hpow hlog256 hlarge hm0_le hr2pow hp1 hp2
+        hxseed_le_one hseed_bridge hy_le_one hrowTerm hcolTerm hresidual_density
+        (β := 1 / 2 + Params.delta) (R'e := Nat.log 2 (Params.r2 d))
+        (le_refl _) (by norm_num [Params.delta]) (by norm_num [Params.delta])
+        hx_top hbalance_top
+  have hmid_orig : D (M1T d) + ((R - 1) + T) ≤
+      Dfamily (interlaceFun (M2 d) 1)
+        (bracketGE (R2 d) (C2 d) 1 (1 / 4 + Params.delta / 2) (Params.h2 d)) := by
+    simpa [R, T] using
+      M2_family_lower_from_localized d hpow hlog256 hlarge hm0_le hr2pow hp1 hp2
+        hxseed_le_one hseed_bridge hy_le_one hrowTerm hcolTerm hresidual_density
+        (β := 1 / 4 + Params.delta / 2) (R'e := Nat.log 2 (Params.r2 d) - 1)
+        (by omega) (by norm_num [Params.delta]) (by norm_num [Params.delta])
+        hx_mid hbalance_mid
+  have hlow_orig : D (M1T d) + ((R - 2) + T) ≤
+      Dfamily (interlaceFun (M2 d) 1)
+        (bracketGE (R2 d) (C2 d) 1 (1 / 8 + Params.delta / 4) (Params.h2 d)) := by
+    simpa [R, T] using
+      M2_family_lower_from_localized d hpow hlog256 hlarge hm0_le hr2pow hp1 hp2
+        hxseed_le_one hseed_bridge hy_le_one hrowTerm hcolTerm hresidual_density
+        (β := 1 / 8 + Params.delta / 4) (R'e := Nat.log 2 (Params.r2 d) - 2)
+        (by omega) (by norm_num [Params.delta]) (by norm_num [Params.delta])
+        hx_low hbalance_low
+  have htrans_top :=
+    Dfamily_one_transpose (M2 d)
+      (x := 1 / 2 + Params.delta) (y := Params.h2 d)
+      (by norm_num [Params.delta]) (by norm_num [Params.delta])
+      hh0 hh1 hR2card hC2card
+  have htrans_mid :=
+    Dfamily_one_transpose (M2 d)
+      (x := 1 / 4 + Params.delta / 2) (y := Params.h2 d)
+      (by norm_num [Params.delta]) (by norm_num [Params.delta])
+      hh0 hh1 hR2card hC2card
+  have htrans_low :=
+    Dfamily_one_transpose (M2 d)
+      (x := 1 / 8 + Params.delta / 4) (y := Params.h2 d)
+      (by norm_num [Params.delta]) (by norm_num [Params.delta])
+      hh0 hh1 hR2card hC2card
+  unfold IsRobust
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · rw [htr, hcomp, hM1comp]
+    omega
+  · have htop_nat : D MT ≤
+        Dfamily (interlaceFun (M2 d) 1)
+          (bracketGE (R2 d) (C2 d) 1 (1 / 2 + Params.delta) (Params.h2 d)) := by
+      rw [htr, hcomp, ← hQeq, ← hswap]
+      exact htop_orig
+    have htop_trans : D MT ≤
+        Dfamily (interlaceFun MT 1)
+          (bracketGE (C2 d) (R2 d) 1 ((2 : ℝ) ^ (-(Params.b2 d : ℝ)))
+            (1 / 2 + Params.delta)) := by
+      rw [show (2 : ℝ) ^ (-(Params.b2 d : ℝ)) = Params.h2 d by
+        unfold Params.h2
+        rw [two_zpow_neg_nat_eq_rpow_neg_nat_stage2 (Params.b2 d)]]
+      have htarget_eq :
+          Dfamily (interlaceFun MT 1)
+              (bracketGE (C2 d) (R2 d) 1 (Params.h2 d) (1 / 2 + Params.delta))
+            =
+          Dfamily (interlaceFun (M2 d) 1)
+              (bracketGE (R2 d) (C2 d) 1 (1 / 2 + Params.delta) (Params.h2 d)) := by
+        simpa [MT] using htrans_top
+      rw [htarget_eq]
+      exact htop_nat
+    exact htop_trans
+  · have hlow_int : ((D MT : ℤ) - 2) ≤
+        (Dfamily (interlaceFun (M2 d) 1)
+          (bracketGE (R2 d) (C2 d) 1 (1 / 8 + Params.delta / 4)
+            (Params.h2 d)) : ℤ) := by
+      rw [htr, hcomp]
+      calc
+        (((D (M1 d) + Nat.log 2 (Params.q2 d) : ℕ) : ℤ) - 2)
+            = ((D (M1T d) + ((R - 2) + T) : ℕ) : ℤ) := by
+              rw [← hswap, ← hQeq]
+              omega
+        _ ≤ (Dfamily (interlaceFun (M2 d) 1)
+          (bracketGE (R2 d) (C2 d) 1 (1 / 8 + Params.delta / 4)
+            (Params.h2 d)) : ℤ) := by
+              exact_mod_cast hlow_orig
+    rw [show (2 : ℝ) ^ (-(Params.b2 d : ℝ)) = Params.h2 d by
+      unfold Params.h2
+      rw [two_zpow_neg_nat_eq_rpow_neg_nat_stage2 (Params.b2 d)]]
+    change ((D MT : ℤ) - 2) ≤
+      (Dfamily (interlaceFun MT 1)
+        (bracketGE (C2 d) (R2 d) 1 (Params.h2 d)
+          (1 / 8 + Params.delta / 4)) : ℤ)
+    have htarget_eq :
+        Dfamily (interlaceFun MT 1)
+            (bracketGE (C2 d) (R2 d) 1 (Params.h2 d)
+              (1 / 8 + Params.delta / 4))
+          =
+        Dfamily (interlaceFun (M2 d) 1)
+            (bracketGE (R2 d) (C2 d) 1 (1 / 8 + Params.delta / 4)
+              (Params.h2 d)) := by
+      simpa [MT] using htrans_low
+    rw [htarget_eq]
+    exact hlow_int
+  · have hmid_int : ((D MT : ℤ) - 1) ≤
+        (Dfamily (interlaceFun (M2 d) 1)
+          (bracketGE (R2 d) (C2 d) 1 (1 / 4 + Params.delta / 2)
+            (Params.h2 d)) : ℤ) := by
+      rw [htr, hcomp]
+      calc
+        (((D (M1 d) + Nat.log 2 (Params.q2 d) : ℕ) : ℤ) - 1)
+            = ((D (M1T d) + ((R - 1) + T) : ℕ) : ℤ) := by
+              rw [← hswap, ← hQeq]
+              omega
+        _ ≤ (Dfamily (interlaceFun (M2 d) 1)
+          (bracketGE (R2 d) (C2 d) 1 (1 / 4 + Params.delta / 2)
+            (Params.h2 d)) : ℤ) := by
+              exact_mod_cast hmid_orig
+    rw [show (2 : ℝ) ^ (-(Params.b2 d : ℝ)) = Params.h2 d by
+      unfold Params.h2
+      rw [two_zpow_neg_nat_eq_rpow_neg_nat_stage2 (Params.b2 d)]]
+    change ((D MT : ℤ) - 1) ≤
+      (Dfamily (interlaceFun MT 1)
+        (bracketGE (C2 d) (R2 d) 1 (Params.h2 d)
+          (1 / 4 + Params.delta / 2)) : ℤ)
+    have htarget_eq :
+        Dfamily (interlaceFun MT 1)
+            (bracketGE (C2 d) (R2 d) 1 (Params.h2 d)
+              (1 / 4 + Params.delta / 2))
+          =
+        Dfamily (interlaceFun (M2 d) 1)
+            (bracketGE (R2 d) (C2 d) 1 (1 / 4 + Params.delta / 2)
+              (Params.h2 d)) := by
+      simpa [MT] using htrans_mid
+    rw [htarget_eq]
+    exact hmid_int
+-- CLAIM-END lem:M2-robust

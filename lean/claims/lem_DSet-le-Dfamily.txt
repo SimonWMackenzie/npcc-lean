@@ -1,0 +1,21 @@
+-- CLAIM-BEGIN lem:DSet-le-Dfamily
+/-- THE VALUE-LEVEL TRANSFER. For a typed game `f` and any `BoolMat` `M`
+presenting the same matrix through row/column identifications
+(`eX : Fin M.m ≃ X`, `eY : Fin M.n ≃ Y`, entries matching), the artifact's
+bracket-family complexity is a lower bound for the typed one:
+every typed bracket member trims to exact sizes and flattens (rows by
+`encRow`, columns by `encCol`) to an artifact-bracket member whose extracted
+submatrix is value-isomorphic to the trimmed typed subgame; `D` is invariant
+under the isomorphism and monotone under trimming. Consequently every
+artifact lower bound on `DSet (bracket M p x y)` — monotonicity, projections,
+the ladder machinery — transfers to the paper's `comp⟨M,p,x,y⟩ = Dfamily`.
+Nonemptiness side conditions keep the `sInf`s honest. -/
+theorem DSet_le_Dfamily {X Y : Type*} [Fintype X] [Fintype Y]
+    (f : X → Y → Bool) (M : Workspace.Types.BoolMat.BoolMat)
+    (eX : Fin M.m ≃ X) (eY : Fin M.n ≃ Y)
+    (he : ∀ i j, M.e i j = f (eX i) (eY j))
+    {p : ℕ} {x y : ℝ} (hx0 : 0 < x) (hx1 : x ≤ 1) (hy0 : 0 < y) (hy1 : y ≤ 1)
+    (hX : 1 ≤ Fintype.card X) :
+    DSet (bracket M p x y)
+      ≤ Dfamily (interlaceFun f p) (bracketGE X Y p x y) :=
+-- CLAIM-END lem:DSet-le-Dfamily

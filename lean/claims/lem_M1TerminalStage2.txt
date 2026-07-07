@@ -1,0 +1,20 @@
+-- CLAIM-BEGIN lem:M1TerminalStage2
+/-- Paper `lem:M1TerminalStage2`, with the App-C terminal-density estimates
+left as explicit numeric gates: if the terminal row density supplies the
+`(9/16)t1` rows required by `M1_low_column_stage2`, and the one-copy column
+threshold dominates the Stage-2 residual density, then the terminal one-copy
+family has complexity at least `comp M1 - log r1`. -/
+theorem M1_terminal_stage2 (d : ℕ) (hpow : IsPow2 d)
+    (hlog : 64 ≤ Nat.log 2 d)
+    (hy_le_one : M1_stage2_terminal_density d ≤ 1)
+    (hrowTerm : 9 * Params.t1 d ≤
+      16 * ⌈(Fintype.card (R1 d) : ℝ) * M1_stage2_terminal_density d⌉₊)
+    (hcolTerm : (2 : ℝ) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : ℤ))
+        * (Fintype.card (C1 d) : ℝ) ≤
+      (⌈(Fintype.card (C1 d) : ℝ) *
+        ((2 : ℝ) ^ (-(Params.b1 d : ℤ)))⌉₊ : ℝ)) :
+    (D (M1 d) : ℤ) - (Nat.log 2 (Params.r1 d) : ℤ) ≤
+      (Dfamily (interlaceFun (M1 d) 1)
+        (bracketGE (R1 d) (C1 d) 1 (M1_stage2_terminal_density d)
+          ((2 : ℝ) ^ (-(Params.b1 d : ℤ)))) : ℤ) := by
+-- CLAIM-END lem:M1TerminalStage2

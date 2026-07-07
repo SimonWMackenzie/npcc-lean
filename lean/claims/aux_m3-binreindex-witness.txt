@@ -1,0 +1,122 @@
+-- CLAIM-BEGIN aux:m3-binreindex-witness
+
+noncomputable def equivOfInjectiveImage
+    {A B : Type*} [Fintype A] [DecidableEq B]
+    (f : A -> B) (hf : Function.Injective f) :
+    A ≃ {b // b ∈ (Finset.univ : Finset A).image f} where
+  toFun := fun a =>
+    ⟨f a, Finset.mem_image.mpr ⟨a, Finset.mem_univ a, rfl⟩⟩
+  invFun := fun b =>
+    Classical.choose (Finset.mem_image.mp b.property)
+  left_inv := by
+    intro a
+    apply hf
+    exact
+      (Classical.choose_spec
+        (Finset.mem_image.mp
+          (show f a ∈ (Finset.univ : Finset A).image f from
+            Finset.mem_image.mpr ⟨a, Finset.mem_univ a, rfl⟩))).2
+  right_inv := by
+    intro b
+    apply Subtype.ext
+    exact
+      (Classical.choose_spec (Finset.mem_image.mp b.property)).2
+
+noncomputable def M3_diagColBranch
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (hdiag_mem : forall a : M2DenseRows d,
+      M3_diagCol d (Fin.cast hqcast a.val.1) a.val.2 ∈
+        (binBranch p).cols)
+    (a : M2DenseRows d) : {b // b ∈ (binBranch p).cols} :=
+  ⟨M3_diagCol d (Fin.cast hqcast a.val.1) a.val.2, hdiag_mem a⟩
+
+theorem M3_diagColBranch_injective
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (hdiag_mem : forall a : M2DenseRows d,
+      M3_diagCol d (Fin.cast hqcast a.val.1) a.val.2 ∈
+        (binBranch p).cols) :
+    Function.Injective
+      (M3_diagColBranch d P binBranch p hqcast hdiag_mem) := by
+  intro a a' h
+  apply Subtype.ext
+  have hval := congrArg Subtype.val h
+  have hpoint := congrFun hval (0 : Fin 4)
+  simp [M3_diagColBranch, M3_diagCol] at hpoint
+  apply Prod.ext
+  · apply Fin.ext
+    exact congrArg Fin.val hpoint.1
+  · exact hpoint.2
+
+noncomputable def M3_survivorRowBranch
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (Sdense : Finset (C2 d))
+    (hrow_mem : forall c, c ∈ Sdense -> (p, c) ∈ (binBranch p).rows)
+    (c : M2DenseCols d Sdense) : {a // a ∈ (binBranch p).rows} :=
+  ⟨(p, c.val), hrow_mem c.val c.property⟩
+
+theorem M3_survivorRowBranch_injective
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (Sdense : Finset (C2 d))
+    (hrow_mem : forall c, c ∈ Sdense -> (p, c) ∈ (binBranch p).rows) :
+    Function.Injective
+      (M3_survivorRowBranch d P binBranch p Sdense hrow_mem) := by
+  intro c c' h
+  apply Subtype.ext
+  have hval := congrArg Subtype.val h
+  exact congrArg Prod.snd hval
+
+noncomputable def M3_denseDiagCols
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (hdiag_mem : forall a : M2DenseRows d,
+      M3_diagCol d (Fin.cast hqcast a.val.1) a.val.2 ∈
+        (binBranch p).cols) :
+    Finset {b // b ∈ (binBranch p).cols} :=
+  (Finset.univ : Finset (M2DenseRows d)).image
+    (M3_diagColBranch d P binBranch p hqcast hdiag_mem)
+
+noncomputable def M3_denseSurvivorRows
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (Sdense : Finset (C2 d))
+    (hrow_mem : forall c, c ∈ Sdense -> (p, c) ∈ (binBranch p).rows) :
+    Finset {a // a ∈ (binBranch p).rows} :=
+  (Finset.univ : Finset (M2DenseCols d Sdense)).image
+    (M3_survivorRowBranch d P binBranch p Sdense hrow_mem)
+
+noncomputable def M3_binDenseReindex_of_memberships
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (Sdense : Finset (C2 d))
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (hrow_mem : forall c, c ∈ Sdense -> (p, c) ∈ (binBranch p).rows)
+    (hdiag_mem : forall a : M2DenseRows d,
+      M3_diagCol d (Fin.cast hqcast a.val.1) a.val.2 ∈
+        (binBranch p).cols) :
+    M3BinDenseReindex d P binBranch p Sdense
+      (M3_denseSurvivorRows d P binBranch p Sdense hrow_mem)
+      (M3_denseDiagCols d P binBranch p hqcast hdiag_mem) hqcast where
+  rowEquiv :=
+    equivOfInjectiveImage
+      (M3_diagColBranch d P binBranch p hqcast hdiag_mem)
+      (M3_diagColBranch_injective d P binBranch p hqcast hdiag_mem)
+  colEquiv :=
+    equivOfInjectiveImage
+      (M3_survivorRowBranch d P binBranch p Sdense hrow_mem)
+      (M3_survivorRowBranch_injective d P binBranch p Sdense hrow_mem)
+  game_eq := by
+    intro a b
+    change
+      M3 d (p, b.val)
+          (M3_diagCol d (Fin.cast hqcast a.val.1) a.val.2) =
+        M1 d (S2fam d b.val (Fin.cast hqcast a.val.1)) a.val.2
+    rw [M3_diagCol_exact_M1]
+
+-- CLAIM-END aux:m3-binreindex-witness

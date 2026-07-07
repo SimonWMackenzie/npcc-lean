@@ -1,0 +1,15 @@
+-- CLAIM-BEGIN def:column-loss-resilient
+/-- Paper `def:column-loss-resilient`: `(f, b)` is `(q,t,h)`-column-loss
+resilient (with `q = 2^Q ≥ t = 2^T` powers of two, error term `ε`) iff
+(i) the one-copy family at row density `2^{−b}` and column density
+`y_{log q + comp f}(h)` is nontrivial (`comp ≥ 1`), and
+(ii) for all `0 ≤ k ≤ comp f` and `0 ≤ c ≤ log t + k`,
+`Λ_f(1, 2^{−b}, y_c(h)) ≥ comp f − k` (ℕ-subtraction exact under `k ≤ D f`).
+`Λ` is the typed `LambdaGE`; `y_c(h)` is `yLoss ε (2^T) h c`. -/
+def IsColumnLossResilient {X Y : Type*} [Fintype X] [Fintype Y]
+    (f : X → Y → Bool) (b ε : ℝ) (Q T : ℕ) (h : ℝ) : Prop :=
+  1 ≤ Dfamily (interlaceFun f 1)
+      (bracketGE X Y 1 ((2 : ℝ) ^ (-b)) (yLoss ε (2 ^ T) h (Q + D f))) ∧
+  ∀ k ≤ D f, ∀ c ≤ T + k,
+    D f - k ≤ LambdaGE f 1 ((2 : ℝ) ^ (-b)) (yLoss ε (2 ^ T) h c)
+-- CLAIM-END def:column-loss-resilient

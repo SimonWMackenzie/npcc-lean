@@ -1,0 +1,16 @@
+-- CLAIM-BEGIN aux:m3-separation-core
+theorem M3_separation
+    (d : Nat) (hd : 2 <= d) (hpow : IsPow2 d) (hchk : Checklist d)
+    (hrobM2 :
+      IsRobust (fun (c : C2 d) (r : R2 d) => M2 d r c)
+        Params.delta (Params.b2 d))
+    (hdelta_sep : Params.delta <= 1 / Real.sqrt 2 - 1 / 2)
+    (hD2 : 2 <= D (fun (c : C2 d) (r : R2 d) => M2 d r c))
+    (hstage3_gap :
+      4 * M3_rowLoss d < Fintype.card (C2 d))
+    (hM3_complexity : D (M3 d) = D (M2 d) + 2)
+    (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hcost : P.cost <= D (M2 d) + 2) :
+    M3SeparationConclusion d P := by
+-- CLAIM-END aux:m3-separation-core

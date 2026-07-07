@@ -1,0 +1,416 @@
+-- CLAIM-BEGIN aux:nowaste-core
+
+variable {A B Z : Type*}
+
+/-- Mixed side-pattern predicate on surviving branches.
+
+At an empty current rectangle the predicate is vacuous, matching
+`FirstKRowBitsOn`.  At a live node, the next protocol node must query the side
+specified by the head of the pattern; the current rectangle is then threaded
+through the corresponding child rectangles.
+-/
+def FirstPatternOn :
+    Finset A -> Finset B -> List ActualBitSide -> Protocol A B Z -> Prop
+  | _, _, [], _ => True
+  | R, C, _ :: _, Protocol.leaf _ => R = (∅ : Finset A) ∨ C = (∅ : Finset B)
+  | R, C, ActualBitSide.alice :: pat, Protocol.aNode a l r =>
+      FirstPatternOn (R.filter fun x => a x = false) C pat l ∧
+      FirstPatternOn (R.filter fun x => a x = true) C pat r
+  | R, C, ActualBitSide.bob :: pat, Protocol.bNode b l r =>
+      FirstPatternOn R (C.filter fun y => b y = false) pat l ∧
+      FirstPatternOn R (C.filter fun y => b y = true) pat r
+  | R, C, ActualBitSide.alice :: _, Protocol.bNode _ _ _ =>
+      R = (∅ : Finset A) ∨ C = (∅ : Finset B)
+  | R, C, ActualBitSide.bob :: _, Protocol.aNode _ _ _ =>
+      R = (∅ : Finset A) ∨ C = (∅ : Finset B)
+
+theorem firstPatternOn_of_left_empty
+    (C : Finset B) (pat : List ActualBitSide) (P : Protocol A B Z)
+    {R : Finset A} (hR : R = (∅ : Finset A)) :
+    FirstPatternOn R C pat P := by
+  induction pat generalizing R C P with
+  | nil =>
+      trivial
+  | cons side pat ih =>
+      cases P with
+      | leaf z =>
+          exact Or.inl hR
+      | aNode a l r =>
+          cases side with
+          | alice =>
+              refine ⟨?_, ?_⟩
+              · exact ih _ _ (by rw [hR]; simp)
+              · exact ih _ _ (by rw [hR]; simp)
+          | bob =>
+              exact Or.inl hR
+      | bNode b l r =>
+          cases side with
+          | alice =>
+              exact Or.inl hR
+          | bob =>
+              refine ⟨?_, ?_⟩
+              · exact ih _ _ hR
+              · exact ih _ _ hR
+
+theorem firstPatternOn_of_right_empty
+    (R : Finset A) (pat : List ActualBitSide) (P : Protocol A B Z)
+    {C : Finset B} (hC : C = (∅ : Finset B)) :
+    FirstPatternOn R C pat P := by
+  induction pat generalizing R C P with
+  | nil =>
+      trivial
+  | cons side pat ih =>
+      cases P with
+      | leaf z =>
+          exact Or.inr hC
+      | aNode a l r =>
+          cases side with
+          | alice =>
+              refine ⟨?_, ?_⟩
+              · exact ih _ _ hC
+              · exact ih _ _ hC
+          | bob =>
+              exact Or.inr hC
+      | bNode b l r =>
+          cases side with
+          | alice =>
+              exact Or.inr hC
+          | bob =>
+              refine ⟨?_, ?_⟩
+              · exact ih _ _ (by rw [hC]; simp)
+              · exact ih _ _ (by rw [hC]; simp)
+
+theorem firstPattern_replicate_alice_iff
+    (R : Finset A) (C : Finset B) (k : Nat) (P : Protocol A B Z) :
+    FirstPatternOn R C (List.replicate k ActualBitSide.alice) P ↔
+      FirstKRowBitsOn R C k P := by
+  induction k generalizing R C P with
+  | zero =>
+      cases P <;> simp [List.replicate, Protocol.FirstPatternOn,
+        Protocol.FirstKRowBitsOn]
+  | succ k ih =>
+      cases P with
+      | leaf z =>
+          simp [List.replicate, Protocol.FirstPatternOn,
+            Protocol.FirstKRowBitsOn]
+      | aNode a l r =>
+          simp [List.replicate, Protocol.FirstPatternOn,
+            Protocol.FirstKRowBitsOn, ih]
+      | bNode b l r =>
+          simp [List.replicate, Protocol.FirstPatternOn,
+            Protocol.FirstKRowBitsOn]
+
+theorem firstPattern_replicate_bob_iff
+    (R : Finset A) (C : Finset B) (k : Nat) (P : Protocol A B Z) :
+    FirstPatternOn R C (List.replicate k ActualBitSide.bob) P ↔
+      FirstKColBitsOn R C k P := by
+  induction k generalizing R C P with
+  | zero =>
+      cases P <;> simp [List.replicate, Protocol.FirstPatternOn,
+        Protocol.FirstKColBitsOn, Protocol.FirstKRowBitsOn, Protocol.swap]
+  | succ k ih =>
+      cases P with
+      | leaf z =>
+          simp [List.replicate, Protocol.FirstPatternOn,
+            Protocol.FirstKColBitsOn, Protocol.FirstKRowBitsOn, Protocol.swap,
+            or_comm]
+      | aNode a l r =>
+          simp [List.replicate, Protocol.FirstPatternOn,
+            Protocol.FirstKColBitsOn, Protocol.FirstKRowBitsOn, Protocol.swap,
+            or_comm]
+      | bNode b l r =>
+          simp [List.replicate, Protocol.FirstPatternOn,
+            Protocol.FirstKColBitsOn, Protocol.FirstKRowBitsOn, Protocol.swap,
+            ih]
+
+namespace FirstPatternOn
+
+theorem take
+    {R : Finset A} {C : Finset B} {pre suffix : List ActualBitSide}
+    {P : Protocol A B Z} :
+    FirstPatternOn R C (pre ++ suffix) P ->
+      FirstPatternOn R C pre P := by
+  induction pre generalizing R C P with
+  | nil =>
+      intro _
+      trivial
+  | cons side tail ih =>
+      intro h
+      cases P with
+      | leaf z =>
+          cases side <;> simpa [Protocol.FirstPatternOn] using h
+      | aNode a l r =>
+          cases side with
+          | alice =>
+              obtain ⟨hl, hr⟩ := h
+              exact ⟨ih hl, ih hr⟩
+          | bob =>
+              simpa [Protocol.FirstPatternOn] using h
+      | bNode b l r =>
+          cases side with
+          | alice =>
+              simpa [Protocol.FirstPatternOn] using h
+          | bob =>
+              obtain ⟨hl, hr⟩ := h
+              exact ⟨ih hl, ih hr⟩
+
+theorem drop_false_of_cons_alice_aNode
+    {R : Finset A} {C : Finset B} {pat : List ActualBitSide}
+    {q : A -> Bool} {l r : Protocol A B Z}
+    (h : FirstPatternOn R C (ActualBitSide.alice :: pat)
+      (Protocol.aNode q l r)) :
+    FirstPatternOn (R.filter fun x => q x = false) C pat l :=
+  h.1
+
+theorem drop_true_of_cons_alice_aNode
+    {R : Finset A} {C : Finset B} {pat : List ActualBitSide}
+    {q : A -> Bool} {l r : Protocol A B Z}
+    (h : FirstPatternOn R C (ActualBitSide.alice :: pat)
+      (Protocol.aNode q l r)) :
+    FirstPatternOn (R.filter fun x => q x = true) C pat r :=
+  h.2
+
+theorem drop_false_of_cons_bob_bNode
+    {R : Finset A} {C : Finset B} {pat : List ActualBitSide}
+    {q : B -> Bool} {l r : Protocol A B Z}
+    (h : FirstPatternOn R C (ActualBitSide.bob :: pat)
+      (Protocol.bNode q l r)) :
+    FirstPatternOn R (C.filter fun y => q y = false) pat l :=
+  h.1
+
+theorem drop_true_of_cons_bob_bNode
+    {R : Finset A} {C : Finset B} {pat : List ActualBitSide}
+    {q : B -> Bool} {l r : Protocol A B Z}
+    (h : FirstPatternOn R C (ActualBitSide.bob :: pat)
+      (Protocol.bNode q l r)) :
+    FirstPatternOn R (C.filter fun y => q y = true) pat r :=
+  h.2
+
+end FirstPatternOn
+
+/-- Boolean transcript as a list, parallel to `actualPrefixCodeRaw`. -/
+def actualBitListRaw :
+    (k : Nat) -> Protocol A B Z -> A -> B -> List Bool
+  | 0, _, _, _ => []
+  | _ + 1, Protocol.leaf _, _, _ => []
+  | k + 1, Protocol.aNode q l r, a, b =>
+      q a :: actualBitListRaw k (if q a then r else l) a b
+  | k + 1, Protocol.bNode q l r, a, b =>
+      q b :: actualBitListRaw k (if q b then r else l) a b
+
+theorem actualBitListRaw_take
+    {k n : Nat} (hkn : k <= n) (P : Protocol A B Z) (a : A) (b : B) :
+    (actualBitListRaw n P a b).take k = actualBitListRaw k P a b := by
+  induction k generalizing n P with
+  | zero =>
+      simp [actualBitListRaw]
+  | succ k ih =>
+      cases n with
+      | zero =>
+          omega
+      | succ n =>
+          cases P with
+          | leaf z =>
+              simp [actualBitListRaw]
+          | aNode q l r =>
+              by_cases hq : q a
+              · simp [actualBitListRaw, hq, ih (Nat.succ_le_succ_iff.mp hkn)]
+              · simp [actualBitListRaw, hq, ih (Nat.succ_le_succ_iff.mp hkn)]
+          | bNode q l r =>
+              by_cases hq : q b
+              · simp [actualBitListRaw, hq, ih (Nat.succ_le_succ_iff.mp hkn)]
+              · simp [actualBitListRaw, hq, ih (Nat.succ_le_succ_iff.mp hkn)]
+
+theorem actualBitListRaw_restrictSub
+    (R : Finset A) (C : Finset B) (P : Protocol A B Z)
+    (a : {a // a ∈ R}) (b : {b // b ∈ C}) (k : Nat) :
+    actualBitListRaw k (Protocol.restrictSub R C P) a b =
+      actualBitListRaw k P a.val b.val := by
+  induction k generalizing P with
+  | zero =>
+      rfl
+  | succ k ih =>
+      cases P with
+      | leaf z =>
+          rfl
+      | aNode q l r =>
+          by_cases hq : q a.val
+          · simp [actualBitListRaw, Protocol.restrictSub, hq, ih]
+          · simp [actualBitListRaw, Protocol.restrictSub, hq, ih]
+      | bNode q l r =>
+          by_cases hq : q b.val
+          · simp [actualBitListRaw, Protocol.restrictSub, hq, ih]
+          · simp [actualBitListRaw, Protocol.restrictSub, hq, ih]
+
+def BranchFiberNonempty
+    (R : Finset A) (C : Finset B) (P : Protocol A B Z)
+    (w : List Bool) : Prop :=
+  ∃ a, a ∈ R ∧ ∃ b, b ∈ C ∧ actualBitListRaw w.length P a b = w
+
+def extendBitsTo (w : List Bool) (m : Nat) : List Bool :=
+  w ++ List.replicate (m - w.length) false
+
+theorem extendBitsTo_length {w : List Bool} {m : Nat} (hwm : w.length <= m) :
+    (extendBitsTo w m).length = m := by
+  simp [extendBitsTo]
+  omega
+
+theorem extendBitsTo_take_length (w : List Bool) (m : Nat) :
+    (extendBitsTo w m).take w.length = w := by
+  simp [extendBitsTo]
+
+namespace BranchFiberNonempty
+
+theorem rows_nonempty
+    {R : Finset A} {C : Finset B} {P : Protocol A B Z} {w : List Bool}
+    (h : BranchFiberNonempty R C P w) :
+    R.Nonempty := by
+  rcases h with ⟨a, ha, b, hb, hbits⟩
+  exact ⟨a, ha⟩
+
+theorem cols_nonempty
+    {R : Finset A} {C : Finset B} {P : Protocol A B Z} {w : List Bool}
+    (h : BranchFiberNonempty R C P w) :
+    C.Nonempty := by
+  rcases h with ⟨a, ha, b, hb, hbits⟩
+  exact ⟨b, hb⟩
+
+theorem of_full_length
+    {R : Finset A} {C : Finset B} {P : Protocol A B Z}
+    {m : Nat}
+    (hfull : ∀ w : List Bool, w.length = m -> BranchFiberNonempty R C P w)
+    (τ : List Bool) (hτ : τ.length <= m) :
+    BranchFiberNonempty R C P τ := by
+  let w := extendBitsTo τ m
+  have hwlen : w.length = m := extendBitsTo_length hτ
+  rcases hfull w hwlen with ⟨a, ha, b, hb, hbits⟩
+  refine ⟨a, ha, b, hb, ?_⟩
+  have hbitsm : actualBitListRaw m P a b = w := by
+    simpa [hwlen] using hbits
+  calc
+    actualBitListRaw τ.length P a b =
+        (actualBitListRaw m P a b).take τ.length := by
+          exact (actualBitListRaw_take hτ P a b).symm
+    _ = w.take τ.length := by rw [hbitsm]
+    _ = τ := by
+          simp [w, extendBitsTo_take_length]
+
+end BranchFiberNonempty
+
+def rowsAtPrefix
+    (R : Finset A) (C : Finset B) (P : Protocol A B Z)
+    (w : List Bool) : Finset A :=
+  R.filter fun a => ∃ b, b ∈ C ∧ actualBitListRaw w.length P a b = w
+
+def colsAtPrefix
+    (R : Finset A) (C : Finset B) (P : Protocol A B Z)
+    (w : List Bool) : Finset B :=
+  C.filter fun b => ∃ a, a ∈ R ∧ actualBitListRaw w.length P a b = w
+
+structure StopLeafContained
+    (G : A -> B -> Bool) (R : Finset A) (C : Finset B)
+    (Qr : Protocol A B Bool) (w : List Bool)
+    (Rw : Finset A) (Cw : Finset B) : Prop where
+  rows_subset :
+    ∀ a, a ∈ Rw -> a ∈ rowsAtPrefix R C Qr w
+  cols_subset :
+    ∀ b, b ∈ Cw -> b ∈ colsAtPrefix R C Qr w
+  rows_nonempty : Rw.Nonempty
+  cols_nonempty : Cw.Nonempty
+
+namespace StopLeafContained
+
+theorem rows_subset_base
+    {G : A -> B -> Bool} {R : Finset A} {C : Finset B}
+    {Qr : Protocol A B Bool} {w : List Bool}
+    {Rw : Finset A} {Cw : Finset B}
+    (h : StopLeafContained G R C Qr w Rw Cw) :
+    ∀ a, a ∈ Rw -> a ∈ R := by
+  intro a ha
+  have hrow := h.rows_subset a ha
+  exact (Finset.mem_filter.mp hrow).1
+
+theorem cols_subset_base
+    {G : A -> B -> Bool} {R : Finset A} {C : Finset B}
+    {Qr : Protocol A B Bool} {w : List Bool}
+    {Rw : Finset A} {Cw : Finset B}
+    (h : StopLeafContained G R C Qr w Rw Cw) :
+    ∀ b, b ∈ Cw -> b ∈ C := by
+  intro b hb
+  have hcol := h.cols_subset b hb
+  exact (Finset.mem_filter.mp hcol).1
+
+end StopLeafContained
+
+theorem D_stopLeaf_le_restrict_cost
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool) (P : Protocol A B Bool)
+    (hP : P.Computes G)
+    (Rw : Finset A) (Cw : Finset B) :
+    D (subgame G Rw Cw) <= (Protocol.restrict Rw Cw P).cost := by
+  exact D_subgame_le_restrict_cost Rw Cw P hP
+
+theorem D_stopLeaf_le_protocol_cost
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool) (P : Protocol A B Bool)
+    (hP : P.Computes G) (Rw : Finset A) (Cw : Finset B) :
+    D (subgame G Rw Cw) <= P.cost := by
+  exact le_trans (D_subgame_le_restrict_cost Rw Cw P hP)
+    (Protocol.cost_restrict_le Rw Cw P)
+
+def FullStoppingFiberCoverage
+    (R : Finset A) (C : Finset B) (P : Protocol A B Z)
+    (pat : List ActualBitSide) : Prop :=
+  ∀ w : List Bool, w.length = pat.length -> BranchFiberNonempty R C P w
+
+def TerminalHardWitnesses
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool) (R : Finset A) (C : Finset B)
+    (Qr : Protocol A B Bool) (pat : List ActualBitSide) (B0 : Nat) : Prop :=
+  ∀ w : List Bool, w.length = pat.length ->
+    ∃ Rw Cw,
+      StopLeafContained G R C Qr w Rw Cw ∧
+        B0 <= D (subgame G Rw Cw)
+
+/-- Proposition-valued record of the intended main theorem. -/
+def noWaste_firstPatternOn_univ_of_restrict_statement
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool) (P : Protocol A B Bool)
+    (R : Finset A) (C : Finset B)
+    (pat : List ActualBitSide) (B0 : Nat) : Prop :=
+  P.Computes G ->
+  P.cost <= pat.length + B0 ->
+  FirstPatternOn R C pat (Protocol.restrict R C P) ->
+  FullStoppingFiberCoverage R C (Protocol.restrict R C P) pat ->
+  TerminalHardWitnesses G R C (Protocol.restrict R C P) pat B0 ->
+  FirstPatternOn (Finset.univ : Finset A) (Finset.univ : Finset B) pat P
+
+def noWaste_firstKColBitsOn_univ_of_restrict_statement
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool) (P : Protocol A B Bool)
+    (R : Finset A) (C : Finset B)
+    (m B0 : Nat) : Prop :=
+  P.Computes G ->
+  P.cost <= m + B0 ->
+  FirstKColBitsOn R C m (Protocol.restrict R C P) ->
+  FullStoppingFiberCoverage R C (Protocol.restrict R C P)
+    (List.replicate m ActualBitSide.bob) ->
+  TerminalHardWitnesses G R C (Protocol.restrict R C P)
+    (List.replicate m ActualBitSide.bob) B0 ->
+  FirstKColBitsOn (Finset.univ : Finset A) (Finset.univ : Finset B) m P
+
+def noWaste_firstKRowBitsOn_univ_of_restrict_statement
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool) (P : Protocol A B Bool)
+    (R : Finset A) (C : Finset B)
+    (m B0 : Nat) : Prop :=
+  P.Computes G ->
+  P.cost <= m + B0 ->
+  FirstKRowBitsOn R C m (Protocol.restrict R C P) ->
+  FullStoppingFiberCoverage R C (Protocol.restrict R C P)
+    (List.replicate m ActualBitSide.alice) ->
+  TerminalHardWitnesses G R C (Protocol.restrict R C P)
+    (List.replicate m ActualBitSide.alice) B0 ->
+  FirstKRowBitsOn (Finset.univ : Finset A) (Finset.univ : Finset B) m P
+
+-- CLAIM-END aux:nowaste-core

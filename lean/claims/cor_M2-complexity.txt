@@ -1,0 +1,39 @@
+-- CLAIM-BEGIN cor:M2-complexity
+/-- Paper `cor:M2-complexity`: the exact Stage-2 complexity.  The lower bound
+is assembled through `localized_extension` from `M2_hard_seed` and the
+column-loss corollary above.  The explicit residual gates are the numeric
+App-C comparisons not yet bundled in `Checklist`. -/
+theorem M2_complexity (d : ℕ) (hpow : IsPow2 d)
+    (hlog256 : 256 ≤ Nat.log 2 d)
+    (hlarge : Checklist d)
+    (hm0_le : (Classical.choose
+        (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+          Params.delta (by norm_num [Params.delta])
+          (by norm_num [Params.delta])) : ℕ) ≤ Nat.log 2 (Params.t2 d))
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hp1 : 2 ^ M2_T d ≤ 2 * M2_hard_seed_copies d)
+    (hp2 : M2_hard_seed_copies d ≤ 2 ^ M2_T d)
+    (hxseed_le_one : M2_hard_seed_rowDensity d ≤ 1)
+    (hrow_threshold :
+      ⌈(2 : ℝ) ^ (Nat.log 2 (Params.r2 d) : ℕ) *
+        M2_hard_seed_rowDensity d * (Fintype.card (C1 d) : ℝ)⌉₊
+          ≤ Fintype.card (C1 d))
+    (hseed_bridge : M2_hard_seed_columnDensity d ≤
+      Params.h2 d *
+        (2 : ℝ) ^ (-((M2_T d + D (M1T d) : ℕ) : ℝ)) /
+          (1 + epsQT (Params.q2 d) (Params.t2 d)))
+    (hy_le_one : M1_stage2_terminal_density d ≤ 1)
+    (hrowTerm : 9 * Params.t1 d ≤
+      16 * ⌈(Fintype.card (R1 d) : ℝ) * M1_stage2_terminal_density d⌉₊)
+    (hcolTerm : (2 : ℝ) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : ℤ))
+        * (Fintype.card (C1 d) : ℝ) ≤
+      (⌈(Fintype.card (C1 d) : ℝ) *
+        ((2 : ℝ) ^ (-(Params.b1 d : ℤ)))⌉₊ : ℝ))
+    (hresidual_density : ∀ c ≤ M2_T d + D (M1T d),
+      1 / 2 + Params.delta ≤
+          yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c ∧
+        yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c ≤ 1) :
+    D (M2 d) = D (M1 d) + Nat.log 2 (Params.q2 d) := by
+-- CLAIM-END cor:M2-complexity

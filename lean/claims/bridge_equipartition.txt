@@ -1,0 +1,15 @@
+-- CLAIM-BEGIN bridge:equipartition
+/-- Bridge (typed → artifact), trim-to-exact direction. If a typed row set
+`R : Finset (Fin p × Fin m)` is `(univ, T)`-equipartitioned in the paper's
+`≥`-sense (`NPCC.IsEquipartitionedGE`), then some flattened row set
+`S ⊆ [0, m·p)` is equipartitioned in the artifact's exact sense
+(`Workspace.Types.Equipartition.IsEquipartitioned`: every block `[m·γ, m·(γ+1))`
+holds exactly `⌈(T:ℝ)⌉₊ = T` rows): choose a `T`-subset of each fiber and
+flatten by `encRow (q,i) = m·q + i`. The converse decode direction is
+`bridge_equipartition_ofArtifact`. Typed row sets over general `(ι, X)` reduce
+to `(Fin p, Fin m)` via equivalences at use sites. -/
+theorem bridge_equipartition {p m T : ℕ} {R : Finset (Fin p × Fin m)}
+    (h : IsEquipartitionedGE R (Finset.univ : Finset (Fin p)) T) :
+    ∃ S : Finset ℕ, S ⊆ Finset.range (m * p) ∧
+      IsEquipartitioned S m (T : ℝ) p :=
+-- CLAIM-END bridge:equipartition

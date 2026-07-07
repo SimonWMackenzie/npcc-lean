@@ -1,0 +1,27 @@
+-- CLAIM-BEGIN lem:M0-column-loss-resilient
+/-- **`lem:M0-column-loss-resilient`** (statement authored to the ledger spec —
+NO tex label; flagged for the judge). The seed `(M₀, b)` is `(2^Q, 2^T, h)`-
+column-loss resilient (`NPCC.IsColumnLossResilient`) whenever the row density
+`2^{−b} ∈ (0,1]` (i.e. `0 ≤ b`) and every consumed one-copy loss density lies in
+`(1/2, 1]`: at the clause-(i) argument `c = Q + D M₀` and, for clause (ii)
+`k = 0`, at every `c ≤ T`. These two density gates are exactly the numeric facts
+a `LargeD` wrapper supplies (via `half_lt_yLoss` / `yLoss_le_one`): at the
+Stage-1 scale `t = 2^T` the `1/t`-th root pins each `y_c` above `1/2` with vast
+slack.
+
+Mathematics (`D M₀ = 1`, so the `Λ`-rung engine `odd_copy_seed_rungs` — which
+needs `D f ≥ 2` — does NOT apply; the degenerate base case). Clause (i) is the
+one-copy nontriviality at the seed density. Clause (ii) ranges `k ≤ D M₀ = 1`:
+`k = 1` gives `D M₀ − 1 = 0 ≤ Λ` (trivial); `k = 0` needs
+`LambdaGE M₀ 1 (2^{−b}) (y_c) ≥ 1` for all `c ≤ T`, and `Λ = min` bottoms out at
+the same one-copy nontriviality `comp(y_c) ≥ 1` (`one_le_Dfamily_M0_of_half_lt`),
+the other two rungs being `1+·` and `2+·`. -/
+theorem M0_column_loss_resilient
+    (b ε : ℝ) (Q T : ℕ) (h : ℝ)
+    (hb : 0 ≤ b)
+    (hyi_lo : 1 / 2 < yLoss ε (2 ^ T) h (Q + D M0))
+    (hyi_hi : yLoss ε (2 ^ T) h (Q + D M0) ≤ 1)
+    (hyii_lo : ∀ c ≤ T, 1 / 2 < yLoss ε (2 ^ T) h c)
+    (hyii_hi : ∀ c ≤ T, yLoss ε (2 ^ T) h c ≤ 1) :
+    IsColumnLossResilient M0 b ε Q T h := by
+-- CLAIM-END lem:M0-column-loss-resilient

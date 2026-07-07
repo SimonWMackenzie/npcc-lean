@@ -1,0 +1,306 @@
+-- CLAIM-BEGIN aux:branch-constructors-2
+/-- Exchange Alice and Bob nodes, leaving the leaf labels and tree shape fixed. -/
+def swap : Protocol A B Z -> Protocol B A Z
+  | Protocol.leaf z => Protocol.leaf z
+  | Protocol.aNode q l r =>
+      Protocol.bNode q (Protocol.swap l) (Protocol.swap r)
+  | Protocol.bNode q l r =>
+      Protocol.aNode q (Protocol.swap l) (Protocol.swap r)
+
+@[simp] theorem swap_swap (P : Protocol A B Z) :
+    Protocol.swap (Protocol.swap P) = P := by
+  induction P with
+  | leaf z => rfl
+  | aNode q l r ihl ihr =>
+      simp [Protocol.swap, ihl, ihr]
+  | bNode q l r ihl ihr =>
+      simp [Protocol.swap, ihl, ihr]
+
+@[simp] theorem cost_swap (P : Protocol A B Z) :
+    (Protocol.swap P).cost = P.cost := by
+  induction P with
+  | leaf z => rfl
+  | aNode q l r ihl ihr =>
+      simp [Protocol.swap, Protocol.cost, ihl, ihr]
+  | bNode q l r ihl ihr =>
+      simp [Protocol.swap, Protocol.cost, ihl, ihr]
+
+@[simp] theorem eval_swap (P : Protocol A B Z) (b : B) (a : A) :
+    (Protocol.swap P).eval b a = P.eval a b := by
+  induction P generalizing a b with
+  | leaf z => rfl
+  | aNode q l r ihl ihr =>
+      simp [Protocol.swap, Protocol.eval, ihl, ihr]
+  | bNode q l r ihl ihr =>
+      simp [Protocol.swap, Protocol.eval, ihl, ihr]
+
+@[simp] theorem evalDepth_swap (P : Protocol A B Z) (b : B) (a : A) :
+    Protocol.evalDepth (Protocol.swap P) b a = Protocol.evalDepth P a b := by
+  induction P generalizing a b with
+  | leaf z => rfl
+  | aNode q l r ihl ihr =>
+      simp [Protocol.swap, Protocol.evalDepth, ihl, ihr]
+  | bNode q l r ihl ihr =>
+      simp [Protocol.swap, Protocol.evalDepth, ihl, ihr]
+
+/-- Exchange a party label on an actual transcript. -/
+def ActualBitSide.swap : ActualBitSide -> ActualBitSide
+  | ActualBitSide.alice => ActualBitSide.bob
+  | ActualBitSide.bob => ActualBitSide.alice
+
+@[simp] theorem ActualBitSide.swap_swap (s : ActualBitSide) :
+    ActualBitSide.swap (ActualBitSide.swap s) = s := by
+  cases s <;> rfl
+
+theorem actualPrefixCodeRaw_swap
+    (k : Nat) (P : Protocol A B Z) (a : A) (b : B) :
+    Protocol.actualPrefixCodeRaw k (Protocol.swap P) b a =
+      Protocol.actualPrefixCodeRaw k P a b := by
+  induction k generalizing P with
+  | zero => rfl
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          rfl
+      | aNode q l r =>
+          simp only [Protocol.swap, Protocol.actualPrefixCodeRaw]
+          by_cases hq : q a = true
+          · rw [if_pos hq, if_pos hq, ih r]
+          · rw [if_neg hq, if_neg hq, ih l]
+      | bNode q l r =>
+          simp only [Protocol.swap, Protocol.actualPrefixCodeRaw]
+          by_cases hq : q b = true
+          · rw [if_pos hq, if_pos hq, ih r]
+          · rw [if_neg hq, if_neg hq, ih l]
+
+theorem actualSubtreeAtRaw_swap
+    (k : Nat) (P : Protocol A B Z) (w : Fin (2 ^ k)) :
+    Protocol.actualSubtreeAtRaw k (Protocol.swap P) w =
+      Protocol.swap (Protocol.actualSubtreeAtRaw k P w) := by
+  induction k generalizing P with
+  | zero => rfl
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          rfl
+      | aNode q l r =>
+          simp only [Protocol.swap, Protocol.actualSubtreeAtRaw]
+          by_cases h : Protocol.bitHead w
+          · simp [h, ih]
+          · simp [h, ih]
+      | bNode q l r =>
+          simp only [Protocol.swap, Protocol.actualSubtreeAtRaw]
+          by_cases h : Protocol.bitHead w
+          · simp [h, ih]
+          · simp [h, ih]
+
+theorem swap_actualSubtreeAtRaw_swap
+    (k : Nat) (P : Protocol A B Z) (w : Fin (2 ^ k)) :
+    Protocol.swap (Protocol.actualSubtreeAtRaw k (Protocol.swap P) w) =
+      Protocol.actualSubtreeAtRaw k P w := by
+  have h :=
+    (Protocol.actualSubtreeAtRaw_swap (A := B) (B := A) (Z := Z)
+      k (Protocol.swap P) w).symm
+  simpa [Protocol.swap_swap] using h
+
+theorem actualSideListRaw_swap
+    (k : Nat) (P : Protocol A B Z) (a : A) (b : B) :
+    Protocol.actualSideListRaw k (Protocol.swap P) b a =
+      (Protocol.actualSideListRaw k P a b).map Protocol.ActualBitSide.swap := by
+  induction k generalizing P with
+  | zero => rfl
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          rfl
+      | aNode q l r =>
+          simp only [Protocol.swap, Protocol.actualSideListRaw, List.map_cons]
+          by_cases hq : q a = true
+          · rw [if_pos hq, if_pos hq, ih r]
+            rfl
+          · rw [if_neg hq, if_neg hq, ih l]
+            rfl
+      | bNode q l r =>
+          simp only [Protocol.swap, Protocol.actualSideListRaw, List.map_cons]
+          by_cases hq : q b = true
+          · rw [if_pos hq, if_pos hq, ih r]
+            rfl
+          · rw [if_neg hq, if_neg hq, ih l]
+            rfl
+
+theorem actualSideListRaw_swap_back
+    (k : Nat) (P : Protocol A B Z) (a : A) (b : B) :
+    Protocol.actualSideListRaw k P a b =
+      (Protocol.actualSideListRaw k (Protocol.swap P) b a).map
+        Protocol.ActualBitSide.swap := by
+  rw [Protocol.actualSideListRaw_swap]
+  simp [List.map_map, Function.comp_def]
+
+theorem swap_restrictSub
+    (R : Finset A) (C : Finset B) (P : Protocol A B Z) :
+    Protocol.swap (Protocol.restrictSub R C P) =
+      Protocol.restrictSub C R (Protocol.swap P) := by
+  induction P with
+  | leaf z => rfl
+  | aNode q l r ihl ihr =>
+      simp [Protocol.swap, Protocol.restrictSub, ihl, ihr]
+  | bNode q l r ihl ihr =>
+      simp [Protocol.swap, Protocol.restrictSub, ihl, ihr]
+
+/-- Column-onlyness is row-onlyness after swapping the two parties. -/
+def FirstKColBitsOn
+    (R : Finset A) (C : Finset B) (k : Nat) (P : Protocol A B Z) : Prop :=
+  Protocol.FirstKRowBitsOn C R k (Protocol.swap P)
+
+theorem firstKRowBitsOn_swap_iff_firstKColBitsOn
+    (R : Finset A) (C : Finset B) (k : Nat) (P : Protocol A B Z) :
+    Protocol.FirstKRowBitsOn C R k (Protocol.swap P) ↔
+      Protocol.FirstKColBitsOn R C k P := by
+  rfl
+
+/-- The columns having a fixed actual Bob-prefix code, implemented by swap. -/
+noncomputable def colPrefixCols [Fintype B]
+    (t : Nat) (P : Protocol A B Bool) (j : Fin (2 ^ t)) : Finset B :=
+  rowPrefixRows t (Protocol.swap P) j
+
+/-- Transport a branch of the swapped protocol back to the original protocol. -/
+noncomputable def branchAt_of_swap
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t : Nat}
+    (br : Protocol.BranchAt (Protocol.swap P) (fun b a => G a b) t) :
+    Protocol.BranchAt P G t where
+  rows := br.cols
+  cols := br.rows
+  transcript := br.transcript
+  sideTrace := br.sideTrace.map Protocol.ActualBitSide.swap
+  residual := Protocol.swap br.residual
+  rows_nonempty := br.cols_nonempty
+  cols_nonempty := br.rows_nonempty
+  sideTrace_length := by
+    simp [br.sideTrace_length]
+  sideTrace_eq := by
+    intro a ha b hb
+    calc
+      Protocol.actualSideListRaw t P a b =
+          (Protocol.actualSideListRaw t (Protocol.swap P) b a).map
+            Protocol.ActualBitSide.swap := by
+            exact Protocol.actualSideListRaw_swap_back t P a b
+      _ = br.sideTrace.map Protocol.ActualBitSide.swap := by
+            rw [br.sideTrace_eq b hb a ha]
+  rectangle_transcript := by
+    intro a ha b hb
+    calc
+      Protocol.actualPrefixCodeRaw t P a b =
+          Protocol.actualPrefixCodeRaw t (Protocol.swap P) b a := by
+            exact (Protocol.actualPrefixCodeRaw_swap t P a b).symm
+      _ = br.transcript := br.rectangle_transcript b hb a ha
+  rows_reachable := by
+    intro a
+    constructor
+    · intro ha
+      obtain ⟨b, hb, hcode⟩ := (br.cols_reachable a).mp ha
+      refine ⟨b, hb, ?_⟩
+      calc
+        Protocol.actualPrefixCodeRaw t P a b =
+            Protocol.actualPrefixCodeRaw t (Protocol.swap P) b a := by
+              exact (Protocol.actualPrefixCodeRaw_swap t P a b).symm
+        _ = br.transcript := hcode
+    · rintro ⟨b, hb, hcode⟩
+      exact (br.cols_reachable a).mpr
+        ⟨b, hb, by
+          calc
+            Protocol.actualPrefixCodeRaw t (Protocol.swap P) b a =
+                Protocol.actualPrefixCodeRaw t P a b := by
+                  exact Protocol.actualPrefixCodeRaw_swap t P a b
+            _ = br.transcript := hcode⟩
+  cols_reachable := by
+    intro b
+    constructor
+    · intro hb
+      obtain ⟨a, ha, hcode⟩ := (br.rows_reachable b).mp hb
+      refine ⟨a, ha, ?_⟩
+      calc
+        Protocol.actualPrefixCodeRaw t P a b =
+            Protocol.actualPrefixCodeRaw t (Protocol.swap P) b a := by
+              exact (Protocol.actualPrefixCodeRaw_swap t P a b).symm
+        _ = br.transcript := hcode
+    · rintro ⟨a, ha, hcode⟩
+      exact (br.rows_reachable b).mpr
+        ⟨a, ha, by
+          calc
+            Protocol.actualPrefixCodeRaw t (Protocol.swap P) b a =
+                Protocol.actualPrefixCodeRaw t P a b := by
+                  exact Protocol.actualPrefixCodeRaw_swap t P a b
+            _ = br.transcript := hcode⟩
+  residual_eq_actual := by
+    rw [br.residual_eq_actual]
+    rw [Protocol.swap_restrictSub]
+    rw [Protocol.swap_actualSubtreeAtRaw_swap]
+  residual_eval_eq := by
+    intro a b
+    calc
+      (Protocol.swap br.residual).eval a b =
+          br.residual.eval b a := by
+            exact Protocol.eval_swap br.residual a b
+      _ = (Protocol.swap P).eval b.val a.val := br.residual_eval_eq b a
+      _ = P.eval a.val b.val := by
+            exact Protocol.eval_swap P b.val a.val
+  residual_computes := by
+    intro a b
+    calc
+      (Protocol.swap br.residual).eval a b =
+          br.residual.eval b a := by
+            exact Protocol.eval_swap br.residual a b
+      _ = (subgame (fun b a => G a b) br.rows br.cols) b a := by
+            exact br.residual_computes b a
+      _ = subgame G br.cols br.rows a b := by
+            rfl
+  restricted_residual_computes := by
+    intro a b
+    have hres := br.residual_eval_eq b a
+    have hcomp := br.residual_computes b a
+    rw [Protocol.eval_restrictSub]
+    rw [Protocol.eval_restrict_of_mem br.cols br.rows P a.2 b.2]
+    calc
+      P.eval a.val b.val =
+          (Protocol.swap P).eval b.val a.val := by
+            exact (Protocol.eval_swap P b.val a.val).symm
+      _ = br.residual.eval b a := hres.symm
+      _ = subgame G br.cols br.rows a b := by
+            simpa using hcomp
+  restrict_evalDepth_ledger := by
+    intro a ha b hb
+    exact Protocol.evalDepth_restrict_add_foldCount_of_mem br.cols br.rows P ha hb
+  actualDepth_eq := by
+    intro a ha b hb
+    have hbr := br.actualDepth_eq b hb a ha
+    calc
+      Protocol.evalDepth P a b =
+          Protocol.evalDepth (Protocol.swap P) b a := by
+            exact (Protocol.evalDepth_swap P b a).symm
+      _ = t + Protocol.evalDepth br.residual ⟨b, hb⟩ ⟨a, ha⟩ := hbr
+      _ = t + Protocol.evalDepth (Protocol.swap br.residual) ⟨a, ha⟩ ⟨b, hb⟩ := by
+            rw [Protocol.evalDepth_swap br.residual]
+  cost_after_actualBits := by
+    simpa [Protocol.cost_swap] using br.cost_after_actualBits
+
+/-- Bob-segment branch constructor obtained by row-prefix construction on swap. -/
+noncomputable def mkBranchAt_of_colPrefix [Fintype A] [Fintype B]
+    (P : Protocol A B Bool) (G : A -> B -> Bool) (t : Nat) (j : Fin (2 ^ t))
+    (hcol : Protocol.FirstKColBitsOn
+      (Finset.univ : Finset A) (Finset.univ : Finset B) t P)
+    (hP : P.Computes G)
+    (hrows : (Finset.univ : Finset A).Nonempty)
+    (hcols : (colPrefixCols t P j).Nonempty) :
+    Protocol.BranchAt P G t :=
+  branchAt_of_swap
+    (P := P) (G := G) <|
+      mkBranchAt_of_rowPrefix
+        (Protocol.swap P) (fun b a => G a b) t j hcol
+        (by
+          intro b a
+          rw [Protocol.eval_swap]
+          exact hP a b)
+        (by
+          simpa [colPrefixCols] using hcols)
+        hrows
+-- CLAIM-END aux:branch-constructors-2

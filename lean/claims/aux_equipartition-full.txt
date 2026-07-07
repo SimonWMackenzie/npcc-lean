@@ -1,0 +1,11 @@
+-- CLAIM-BEGIN aux:equipartition-full
+/-- Unit test for `IsEquipartitionedGE`: the full row set `Finset.univ` over a
+finite index type `ι` and finite payload type `X` is `(Q, T)`-equipartitioned for
+every `Q` and every threshold `T ≤ Fintype.card X`. The point is that the fiber of
+`univ` over any first component `q` bijects with `X` (the second component ranges
+freely), so it has exactly `Fintype.card X` elements; the threshold hypothesis then
+gives the required lower bound uniformly over `Q`. -/
+theorem IsEquipartitionedGE.univ {ι X : Type*} [DecidableEq ι] [Fintype ι]
+    [Fintype X] (Q : Finset ι) (T : ℕ) (hT : T ≤ Fintype.card X) :
+    IsEquipartitionedGE (Finset.univ : Finset (ι × X)) Q T :=
+-- CLAIM-END aux:equipartition-full

@@ -1,0 +1,17 @@
+-- CLAIM-BEGIN lem:stage1-threshold
+/-- Paper `lem:stage1-threshold` (Stage-1 threshold, App C.2): the EXACT local
+threshold equalities `comp 𝓗_{2^a}(S₁) = a+1` and `comp 𝓗_{2^a+1}(S₁) = a+2`,
+spelled underflow-free: the capacity game is `Hcap` (`r = q₁+2`, the paper's
+`2^a` under `2 ≤ d` via `q1_add_two_eq`) and the overload game is `Hover`
+(`r = q₁+3`, the paper's `2^a+1` via `q1_add_three_eq`). BOTH directions of
+BOTH equalities are native: upper bounds by the row-identification protocol
+(`comp_le_of_row_types_succ`), lower bounds by the heavy-path +
+balanced-rectangle counting argument (paper `claim:stage1-rect-bound`), NOT
+by the robust-seed engine. Large-`d` gates are use-site hypotheses delivered
+downstream by `lem:large-d-checklist`: `hbal` exposes the S₁ balancedness
+(`S1fam_balanced`), `hta` is the paper's eq:stage1-t-large `a+2 ≤ t₁`. -/
+theorem stage1_threshold (d : ℕ) (hd : 2 ≤ d)
+    (hbal : Params.t1 d ≤ Params.q1 d + 5)
+    (hta : Params.a d + 2 ≤ Params.t1 d) :
+    D (Hcap d) = Params.a d + 1 ∧ D (Hover d) = Params.a d + 2 :=
+-- CLAIM-END lem:stage1-threshold

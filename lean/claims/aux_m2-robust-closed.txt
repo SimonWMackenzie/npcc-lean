@@ -1,0 +1,475 @@
+-- CLAIM-BEGIN aux:m2-robust-closed
+
+private theorem M2num_robust_rowDensity_top_base (d : Nat)
+    (hlarge : Checklist d)
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d)) :
+    (2 : Real) ^ Nat.log 2 (Params.r2 d) *
+        M2_hard_seed_rowDensity d =
+      (Params.q2 d : Real) * (2 : Real) ^ (-(Params.b1 d : Real)) := by
+  have hprod_nat :
+      2 ^ Nat.log 2 (Params.r2 d) * 2 ^ Nat.log 2 (Params.t2 d) =
+        Params.q2 d := by
+    calc
+      2 ^ Nat.log 2 (Params.r2 d) * 2 ^ Nat.log 2 (Params.t2 d)
+          = Params.r2 d * Params.t2 d := by
+            rw [M2num_log2_t2_eq_M2_T d, ← M2num_t2_eq_two_pow_M2_T d]
+            rw [← hr2pow]
+      _ = Params.q2 d := hlarge.q2_eq.symm
+  have hprod_real :
+      (2 : Real) ^ Nat.log 2 (Params.r2 d) *
+          (2 : Real) ^ Nat.log 2 (Params.t2 d) =
+        (Params.q2 d : Real) := by
+    exact_mod_cast hprod_nat
+  unfold M2_hard_seed_rowDensity
+  calc
+    (2 : Real) ^ Nat.log 2 (Params.r2 d) *
+        ((2 : Real) ^ Nat.log 2 (Params.t2 d) *
+          (2 : Real) ^ (-(Params.b1 d : Real)))
+        =
+      ((2 : Real) ^ Nat.log 2 (Params.r2 d) *
+          (2 : Real) ^ Nat.log 2 (Params.t2 d)) *
+        (2 : Real) ^ (-(Params.b1 d : Real)) := by ring
+    _ = (Params.q2 d : Real) * (2 : Real) ^ (-(Params.b1 d : Real)) := by
+      rw [hprod_real]
+
+private theorem M2num_robust_eta2_eq_twice_base (d : Nat) :
+    Params.eta2 d =
+      (Params.q2 d : Real) *
+        ((2 : Real) ^ (-(Params.b1 d : Real)) * 2) := by
+  unfold Params.eta2
+  rw [zpow_add₀ (by norm_num : (2 : Real) ≠ 0)]
+  rw [zpow_one]
+  rw [two_zpow_neg_nat_eq_rpow_neg_nat_stage2 (Params.b1 d)]
+
+private theorem M2num_robust_top_rowDensity_le_eta2 (d : Nat)
+    (hlarge : Checklist d)
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d)) :
+    (2 : Real) ^ Nat.log 2 (Params.r2 d) *
+        M2_hard_seed_rowDensity d <= Params.eta2 d := by
+  rw [M2num_robust_rowDensity_top_base d hlarge hr2pow]
+  rw [M2num_robust_eta2_eq_twice_base d]
+  have hnonneg :
+      0 <= (Params.q2 d : Real) *
+        (2 : Real) ^ (-(Params.b1 d : Real)) := by
+    positivity
+  nlinarith
+
+private theorem M2num_robust_eta2_le_one128 (d : Nat) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 <= Nat.log 2 d) :
+    Params.eta2 d <= (1 : Real) / 128 := by
+  have hη := Params.eta2_le_pow (d := d) hpow (N := 7) (by omega)
+  have hval : (2 : Real) ^ (-(7 : Int)) = (1 : Real) / 128 := by norm_num
+  simpa [hval] using hη
+
+private theorem M2num_robust_scaled_rowDensity_le_one128 (d Re : Nat)
+    (hpow : IsPow2 d) (hlog : 2 ^ 18 <= Nat.log 2 d)
+    (hlarge : Checklist d)
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hRe : Re <= Nat.log 2 (Params.r2 d)) :
+    (2 : Real) ^ Re * M2_hard_seed_rowDensity d <= (1 : Real) / 128 := by
+  have hpow_le :
+      (2 : Real) ^ Re <= (2 : Real) ^ Nat.log 2 (Params.r2 d) := by
+    exact_mod_cast Nat.pow_le_pow_right (by norm_num : 1 <= 2) hRe
+  have hrd_nonneg : 0 <= M2_hard_seed_rowDensity d := by
+    unfold M2_hard_seed_rowDensity
+    positivity
+  have hscaled :
+      (2 : Real) ^ Re * M2_hard_seed_rowDensity d <=
+        (2 : Real) ^ Nat.log 2 (Params.r2 d) *
+          M2_hard_seed_rowDensity d := by
+    exact mul_le_mul_of_nonneg_right hpow_le hrd_nonneg
+  exact le_trans hscaled
+    (le_trans (M2num_robust_top_rowDensity_le_eta2 d hlarge hr2pow)
+      (M2num_robust_eta2_le_one128 d hpow hlog))
+
+private theorem M2num_robust_copies_real_eq (d : Nat) (hT5 : 5 <= M2_T d) :
+    (M2_hard_seed_copies d : Real) =
+      (9 / 16 : Real) * ((2 ^ M2_T d : Nat) : Real) := by
+  unfold M2_hard_seed_copies
+  rw [M2num_log2_t2_eq_M2_T d]
+  simp [Params.jSurplus]
+  have hsplit : M2_T d = 5 + (M2_T d - 5) := by omega
+  rw [hsplit, pow_add]
+  norm_num
+  ring
+
+private theorem M2num_robust_lhs_top_coeff (d : Nat)
+    (hlarge : Checklist d)
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hT5 : 5 <= M2_T d) :
+    ((2 ^ Nat.log 2 (Params.r2 d) * M2_hard_seed_copies d : Nat) : Real)
+      <= (9 / 16 : Real) * (Params.q2 d : Real) := by
+  have hqcast : 2 ^ (Nat.log 2 (Params.r2 d) + M2_T d) = Params.q2 d := by
+    calc
+      2 ^ (Nat.log 2 (Params.r2 d) + M2_T d)
+          = 2 ^ Nat.log 2 (Params.r2 d) * 2 ^ M2_T d := by rw [pow_add]
+      _ = Params.r2 d * Params.t2 d := by
+        rw [← hr2pow, ← M2num_t2_eq_two_pow_M2_T d]
+      _ = Params.q2 d := hlarge.q2_eq.symm
+  rw [Nat.cast_mul, M2num_robust_copies_real_eq d hT5]
+  have hpowprod :
+      ((2 ^ Nat.log 2 (Params.r2 d) : Nat) : Real) *
+          ((2 ^ M2_T d : Nat) : Real) =
+        (Params.q2 d : Real) := by
+    rw [← Nat.cast_mul, ← pow_add, hqcast]
+  calc
+    ((2 ^ Nat.log 2 (Params.r2 d) : Nat) : Real) *
+        ((9 / 16 : Real) * ((2 ^ M2_T d : Nat) : Real))
+        = (9 / 16 : Real) *
+          (((2 ^ Nat.log 2 (Params.r2 d) : Nat) : Real) *
+            ((2 ^ M2_T d : Nat) : Real)) := by ring
+    _ = (9 / 16 : Real) * (Params.q2 d : Real) := by rw [hpowprod]
+    _ <= (9 / 16 : Real) * (Params.q2 d : Real) := le_rfl
+
+private theorem M2num_robust_lhs_mid_coeff (d : Nat)
+    (hlarge : Checklist d)
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hT5 : 5 <= M2_T d)
+    (hR1 : 1 <= Nat.log 2 (Params.r2 d)) :
+    ((2 ^ (Nat.log 2 (Params.r2 d) - 1) *
+        M2_hard_seed_copies d : Nat) : Real)
+      <= (9 / 32 : Real) * (Params.q2 d : Real) := by
+  let R := Nat.log 2 (Params.r2 d)
+  have hqcast : 2 ^ (R + M2_T d) = Params.q2 d := by
+    calc
+      2 ^ (R + M2_T d) = 2 ^ R * 2 ^ M2_T d := by rw [pow_add]
+      _ = Params.r2 d * Params.t2 d := by
+        dsimp [R]
+        rw [← hr2pow, ← M2num_t2_eq_two_pow_M2_T d]
+      _ = Params.q2 d := hlarge.q2_eq.symm
+  have hpowprod :
+      ((2 ^ R : Nat) : Real) * ((2 ^ M2_T d : Nat) : Real) =
+        (Params.q2 d : Real) := by
+    rw [← Nat.cast_mul, ← pow_add, hqcast]
+  have hRsplit : R = 1 + (R - 1) := by omega
+  have hprod_mid :
+      ((2 ^ (R - 1) : Nat) : Real) * ((2 ^ M2_T d : Nat) : Real) =
+        (Params.q2 d : Real) / 2 := by
+    rw [← hpowprod]
+    rw [hRsplit, pow_add]
+    have hsub : 1 + (R - 1) - 1 = R - 1 := by omega
+    rw [hsub]
+    norm_num [Nat.cast_mul]
+    ring
+  rw [Nat.cast_mul, M2num_robust_copies_real_eq d hT5]
+  dsimp [R] at hprod_mid
+  calc
+    ((2 ^ (Nat.log 2 (Params.r2 d) - 1) : Nat) : Real) *
+        ((9 / 16 : Real) * ((2 ^ M2_T d : Nat) : Real))
+        = (9 / 16 : Real) *
+          (((2 ^ (Nat.log 2 (Params.r2 d) - 1) : Nat) : Real) *
+            ((2 ^ M2_T d : Nat) : Real)) := by ring
+    _ = (9 / 16 : Real) * ((Params.q2 d : Real) / 2) := by rw [hprod_mid]
+    _ = (9 / 32 : Real) * (Params.q2 d : Real) := by ring
+    _ <= (9 / 32 : Real) * (Params.q2 d : Real) := le_rfl
+
+private theorem M2num_robust_lhs_low_coeff (d : Nat)
+    (hlarge : Checklist d)
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hT5 : 5 <= M2_T d)
+    (hR2 : 2 <= Nat.log 2 (Params.r2 d)) :
+    ((2 ^ (Nat.log 2 (Params.r2 d) - 2) *
+        M2_hard_seed_copies d : Nat) : Real)
+      <= (9 / 64 : Real) * (Params.q2 d : Real) := by
+  let R := Nat.log 2 (Params.r2 d)
+  have hqcast : 2 ^ (R + M2_T d) = Params.q2 d := by
+    calc
+      2 ^ (R + M2_T d) = 2 ^ R * 2 ^ M2_T d := by rw [pow_add]
+      _ = Params.r2 d * Params.t2 d := by
+        dsimp [R]
+        rw [← hr2pow, ← M2num_t2_eq_two_pow_M2_T d]
+      _ = Params.q2 d := hlarge.q2_eq.symm
+  have hpowprod :
+      ((2 ^ R : Nat) : Real) * ((2 ^ M2_T d : Nat) : Real) =
+        (Params.q2 d : Real) := by
+    rw [← Nat.cast_mul, ← pow_add, hqcast]
+  have hRsplit : R = 2 + (R - 2) := by omega
+  have hprod_low :
+      ((2 ^ (R - 2) : Nat) : Real) * ((2 ^ M2_T d : Nat) : Real) =
+        (Params.q2 d : Real) / 4 := by
+    rw [← hpowprod]
+    rw [hRsplit, pow_add]
+    have hsub : 2 + (R - 2) - 2 = R - 2 := by omega
+    rw [hsub]
+    norm_num [Nat.cast_mul]
+    ring
+  rw [Nat.cast_mul, M2num_robust_copies_real_eq d hT5]
+  dsimp [R] at hprod_low
+  calc
+    ((2 ^ (Nat.log 2 (Params.r2 d) - 2) : Nat) : Real) *
+        ((9 / 16 : Real) * ((2 ^ M2_T d : Nat) : Real))
+        = (9 / 16 : Real) *
+          (((2 ^ (Nat.log 2 (Params.r2 d) - 2) : Nat) : Real) *
+            ((2 ^ M2_T d : Nat) : Real)) := by ring
+    _ = (9 / 16 : Real) * ((Params.q2 d : Real) / 4) := by rw [hprod_low]
+    _ = (9 / 64 : Real) * (Params.q2 d : Real) := by ring
+    _ <= (9 / 64 : Real) * (Params.q2 d : Real) := le_rfl
+
+private theorem M2num_robust_six_mul_add_twelve_le_two_pow {n : Nat}
+    (hn : 6 <= n) :
+    6 * n + 12 <= 2 ^ n := by
+  induction n with
+  | zero => omega
+  | succ n ih =>
+      rcases Nat.lt_or_ge n 6 with hnsmall | hnbig
+      · have hn5 : n = 5 := by omega
+        subst hn5
+        norm_num
+      · have hih := ih hnbig
+        have hpow : 2 ^ (n + 1) = 2 * 2 ^ n := by ring
+        rw [hpow]
+        omega
+
+private theorem M2num_robust_six_mul_le_two_pow_sub_two {k : Nat}
+    (hk : 8 <= k) :
+    6 * k <= 2 ^ (k - 2) := by
+  have hn : 6 <= k - 2 := by omega
+  have hmain := M2num_robust_six_mul_add_twelve_le_two_pow hn
+  have hrewrite : 6 * k = 6 * (k - 2) + 12 := by omega
+  rw [hrewrite]
+  exact hmain
+
+private theorem M2num_robust_Rlog_ge2 (d : Nat) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 <= Nat.log 2 d) (hlarge : Checklist d)
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d)) :
+    2 <= Nat.log 2 (Params.r2 d) := by
+  obtain ⟨k, rfl⟩ := hpow
+  have hk : 2 ^ 18 <= k := by
+    simpa [log_two_pow] using hlog
+  have hloglog : 1 <= Nat.log 2 (Nat.log 2 (2 ^ k)) := by
+    rw [log_two_pow]
+    exact Nat.log_pos (by norm_num) (by omega)
+  have ht2_le : Params.t2 (2 ^ k) <= 6 * k := by
+    have ht := Params.t2_le (d := 2 ^ k) hloglog
+    simpa [log_two_pow] using ht
+  have ht2_le_pow : Params.t2 (2 ^ k) <= 2 ^ (k - 2) :=
+    le_trans ht2_le (M2num_robust_six_mul_le_two_pow_sub_two (by omega))
+  have hT_le : M2_T (2 ^ k) <= k - 2 := by
+    rw [M2num_t2_eq_two_pow_M2_T (2 ^ k)] at ht2_le_pow
+    exact (Nat.pow_le_pow_iff_right (by norm_num : 1 < 2)).mp ht2_le_pow
+  have hsum := M2num_log2_q2_eq_log2_r2_add_log2_t2
+    (2 ^ k) hlarge hr2pow
+  have hleft : Nat.log 2 (Params.q2 (2 ^ k)) = k := by
+    rw [hlarge.q2_eq_self, log_two_pow]
+  rw [hleft, M2num_log2_t2_eq_M2_T (2 ^ k)] at hsum
+  omega
+
+private theorem M2num_robust_balance_real_top {q x : Real}
+    (hq0 : 0 <= q) (hx : x <= (1 : Real) / 128) :
+    (9 / 16 : Real) * q <=
+      q * (((1 : Real) / 2 + Params.delta) - x) / (1 - x) := by
+  have hden : 0 < 1 - x := by nlinarith
+  have hbeta : (1 / 2 : Real) + Params.delta = 3 / 5 := by
+    norm_num [Params.delta]
+  rw [hbeta]
+  rw [le_div_iff₀ hden]
+  nlinarith
+
+private theorem M2num_robust_balance_real_mid {q x : Real}
+    (hq0 : 0 <= q) (hx : x <= (1 : Real) / 128) :
+    (9 / 32 : Real) * q <=
+      q * (((1 : Real) / 4 + Params.delta / 2) - x) / (1 - x) := by
+  have hden : 0 < 1 - x := by nlinarith
+  have hbeta : (1 / 4 : Real) + Params.delta / 2 = 3 / 10 := by
+    norm_num [Params.delta]
+  rw [hbeta]
+  rw [le_div_iff₀ hden]
+  nlinarith
+
+private theorem M2num_robust_balance_real_low {q x : Real}
+    (hq0 : 0 <= q) (hx : x <= (1 : Real) / 128) :
+    (9 / 64 : Real) * q <=
+      q * (((1 : Real) / 8 + Params.delta / 4) - x) / (1 - x) := by
+  have hden : 0 < 1 - x := by nlinarith
+  have hbeta : (1 / 8 : Real) + Params.delta / 4 = 3 / 20 := by
+    norm_num [Params.delta]
+  rw [hbeta]
+  rw [le_div_iff₀ hden]
+  nlinarith
+
+private theorem M2num_robust_balance_top (d : Nat)
+    (hpow : IsPow2 d) (hlog : 2 ^ 18 <= Nat.log 2 d)
+    (hlarge : Checklist d)
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hT5 : 5 <= M2_T d) :
+    M2_robust_balance_gate d (Nat.log 2 (Params.r2 d))
+      (1 / 2 + Params.delta) := by
+  unfold M2_robust_balance_gate
+  let x : Real :=
+    (2 : Real) ^ Nat.log 2 (Params.r2 d) * M2_hard_seed_rowDensity d
+  have hx : x <= (1 : Real) / 128 :=
+    M2num_robust_scaled_rowDensity_le_one128 d (Nat.log 2 (Params.r2 d))
+      hpow hlog hlarge hr2pow (le_refl _)
+  have hlhs := M2num_robust_lhs_top_coeff d hlarge hr2pow hT5
+  have hreal :
+      ((2 ^ Nat.log 2 (Params.r2 d) *
+          M2_hard_seed_copies d : Nat) : Real) <=
+        (Params.q2 d : Real) *
+          ((1 / 2 + Params.delta) - x) / (1 - x) := by
+    exact le_trans hlhs
+      (M2num_robust_balance_real_top (by positivity) hx)
+  have hceil_real :
+      ((2 ^ Nat.log 2 (Params.r2 d) *
+          M2_hard_seed_copies d : Nat) : Real) <=
+        (Nat.ceil ((Params.q2 d : Real) *
+          ((1 / 2 + Params.delta) -
+            (2 : Real) ^ Nat.log 2 (Params.r2 d) *
+              M2_hard_seed_rowDensity d) /
+          (1 - (2 : Real) ^ Nat.log 2 (Params.r2 d) *
+              M2_hard_seed_rowDensity d)) : Real) := by
+    exact le_trans (by simpa [x] using hreal) (Nat.le_ceil _)
+  exact_mod_cast hceil_real
+
+private theorem M2num_robust_balance_mid (d : Nat)
+    (hpow : IsPow2 d) (hlog : 2 ^ 18 <= Nat.log 2 d)
+    (hlarge : Checklist d)
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hT5 : 5 <= M2_T d)
+    (hRlog_ge2 : 2 <= Nat.log 2 (Params.r2 d)) :
+    M2_robust_balance_gate d (Nat.log 2 (Params.r2 d) - 1)
+      (1 / 4 + Params.delta / 2) := by
+  unfold M2_robust_balance_gate
+  let Re := Nat.log 2 (Params.r2 d) - 1
+  let x : Real := (2 : Real) ^ Re * M2_hard_seed_rowDensity d
+  have hRe : Re <= Nat.log 2 (Params.r2 d) := by
+    dsimp [Re]
+    omega
+  have hx : x <= (1 : Real) / 128 :=
+    M2num_robust_scaled_rowDensity_le_one128 d Re hpow hlog hlarge hr2pow hRe
+  have hlhs := M2num_robust_lhs_mid_coeff d hlarge hr2pow hT5 (by omega)
+  have hreal :
+      ((2 ^ (Nat.log 2 (Params.r2 d) - 1) *
+          M2_hard_seed_copies d : Nat) : Real) <=
+        (Params.q2 d : Real) *
+          ((1 / 4 + Params.delta / 2) - x) / (1 - x) := by
+    exact le_trans hlhs
+      (M2num_robust_balance_real_mid (by positivity) hx)
+  have hceil_real :
+      ((2 ^ (Nat.log 2 (Params.r2 d) - 1) *
+          M2_hard_seed_copies d : Nat) : Real) <=
+        (Nat.ceil ((Params.q2 d : Real) *
+          ((1 / 4 + Params.delta / 2) -
+            (2 : Real) ^ (Nat.log 2 (Params.r2 d) - 1) *
+              M2_hard_seed_rowDensity d) /
+          (1 - (2 : Real) ^ (Nat.log 2 (Params.r2 d) - 1) *
+              M2_hard_seed_rowDensity d)) : Real) := by
+    exact le_trans (by simpa [Re, x] using hreal) (Nat.le_ceil _)
+  exact_mod_cast hceil_real
+
+private theorem M2num_robust_balance_low (d : Nat)
+    (hpow : IsPow2 d) (hlog : 2 ^ 18 <= Nat.log 2 d)
+    (hlarge : Checklist d)
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hT5 : 5 <= M2_T d)
+    (hRlog_ge2 : 2 <= Nat.log 2 (Params.r2 d)) :
+    M2_robust_balance_gate d (Nat.log 2 (Params.r2 d) - 2)
+      (1 / 8 + Params.delta / 4) := by
+  unfold M2_robust_balance_gate
+  let Re := Nat.log 2 (Params.r2 d) - 2
+  let x : Real := (2 : Real) ^ Re * M2_hard_seed_rowDensity d
+  have hRe : Re <= Nat.log 2 (Params.r2 d) := by
+    dsimp [Re]
+    omega
+  have hx : x <= (1 : Real) / 128 :=
+    M2num_robust_scaled_rowDensity_le_one128 d Re hpow hlog hlarge hr2pow hRe
+  have hlhs := M2num_robust_lhs_low_coeff d hlarge hr2pow hT5 hRlog_ge2
+  have hreal :
+      ((2 ^ (Nat.log 2 (Params.r2 d) - 2) *
+          M2_hard_seed_copies d : Nat) : Real) <=
+        (Params.q2 d : Real) *
+          ((1 / 8 + Params.delta / 4) - x) / (1 - x) := by
+    exact le_trans hlhs
+      (M2num_robust_balance_real_low (by positivity) hx)
+  have hceil_real :
+      ((2 ^ (Nat.log 2 (Params.r2 d) - 2) *
+          M2_hard_seed_copies d : Nat) : Real) <=
+        (Nat.ceil ((Params.q2 d : Real) *
+          ((1 / 8 + Params.delta / 4) -
+            (2 : Real) ^ (Nat.log 2 (Params.r2 d) - 2) *
+              M2_hard_seed_rowDensity d) /
+          (1 - (2 : Real) ^ (Nat.log 2 (Params.r2 d) - 2) *
+              M2_hard_seed_rowDensity d)) : Real) := by
+    exact le_trans (by simpa [Re, x] using hreal) (Nat.le_ceil _)
+  exact_mod_cast hceil_real
+
+/-- Public Stage-2 robustness wrapper.  The remaining inputs are public gates
+already used elsewhere in the Stage-2/Stage-3 endgame; the private
+`M2_robust_balance_gate` hypotheses of `M2_robust` are discharged internally. -/
+theorem M2_robust_closed (d : Nat) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 <= Nat.log 2 d) (hlarge : Checklist d)
+    (hm0_le : (Classical.choose
+        (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+          Params.delta (by norm_num [Params.delta])
+          (by norm_num [Params.delta])) : Nat) <= Nat.log 2 (Params.t2 d))
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hrow_threshold :
+      Nat.ceil ((2 : Real) ^ (Nat.log 2 (Params.r2 d) : Nat) *
+        M2_hard_seed_rowDensity d * (Fintype.card (C1 d) : Real))
+          <= Fintype.card (C1 d))
+    (hraw : M2_hard_seed_to_h2prime_exp d)
+    (hprime : M2_h2prime_bridge_exp d)
+    (hy_three_fifths :
+      forall c, c <= M2_T d + D (M1T d) ->
+        (3 : Real) / 5 <=
+          yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c) :
+    IsRobust (fun (c : C2 d) (r : R2 d) => M2 d r c)
+      Params.delta (Params.b2 d) := by
+  have hlog256 : 256 <= Nat.log 2 d := by
+    nlinarith
+  have hT5 : 5 <= M2_T d := M2num_M2_T_ge_five d hlog256
+  have hp1 : 2 ^ M2_T d <= 2 * M2_hard_seed_copies d :=
+    M2num_hard_seed_copy_lower d hT5
+  have hp2 : M2_hard_seed_copies d <= 2 ^ M2_T d :=
+    M2num_hard_seed_copy_upper d hT5
+  have hxseed_le_one : M2_hard_seed_rowDensity d <= 1 :=
+    M2num_hard_seed_rowDensity_le_one d hlarge
+  have hseed_bridge :
+      M2_hard_seed_columnDensity d <=
+        Params.h2 d *
+          (2 : Real) ^ (-((M2_T d + D (M1T d) : Nat) : Real)) /
+            (1 + epsQT (Params.q2 d) (Params.t2 d)) :=
+    M2num_hbridge_via_h2prime d hraw hprime
+  have hresidual_density :
+      forall c, c <= M2_T d + D (M1T d) ->
+        1 / 2 + Params.delta <=
+            yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+              (Params.h2 d) c /\
+          yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+              (Params.h2 d) c <= 1 :=
+    M2num_residual_density_of_three_fifths d hy_three_fifths
+  have hRlog_ge2 : 2 <= Nat.log 2 (Params.r2 d) :=
+    M2num_robust_Rlog_ge2 d hpow hlog hlarge hr2pow
+  have hx_top :
+      (2 : Real) ^ Nat.log 2 (Params.r2 d) *
+          M2_hard_seed_rowDensity d <= 1 / 2 + Params.delta := by
+    have hxsmall :=
+      M2num_robust_scaled_rowDensity_le_one128 d
+        (Nat.log 2 (Params.r2 d)) hpow hlog hlarge hr2pow (le_refl _)
+    exact le_trans hxsmall (by norm_num [Params.delta])
+  have hx_mid :
+      (2 : Real) ^ (Nat.log 2 (Params.r2 d) - 1) *
+          M2_hard_seed_rowDensity d <= 1 / 4 + Params.delta / 2 := by
+    have hxsmall :=
+      M2num_robust_scaled_rowDensity_le_one128 d
+        (Nat.log 2 (Params.r2 d) - 1) hpow hlog hlarge hr2pow (by omega)
+    exact le_trans hxsmall (by norm_num [Params.delta])
+  have hx_low :
+      (2 : Real) ^ (Nat.log 2 (Params.r2 d) - 2) *
+          M2_hard_seed_rowDensity d <= 1 / 8 + Params.delta / 4 := by
+    have hxsmall :=
+      M2num_robust_scaled_rowDensity_le_one128 d
+        (Nat.log 2 (Params.r2 d) - 2) hpow hlog hlarge hr2pow (by omega)
+    exact le_trans hxsmall (by norm_num [Params.delta])
+  exact M2_robust d hpow hlog256 hlarge hm0_le hr2pow hp1 hp2
+    hxseed_le_one hrow_threshold hseed_bridge
+    (M1_terminal_density_le_one d)
+    (M1_terminal_row_estimate d hpow hlog)
+    (M1_terminal_col_estimate d)
+    hresidual_density
+    hRlog_ge2 hx_top hx_mid hx_low
+    (M2num_robust_balance_top d hpow hlog hlarge hr2pow hT5)
+    (M2num_robust_balance_mid d hpow hlog hlarge hr2pow hT5 hRlog_ge2)
+    (M2num_robust_balance_low d hpow hlog hlarge hr2pow hT5 hRlog_ge2)
+
+-- CLAIM-END aux:m2-robust-closed

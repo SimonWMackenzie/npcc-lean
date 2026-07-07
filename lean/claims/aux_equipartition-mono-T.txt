@@ -1,0 +1,11 @@
+-- CLAIM-BEGIN aux:equipartition-mono-T
+/-- Unit test for `IsEquipartitionedGE`: the equipartition fiber-size threshold is
+antitone in the target `T`. If every fiber over `Q` has size at least `T`, then in
+particular every such fiber has size at least any `T2 ≤ T`. This verifies that
+`IsEquipartitionedGE R Q T` is a monotone (downward-closed) family in `T`, matching
+the paper's use where lowering the required per-part count preserves the property. -/
+theorem IsEquipartitionedGE.mono_T {ι X : Type*} [DecidableEq ι]
+    {R : Finset (ι × X)} {Q : Finset ι} {T T2 : ℕ}
+    (h : IsEquipartitionedGE R Q T) (hT : T2 ≤ T) :
+    IsEquipartitionedGE R Q T2 :=
+-- CLAIM-END aux:equipartition-mono-T

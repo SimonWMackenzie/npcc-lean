@@ -1,0 +1,358 @@
+-- CLAIM-BEGIN lem:large-d-checklist
+set_option maxHeartbeats 1600000 in
+/-- **`lem:large-d-checklist`** (existential-threshold / Nonempty form, D3):
+there is an explicit power-of-two threshold `d₀ = 2^{256}` such that every
+power of two `d ≥ d₀` satisfies the bundled `Checklist`. The witness is the
+huge explicit `d₀` (hard-seed `m₀`-witness pattern); this is exactly the
+`Nonempty` fact D3 requires proved BEFORE `d_star` is extracted by
+`Classical.choice`.
+
+Witness raised `2^{64} → 2^{256}` (from the original two-conjunct bundle) by
+the NEW binding constraint: the App C.1 fiber-survival inequality
+`8h₂ < (1−ε₂)/|R₁|` (field `dens_fiber_survival`) needs `loglog d ≥ 8`, i.e.
+`log d ≥ 256`, so that `q₁ = Θ(log² d)` is dominated by
+`1/h₂ = 2^{3 loglog d}`. Every other field holds already at `log d ≥ 64` and
+is monotone upward; the explicit-witness pattern absorbs the raise. -/
+theorem large_d_checklist :
+    ∃ d₀ : ℕ, ∀ d : ℕ, IsPow2 d → d₀ ≤ d → Checklist d := by
+  refine ⟨2 ^ 256, ?_⟩
+  intro d hpow hge
+  obtain ⟨k, rfl⟩ := hpow
+  -- `2^256 ≤ 2^k` forces `k ≥ 256`.
+  have hk : 256 ≤ k := by
+    by_contra hlt
+    have hlt' : k < 256 := by omega
+    have : (2 : ℕ) ^ k < 2 ^ 256 := Nat.pow_lt_pow_right (by norm_num) hlt'
+    omega
+  have hlogk : Nat.log 2 (2 ^ k) = k := log_two_pow k
+  have hlog256 : 256 ≤ Nat.log 2 (2 ^ k) := by rw [hlogk]; exact hk
+  have hlog64 : 64 ≤ Nat.log 2 (2 ^ k) := by omega
+  have hlog2 : 2 ≤ Nat.log 2 (2 ^ k) := by omega
+  have hlog6 : 6 ≤ Nat.log 2 (2 ^ k) := by omega
+  have hloglog : 1 ≤ Nat.log 2 (Nat.log 2 (2 ^ k)) :=
+    Params.loglog_pos hlog2
+  -- loglog (2^k) = log k ≥ log 256 = 8 (since k ≥ 256)
+  have hloglog8 : 8 ≤ Nat.log 2 (Nat.log 2 (2 ^ k)) := by
+    rw [hlogk]
+    calc 8 = Nat.log 2 256 := by norm_num [Nat.log]
+      _ ≤ Nat.log 2 k := Nat.log_mono_right hk
+  have hloglog6 : 6 ≤ Nat.log 2 (Nat.log 2 (2 ^ k)) := by omega
+  have hpow2 : IsPow2 (2 ^ k) := ⟨k, rfl⟩
+  -- accuracy handles: ε₂ ≤ 1/4 (n = 2 ≤ q₂·t₂), ε₁ ≤ 1/4.
+  have hq2t2 : (2 : ℕ) ≤ q2 (2 ^ k) * t2 (2 ^ k) := by
+    have : 2 ≤ q2 (2 ^ k) := by
+      rw [q2_eq_self rfl]; exact Nat.one_lt_two_pow (by omega)
+    have ht2 : 1 ≤ t2 (2 ^ k) := t2_pos _
+    calc 2 ≤ q2 (2 ^ k) := this
+      _ = q2 (2 ^ k) * 1 := (Nat.mul_one _).symm
+      _ ≤ q2 (2 ^ k) * t2 (2 ^ k) := by gcongr
+  have hε2 : epsQT (q2 (2 ^ k)) (t2 (2 ^ k)) ≤ 1 / 4 := by
+    have := epsQT_le_inv_mul (q2_pos _) (t2_pos _) hq2t2 (by norm_num)
+    simpa using this.trans (by norm_num)
+  have hε2pos : 0 < epsQT (q2 (2 ^ k)) (t2 (2 ^ k)) :=
+    epsQT_pos (q2_pos _) (t2_pos _)
+  -- ε₁ = epsQT (2^a+3) t1 ≤ 1/4
+  have hε1n : (2 : ℕ) ≤ (2 ^ a (2 ^ k) + 3) * t1 (2 ^ k) := by
+    have : 1 ≤ t1 (2 ^ k) := t1_pos _
+    nlinarith [Nat.one_le_iff_ne_zero.mpr (by positivity : (2:ℕ) ^ a (2^k) ≠ 0)]
+  have hε1 : epsQT (2 ^ a (2 ^ k) + 3) (t1 (2 ^ k)) ≤ 1 / 4 := by
+    have := epsQT_le_inv_mul (q := 2 ^ a (2 ^ k) + 3) (t := t1 (2 ^ k))
+      (by positivity) (t1_pos _) hε1n (by norm_num)
+    simpa using this.trans (by norm_num)
+  have hε1pos : 0 < epsQT (2 ^ a (2 ^ k) + 3) (t1 (2 ^ k)) :=
+    epsQT_pos (by positivity) (t1_pos _)
+  -- `8 h₂ ≤ 1/32`
+  have hh2 : 8 * h2 (2 ^ k) ≤ 1 / 32 := by
+    have hb := h2_le_pow (M := 6) hloglog6
+    have hval : (2 : ℝ) ^ (-(3 * (6 : ℕ) : ℤ)) = 1 / 262144 := by norm_num
+    rw [hval] at hb
+    nlinarith [h2_pos (d := 2 ^ k)]
+  -- Shared handles for the App C.1 density/count fields (C5–C8).
+  -- `b₁ = 2k`, `t₁ ≥ 64k`, `q₂ = 2^k`, `2 ≤ q₁ ≤ 4k²`, and the size floors.
+  have hb1 : b1 (2 ^ k) = 2 * k := by unfold b1; rw [hlogk]
+  have ht1lo : 64 * k ≤ t1 (2 ^ k) := by
+    have := (Params.t1_bracket (d := 2 ^ k) (by omega)).1; rwa [hlogk] at this
+  have hq2eq : q2 (2 ^ k) = 2 ^ k := q2_eq_self rfl
+  have hq1ge2 : 2 ≤ q1 (2 ^ k) := by
+    have := Params.le_q1_add_two (d := 2 ^ k) (by omega); rw [hlogk] at this; nlinarith
+  have hq1le : q1 (2 ^ k) ≤ 4 * k ^ 2 := by
+    have := Params.q1_le (d := 2 ^ k) (by omega); rwa [hlogk] at this
+  -- size floors  |C₁| ≥ 2^{t₁-1}  and  |C₂| ≥ q₁^{t₂-1}
+  have hL1floor : ((2 : ℝ) ^ (t1 (2 ^ k) - 1)) ≤ (L1 (2 ^ k) : ℝ) :=
+    L1_ge_pow _ (Params.t1_le_q1_add_five hlog64)
+  have hL2floor : ((q1 (2 ^ k) : ℝ) ^ (t2 (2 ^ k) - 1)) ≤ (L2 (2 ^ k) : ℝ) :=
+    L2_ge_pow _ (Params.t2_le_q2 hpow2 hlog6) hq1ge2
+  have hL1pos : 0 < L1 (2 ^ k) := L1_pos _ (Params.t1_le_q1_add_five hlog64)
+  have hL2pos : 0 < L2 (2 ^ k) := L2_pos _ (Params.t2_le_q2 hpow2 hlog6) (by omega)
+  refine
+    { t1_le_q1_add_five := Params.t1_le_q1_add_five hlog64
+      one_le_q1 := Params.one_le_q1 hlog2
+      t2_le_q2 := Params.t2_le_q2 hpow2 hlog6
+      t2_le_pow_b1 := Params.t2_le_pow_b1 hlog6
+      q1_add_two_eq := Params.q1_add_two_eq_r1_mul_t1 hlog64
+      q2_eq := Params.q2_eq_r2_mul_t2 hpow2 hlog6
+      clog_q2_eq := Params.clog_q2_eq_log_q2 hpow2
+      q2_eq_self := q2_eq_self rfl
+      loglog_pos := hloglog
+      a_ge_two := ?_
+      L1_ge := L1_ge_pow _ (Params.t1_le_q1_add_five hlog64)
+      L2_ge := L2_ge_pow _ (Params.t2_le_q2 hpow2 hlog6) ?_
+      dens_sep := ?_
+      dens_sep_dense := ?_
+      dens_eta_lt := ?_
+      dens_survive := ?_
+      dens_dominant_count := ?_
+      dens_fiber_survival := ?_
+      dens_nondominant_slack := ?_
+      dens_stage3_rowloss := ?_
+      seed_slack := Params.seed_slack hlog64 }
+  · -- a ≥ 2 : 2^a = q1+2 ≥ 2 log²d ≥ 2·64² ≥ 2^13, so a ≥ 13 ≥ 2
+    have h2a : q1 (2 ^ k) + 2 = 2 ^ a (2 ^ k) := Params.q1_add_two_pow (by omega)
+    have hlow : 2 * Nat.log 2 (2 ^ k) ^ 2 ≤ q1 (2 ^ k) + 2 :=
+      Params.le_q1_add_two (by omega)
+    rw [h2a] at hlow
+    rw [hlogk] at hlow
+    have hbig : (2 : ℕ) ^ 2 ≤ 2 ^ a (2 ^ k) := by
+      calc (2 : ℕ) ^ 2 = 4 := by norm_num
+        _ ≤ 2 * k ^ 2 := by nlinarith
+        _ ≤ 2 ^ a (2 ^ k) := hlow
+    exact (Nat.pow_le_pow_iff_right (by norm_num)).mp hbig
+  · -- 2 ≤ q1 for L2
+    have := Params.le_q1_add_two (d := 2 ^ k) (by omega)
+    rw [hlogk] at this
+    nlinarith
+  · -- dens_sep : 0.72 ≤ 1/(1+ε₂)
+    have : 2 * (1 / 2 + delta) ^ 2 = 0.72 := by unfold delta; norm_num
+    rw [this]
+    rw [le_div_iff₀ (by linarith)]
+    nlinarith
+  · -- dens_sep_dense
+    intro σ hσ
+    have hσlb : (0.95 : ℝ) ≤ σ := by
+      have : (1 : ℝ) - 8 * h2 (2 ^ k) ≤ σ := hσ
+      linarith
+    have hval : 2 * (1 / 2 + delta) ^ 2 = 0.72 := by unfold delta; norm_num
+    rw [hval, le_div_iff₀ (by linarith)]
+    nlinarith
+  · -- dens_eta_lt : η₂ < (1-ε₁)/2
+    have hη : eta2 (2 ^ k) ≤ (2 : ℝ) ^ (-(2 : ℤ)) := by
+      have := Params.eta2_le_pow (d := 2 ^ k) hpow2 (N := 2) (by rw [hlogk]; omega)
+      simpa using this
+    have hηval : (2 : ℝ) ^ (-(2 : ℤ)) = 1 / 4 := by norm_num
+    rw [hηval] at hη
+    rw [lt_div_iff₀ (by norm_num)]
+    nlinarith
+  · -- dens_survive : 2^{-(b1+log r2)} ≤ 1 - η₂
+    have hη : eta2 (2 ^ k) ≤ 1 / 2 := Params.eta2_le_half hpow2 hlog2
+    have hlhs : (2 : ℝ) ^ (-((b1 (2 ^ k) : ℤ) + Nat.log 2 (r2 (2 ^ k)))) ≤ 1 / 2 := by
+      rw [show (1 / 2 : ℝ) = (2 : ℝ) ^ (-1 : ℤ) by norm_num]
+      apply zpow_le_zpow_right₀ (by norm_num : (1 : ℝ) ≤ 2)
+      have hb1' : 1 ≤ b1 (2 ^ k) := by
+        unfold b1; rw [hlogk]; omega
+      omega
+    linarith
+  · -- (C5) dens_dominant_count : q₂·⌈2^{−b₁+1}·L₁⌉ < L₁
+    -- X := 2^{1−2k}·L₁ ≥ 2^{62k} ≥ 1, ⌈X⌉ ≤ 2X, q₂·2X = 2^{2−k}·L₁ < L₁.
+    set L1R := (L1 (2 ^ k) : ℝ) with hL1R
+    have hL1Rpos : (0 : ℝ) < L1R := by rw [hL1R]; exact_mod_cast hL1pos
+    -- 2^{−b₁+1} = 2^{1−2k} (real zpow)
+    have hscale : (2 : ℝ) ^ (-(b1 (2 ^ k) : ℤ) + 1) = (2 : ℝ) ^ (1 - 2 * (k : ℤ)) := by
+      rw [hb1]; congr 1; push_cast; ring
+    rw [hscale, hq2eq, show (((2 ^ k : ℕ) : ℝ)) = (2 : ℝ) ^ k from by push_cast; ring]
+    set X := (2 : ℝ) ^ (1 - 2 * (k : ℤ)) * L1R with hX
+    -- L₁ ≥ 2^{t₁−1} ≥ 2^{64k−1}, so X ≥ 2^{1−2k}·2^{64k−1} = 2^{62k} ≥ 1.
+    have hpowcast : (2 : ℝ) ^ (t1 (2 ^ k) - 1) = (2 : ℝ) ^ ((t1 (2 ^ k) : ℤ) - 1) := by
+      rw [← zpow_natCast]; congr 1; have := t1_pos (2 ^ k); omega
+    have hXge1 : (1 : ℝ) ≤ X := by
+      have hfloor : (2 : ℝ) ^ ((64 * k : ℤ) - 1) ≤ L1R := by
+        rw [hL1R]
+        refine le_trans ?_ hL1floor
+        rw [hpowcast]
+        apply zpow_le_zpow_right₀ (by norm_num : (1 : ℝ) ≤ 2)
+        have : (64 : ℤ) * k ≤ t1 (2 ^ k) := by exact_mod_cast ht1lo
+        omega
+      have hstep : (2 : ℝ) ^ (1 - 2 * (k : ℤ)) * (2 : ℝ) ^ ((64 * k : ℤ) - 1)
+          = (2 : ℝ) ^ (62 * (k : ℤ)) := by
+        rw [← zpow_add₀ (by norm_num : (2 : ℝ) ≠ 0)]; congr 1; ring
+      have hbig : (1 : ℝ) ≤ (2 : ℝ) ^ (62 * (k : ℤ)) := by
+        apply one_le_zpow₀ (by norm_num : (1 : ℝ) ≤ 2); positivity
+      calc (1 : ℝ) ≤ (2 : ℝ) ^ (62 * (k : ℤ)) := hbig
+        _ = (2 : ℝ) ^ (1 - 2 * (k : ℤ)) * (2 : ℝ) ^ ((64 * k : ℤ) - 1) := hstep.symm
+        _ ≤ (2 : ℝ) ^ (1 - 2 * (k : ℤ)) * L1R := by
+            apply mul_le_mul_of_nonneg_left hfloor (by positivity)
+    -- ⌈X⌉ ≤ X + 1 ≤ 2X
+    have hceil : (⌈X⌉₊ : ℝ) ≤ 2 * X := by
+      have h1 : (⌈X⌉₊ : ℝ) < X + 1 := Nat.ceil_lt_add_one (by linarith)
+      linarith
+    -- 2^k · 2X = 2^{2−k}·L₁ < L₁
+    have hq2X : (2 : ℝ) ^ k * (2 * X) = (2 : ℝ) ^ (2 - (k : ℤ)) * L1R := by
+      rw [hX]
+      have hkcast : (2 : ℝ) ^ k = (2 : ℝ) ^ (k : ℤ) := by rw [zpow_natCast]
+      rw [hkcast, show (2 : ℝ) * ((2 : ℝ) ^ (1 - 2 * (k : ℤ)) * L1R)
+            = (2 : ℝ) ^ (1 : ℤ) * (2 : ℝ) ^ (1 - 2 * (k : ℤ)) * L1R by
+          rw [zpow_one]; ring]
+      rw [← zpow_add₀ (by norm_num : (2 : ℝ) ≠ 0),
+          ← mul_assoc, ← zpow_add₀ (by norm_num : (2 : ℝ) ≠ 0)]
+      congr 2; ring
+    have hlt : (2 : ℝ) ^ (2 - (k : ℤ)) * L1R < L1R := by
+      have hsmall : (2 : ℝ) ^ (2 - (k : ℤ)) < 1 := by
+        rw [show (1 : ℝ) = (2 : ℝ) ^ (0 : ℤ) by norm_num]
+        apply zpow_lt_zpow_right₀ (by norm_num : (1 : ℝ) < 2)
+        omega
+      nlinarith [hL1Rpos, hsmall]
+    calc (2 : ℝ) ^ k * (⌈X⌉₊ : ℝ)
+        ≤ (2 : ℝ) ^ k * (2 * X) := by
+          apply mul_le_mul_of_nonneg_left hceil (by positivity)
+      _ = (2 : ℝ) ^ (2 - (k : ℤ)) * L1R := hq2X
+      _ < L1R := hlt
+  · -- (C6) dens_fiber_survival : 8h₂ < (1 − ε₂)/q₁
+    -- 8 q₁ h₂ < 1 − ε₂.  8 q₁ h₂ ≤ 32k²·2^{−3ℓ} < 2^{7−ℓ} ≤ 1/2 (ℓ ≥ 8); 1−ε₂ ≥ 3/4.
+    have hq1Rpos : (0 : ℝ) < (q1 (2 ^ k) : ℝ) := by
+      have := hq1ge2; exact_mod_cast (by omega : 0 < q1 (2 ^ k))
+    rw [lt_div_iff₀ hq1Rpos]
+    -- h₂ ≤ 2^{−3ℓ}
+    have hh2b : h2 (2 ^ k) ≤ (2 : ℝ) ^ (-(3 * Nat.log 2 (Nat.log 2 (2 ^ k)) : ℤ)) :=
+      h2_le_pow (M := Nat.log 2 (Nat.log 2 (2 ^ k))) (le_refl _)
+    set ℓ := Nat.log 2 (Nat.log 2 (2 ^ k)) with hℓdef
+    -- q₁ ≤ 4k² and k < 2^{ℓ+1}
+    have hq1R : (q1 (2 ^ k) : ℝ) ≤ 4 * (k : ℝ) ^ 2 := by
+      have h := hq1le; exact_mod_cast h
+    -- k < 2^{ℓ+1}  (ℓ = loglog(2^k) = log k, since loglog(2^k) = log k)
+    have hℓeq : ℓ = Nat.log 2 k := by rw [hℓdef, hlogk]
+    have hklt : (k : ℝ) < (2 : ℝ) ^ ((ℓ : ℤ) + 1) := by
+      have hnat : k < 2 ^ (ℓ + 1) := by
+        rw [hℓeq]; exact Nat.lt_pow_succ_log_self (b := 2) (by norm_num) k
+      calc (k : ℝ) < ((2 ^ (ℓ + 1) : ℕ) : ℝ) := by exact_mod_cast hnat
+        _ = (2 : ℝ) ^ ((ℓ : ℤ) + 1) := by
+            rw [show ((ℓ : ℤ) + 1) = ((ℓ + 1 : ℕ) : ℤ) by push_cast; ring, zpow_natCast]
+            push_cast; ring
+    -- 8 q₁ h₂ ≤ 32 k² 2^{−3ℓ} < 32·2^{2ℓ+2}·2^{−3ℓ} = 2^{7−ℓ} ≤ 1/2
+    have hℓ8 : (8 : ℤ) ≤ ℓ := by exact_mod_cast hloglog8
+    have hk2 : (k : ℝ) ^ 2 < (2 : ℝ) ^ (2 * (ℓ : ℤ) + 2) := by
+      have hkpos : (0 : ℝ) ≤ (k : ℝ) := by positivity
+      have hsq : (k : ℝ) ^ 2 < ((2 : ℝ) ^ ((ℓ : ℤ) + 1)) ^ 2 := by
+        apply pow_lt_pow_left₀ hklt hkpos (by norm_num)
+      rw [← zpow_natCast ((2:ℝ) ^ ((ℓ : ℤ) + 1)) 2, ← zpow_mul] at hsq
+      rw [show ((ℓ : ℤ) + 1) * (2 : ℕ) = 2 * (ℓ : ℤ) + 2 by push_cast; ring] at hsq
+      exact hsq
+    have hh2pos : 0 < h2 (2 ^ k) := h2_pos
+    have hkey : 8 * (q1 (2 ^ k) : ℝ) * h2 (2 ^ k) < 1 / 2 := by
+      -- 8 q₁ h₂ ≤ 8 q₁ · 2^{−3ℓ} ≤ 8·4k²·2^{−3ℓ} = 32 k² 2^{−3ℓ}
+      have hstep1 : 8 * (q1 (2 ^ k) : ℝ) * h2 (2 ^ k)
+          ≤ 8 * (q1 (2 ^ k) : ℝ) * (2 : ℝ) ^ (-(3 * ℓ : ℤ)) :=
+        mul_le_mul_of_nonneg_left hh2b (by positivity)
+      have hstep2 : 8 * (q1 (2 ^ k) : ℝ) * (2 : ℝ) ^ (-(3 * ℓ : ℤ))
+          ≤ 32 * (k : ℝ) ^ 2 * (2 : ℝ) ^ (-(3 * ℓ : ℤ)) := by
+        apply mul_le_mul_of_nonneg_right _ (by positivity)
+        nlinarith [hq1R, hq1Rpos.le]
+      have h32 : 8 * (q1 (2 ^ k) : ℝ) * h2 (2 ^ k)
+          ≤ 32 * (k : ℝ) ^ 2 * (2 : ℝ) ^ (-(3 * ℓ : ℤ)) := le_trans hstep1 hstep2
+      have hchain : 32 * (k : ℝ) ^ 2 * (2 : ℝ) ^ (-(3 * ℓ : ℤ)) < 1 / 2 := by
+        have hprod : 32 * (k : ℝ) ^ 2 * (2 : ℝ) ^ (-(3 * ℓ : ℤ))
+            < 32 * (2 : ℝ) ^ (2 * (ℓ : ℤ) + 2) * (2 : ℝ) ^ (-(3 * ℓ : ℤ)) := by
+          apply mul_lt_mul_of_pos_right _ (by positivity)
+          exact mul_lt_mul_of_pos_left hk2 (by norm_num)
+        have hpow : 32 * (2 : ℝ) ^ (2 * (ℓ : ℤ) + 2) * (2 : ℝ) ^ (-(3 * ℓ : ℤ))
+            = (2 : ℝ) ^ (7 - (ℓ : ℤ)) := by
+          rw [show (32 : ℝ) = (2 : ℝ) ^ (5 : ℤ) by norm_num,
+              mul_assoc, ← zpow_add₀ (by norm_num : (2 : ℝ) ≠ 0),
+              ← zpow_add₀ (by norm_num : (2 : ℝ) ≠ 0)]
+          congr 1; ring
+        rw [hpow] at hprod
+        have hle : (2 : ℝ) ^ (7 - (ℓ : ℤ)) ≤ (2 : ℝ) ^ (-1 : ℤ) := by
+          apply zpow_le_zpow_right₀ (by norm_num : (1 : ℝ) ≤ 2); omega
+        have hhalf : (2 : ℝ) ^ (-1 : ℤ) = 1 / 2 := by norm_num
+        rw [hhalf] at hle
+        linarith [hprod, hle]
+      linarith [h32, hchain]
+    have hε2small : epsQT (q2 (2 ^ k)) (t2 (2 ^ k)) ≤ 1 / 2 := le_trans hε2 (by norm_num)
+    have halign : 8 * h2 (2 ^ k) * (q1 (2 ^ k) : ℝ)
+        = 8 * (q1 (2 ^ k) : ℝ) * h2 (2 ^ k) := by ring
+    rw [halign]
+    linarith [hkey, hε2small]
+  · -- (C7) dens_nondominant_slack : (q₂−1)(2^{−b₁+1}L₁+1) < η₂·L₁
+    -- η₂·L₁ = q₂·2^{−b₁+1}·L₁ (def eta2); reduces to (q₂−1) < 2^{−b₁+1}·L₁.
+    have hη2 : eta2 (2 ^ k) = (q2 (2 ^ k) : ℝ) * (2 : ℝ) ^ (-(b1 (2 ^ k) : ℤ) + 1) := rfl
+    rw [hη2, hq2eq]
+    set L1R := (L1 (2 ^ k) : ℝ) with hL1R
+    have hL1Rpos : (0 : ℝ) < L1R := by rw [hL1R]; exact_mod_cast hL1pos
+    set P := (2 : ℝ) ^ (-(b1 (2 ^ k) : ℤ) + 1) with hP
+    have hPpos : (0 : ℝ) < P := by rw [hP]; positivity
+    -- Need (q₂−1)(P·L₁+1) < q₂·P·L₁, i.e. (q₂−1) < P·L₁.
+    have hPscale : P = (2 : ℝ) ^ (1 - 2 * (k : ℤ)) := by rw [hP, hb1]; congr 1; push_cast; ring
+    have hPL1big : ((2 : ℝ) ^ k - 1) < P * L1R := by
+      -- P·L₁ ≥ 2^{62k} > 2^k − 1
+      have hfloor : (2 : ℝ) ^ ((64 * k : ℤ) - 1) ≤ L1R := by
+        rw [hL1R]
+        refine le_trans ?_ hL1floor
+        rw [show (2 : ℝ) ^ (t1 (2 ^ k) - 1) = (2 : ℝ) ^ ((t1 (2 ^ k) : ℤ) - 1) by
+          rw [← zpow_natCast]; congr 1; have := t1_pos (2 ^ k); omega]
+        apply zpow_le_zpow_right₀ (by norm_num : (1 : ℝ) ≤ 2)
+        have : (64 : ℤ) * k ≤ t1 (2 ^ k) := by exact_mod_cast ht1lo
+        omega
+      have hstep : P * (2 : ℝ) ^ ((64 * k : ℤ) - 1) = (2 : ℝ) ^ (62 * (k : ℤ)) := by
+        rw [hPscale, ← zpow_add₀ (by norm_num : (2 : ℝ) ≠ 0)]; congr 1; ring
+      have hPL1ge : (2 : ℝ) ^ (62 * (k : ℤ)) ≤ P * L1R := by
+        calc (2 : ℝ) ^ (62 * (k : ℤ)) = P * (2 : ℝ) ^ ((64 * k : ℤ) - 1) := hstep.symm
+          _ ≤ P * L1R := mul_le_mul_of_nonneg_left hfloor hPpos.le
+      have hbig : ((2 : ℝ) ^ k - 1) < (2 : ℝ) ^ (62 * (k : ℤ)) := by
+        have h1 : (2 : ℝ) ^ k = (2 : ℝ) ^ (k : ℤ) := by rw [zpow_natCast]
+        have h2 : (2 : ℝ) ^ (k : ℤ) < (2 : ℝ) ^ (62 * (k : ℤ)) := by
+          apply zpow_lt_zpow_right₀ (by norm_num : (1 : ℝ) < 2); omega
+        rw [h1]; linarith
+      linarith [hbig, hPL1ge]
+    -- expand and conclude:  ↑(2^k) = (2:ℝ)^k, then (q₂−1) < P L₁ gives the slack.
+    rw [show (((2 ^ k : ℕ)) : ℝ) = (2 : ℝ) ^ k from by push_cast; ring]
+    nlinarith [hPL1big, hPpos, hL1Rpos]
+  · -- (C8) dens_stage3_rowloss : 3⌈2^{−b₂+1}·L₂⌉ ≤ 8h₂·L₂
+    -- 2^{−b₂+1} = 2h₂; ⌈2h₂L₂⌉ ≤ 2h₂L₂+1; 2h₂L₂ ≥ 3 (from t₂ ≥ 3ℓ+2), so 6h₂L₂+3 ≤ 8h₂L₂.
+    set L2R := (L2 (2 ^ k) : ℝ) with hL2R
+    have hL2Rpos : (0 : ℝ) < L2R := by rw [hL2R]; exact_mod_cast hL2pos
+    have hh2e : h2 (2 ^ k) = (2 : ℝ) ^ (-(3 * Nat.log 2 (Nat.log 2 (2 ^ k)) : ℤ)) := h2_eq
+    set ℓ := Nat.log 2 (Nat.log 2 (2 ^ k)) with hℓdef
+    have hh2pos : 0 < h2 (2 ^ k) := h2_pos
+    -- 2^{−b₂+1} = 2·h₂
+    have hscale : (2 : ℝ) ^ (-(b2 (2 ^ k) : ℤ) + 1) = 2 * h2 (2 ^ k) := by
+      rw [hh2e]
+      have hb2 : b2 (2 ^ k) = 3 * ℓ := by rw [hℓdef, b2]
+      rw [hb2, zpow_add₀ (by norm_num : (2 : ℝ) ≠ 0), zpow_one]; push_cast; ring
+    rw [hscale]
+    -- 2·h₂·L₂ ≥ 3:  L₂ ≥ q₁^{t₂−1} ≥ 2^{t₂−1}, h₂ = 2^{−3ℓ}, t₂ ≥ 3ℓ+2.
+    have ht2ge : 3 * ℓ + 2 ≤ t2 (2 ^ k) := by
+      have := Params.t2_ge (d := 2 ^ k) hlog256; rwa [← hℓdef] at this
+    have hL2ge2 : (2 : ℝ) ^ (t2 (2 ^ k) - 1) ≤ L2R := by
+      rw [hL2R]
+      refine le_trans ?_ hL2floor
+      exact pow_le_pow_left₀ (by norm_num) (by exact_mod_cast hq1ge2) _
+    have hge3 : (3 : ℝ) ≤ 2 * h2 (2 ^ k) * L2R := by
+      have hpm : 2 * h2 (2 ^ k) * (2 : ℝ) ^ (t2 (2 ^ k) - 1)
+          = (2 : ℝ) ^ ((t2 (2 ^ k) : ℤ) - 3 * ℓ) := by
+        rw [hh2e]
+        have e1 : (2 : ℝ) ^ (t2 (2 ^ k) - 1) = (2 : ℝ) ^ (((t2 (2 ^ k) - 1 : ℕ)) : ℤ) := by
+          rw [zpow_natCast]
+        rw [e1, show (2 : ℝ) * (2 : ℝ) ^ (-(3 * ℓ : ℤ)) * (2 : ℝ) ^ (((t2 (2 ^ k) - 1 : ℕ)) : ℤ)
+              = (2 : ℝ) ^ (1 : ℤ) * (2 : ℝ) ^ (-(3 * ℓ : ℤ))
+                  * (2 : ℝ) ^ (((t2 (2 ^ k) - 1 : ℕ)) : ℤ) by rw [zpow_one]]
+        rw [← zpow_add₀ (by norm_num : (2 : ℝ) ≠ 0),
+            ← zpow_add₀ (by norm_num : (2 : ℝ) ≠ 0)]
+        congr 1
+        have : ((t2 (2 ^ k) - 1 : ℕ) : ℤ) = (t2 (2 ^ k) : ℤ) - 1 := by
+          have := t2_pos (2 ^ k); omega
+        rw [this]; ring
+      have hexp : (2 : ℝ) ^ (2 : ℤ) ≤ (2 : ℝ) ^ ((t2 (2 ^ k) : ℤ) - 3 * ℓ) := by
+        apply zpow_le_zpow_right₀ (by norm_num : (1 : ℝ) ≤ 2)
+        have : (3 : ℤ) * ℓ + 2 ≤ t2 (2 ^ k) := by exact_mod_cast ht2ge
+        omega
+      have h4 : (2 : ℝ) ^ (2 : ℤ) = 4 := by norm_num
+      have hmul : 2 * h2 (2 ^ k) * (2 : ℝ) ^ (t2 (2 ^ k) - 1) ≤ 2 * h2 (2 ^ k) * L2R :=
+        mul_le_mul_of_nonneg_left hL2ge2 (by positivity)
+      calc (3 : ℝ) ≤ 4 := by norm_num
+        _ = (2 : ℝ) ^ (2 : ℤ) := h4.symm
+        _ ≤ (2 : ℝ) ^ ((t2 (2 ^ k) : ℤ) - 3 * ℓ) := hexp
+        _ = 2 * h2 (2 ^ k) * (2 : ℝ) ^ (t2 (2 ^ k) - 1) := hpm.symm
+        _ ≤ 2 * h2 (2 ^ k) * L2R := hmul
+    -- ⌈2h₂L₂⌉ ≤ 2h₂L₂ + 1
+    have hceil : (⌈2 * h2 (2 ^ k) * L2R⌉₊ : ℝ) ≤ 2 * h2 (2 ^ k) * L2R + 1 := by
+      have := Nat.ceil_lt_add_one (a := 2 * h2 (2 ^ k) * L2R) (by positivity); linarith
+    nlinarith [hceil, hge3]
+-- CLAIM-END lem:large-d-checklist

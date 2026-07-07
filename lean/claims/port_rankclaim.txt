@@ -1,0 +1,12 @@
+-- CLAIM-BEGIN port:rankclaim
+/-- Source-port check for paper `lem:rankclaim`: the NPCC-facing typed
+statement is already supplied by `rankclaim`. This wrapper keeps the original
+port obligation visible without changing the proved theorem's frozen claim
+block. -/
+theorem rankclaim_port {p : ℕ} (hp : 0 < p) {x y : ℝ}
+    (hx0 : 0 < x) (hx1 : x ≤ 1) (hy0 : 0 < y) (hy1 : y ≤ 1)
+    (hlog : 0 < (p : ℝ) + Real.logb 2 y) :
+    (⌈Real.logb 2 ((p : ℝ) + Real.logb 2 y)⌉ + 1 : ℤ) ≤
+      (Dfamily (Workspace.Types.Interlace.interlaceFun seedGame p)
+        (bracketGE (Fin 1) (Fin 2) p x y) : ℤ) :=
+-- CLAIM-END port:rankclaim

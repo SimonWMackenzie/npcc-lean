@@ -1,0 +1,49 @@
+-- CLAIM-BEGIN aux:ctor-full
+
+noncomputable def ctorDStarFull : Nat :=
+  large_d_checklist_full.choose
+
+noncomputable def reducedInstanceFull (I : VBPInstance) : PreprocessedInstance :=
+  normalizeInstance ctorDStarFull (preprocess I)
+
+noncomputable def ctorScaleFull (I : VBPInstance) : Nat :=
+  (reducedInstanceFull I).d
+
+theorem ctorScaleFull_eq_ceilPowTwo (I : VBPInstance) :
+    ctorScaleFull I = ceilPowTwo (max (preprocess I).d ctorDStarFull) := by
+  rfl
+
+theorem CtorScaleCertificateFull (I : VBPInstance) :
+    IsPow2 (ctorScaleFull I) /\
+      2 ^ 18 <= Nat.log 2 (ctorScaleFull I) /\
+      Checklist (ctorScaleFull I) /\
+      2 <= ctorScaleFull I /\
+      (Classical.choose
+        (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+          Params.delta (by norm_num [Params.delta])
+          (by norm_num [Params.delta])) : Nat) <=
+        Nat.log 2 (Params.t2 (ctorScaleFull I)) /\
+      gateRowThreshold (ctorScaleFull I) /\
+      M2_hard_seed_to_h2prime_exp (ctorScaleFull I) /\
+      M2_h2prime_bridge_exp (ctorScaleFull I) /\
+      gateThreeFifths (ctorScaleFull I) /\
+      IsRobust
+        (fun (c : C2 (ctorScaleFull I)) (r : R2 (ctorScaleFull I)) =>
+          M2 (ctorScaleFull I) r c)
+        Params.delta (Params.b2 (ctorScaleFull I)) := by
+  have hpow : IsPow2 (ctorScaleFull I) := by
+    simpa [ctorScaleFull, reducedInstanceFull] using
+      normalizeInstance_d_two_pow ctorDStarFull (preprocess I)
+  have hge : large_d_checklist_full.choose <= ctorScaleFull I := by
+    simpa [ctorScaleFull, reducedInstanceFull, ctorDStarFull] using
+      dstar_le_normalizeInstance_d ctorDStarFull (preprocess I)
+  have hspec := large_d_checklist_full.choose_spec (ctorScaleFull I) hpow hge
+  rcases hspec with ⟨hgates, hrob⟩
+  rcases hgates with ⟨hpartial, hraw, hy_three_fifths⟩
+  exact
+    ⟨hpow, hpartial.hlog, hpartial.hchk,
+      two_le_of_pow_log hpow hpartial.hlog, hpartial.hm0_le,
+      hpartial.hrow_threshold, hraw, hpartial.hprime, hy_three_fifths,
+      by simpa [gateM2Robust] using hrob⟩
+
+-- CLAIM-END aux:ctor-full

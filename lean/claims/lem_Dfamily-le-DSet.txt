@@ -1,0 +1,26 @@
+-- CLAIM-BEGIN lem:Dfamily-le-DSet
+/-- THE VALUE-LEVEL TRANSFER, REVERSE (DECODE) DIRECTION. Same presentation
+data as `DSet_le_Dfamily` (a typed game `f`, a `BoolMat` `M` presenting the
+same matrix through `eX : Fin M.m ≃ X`, `eY : Fin M.n ≃ Y`, entries matching):
+the typed bracket-family complexity is a lower bound for the artifact one.
+The artifact bracket is nonempty (a typed member from `bracketGE.nonempty`
+flattens via `bridge_bracket` to a matching-dimension member), so `Nat.sInf_mem`
+exhibits an artifact member `g = extract ⟨M⟩^p R C` attaining `DSet`. Decoding
+`R` by `encRow` and `C` digit-by-digit (`encCol_digits_roundtrip`) to a typed
+member `(Rt, Ct) ∈ bracketGE X Y p x y` makes `R = Rt.image encRow`,
+`C = Ct.image encCol`, so `Dmat_extract_eq_Dsubgame` gives
+`Dmat g = D (subgame (interlaceFun f p) Rt Ct)`; the `sInf` defining `Dfamily`
+is then `≤` that value. Degenerate `p = 0` (empty rows) and `card Y = 0` with
+`p ≥ 1` (empty columns) force `Dfamily = 0` and are discharged separately. With
+`DSet_le_Dfamily` this closes the two-way transfer (see `Dfamily_eq_DSet`),
+placing the artifact's entire bracket engine behind the paper's typed
+`comp⟨M,p,x,y⟩ = Dfamily`. -/
+theorem Dfamily_le_DSet {X Y : Type*} [Fintype X] [Fintype Y]
+    (f : X → Y → Bool) (M : Workspace.Types.BoolMat.BoolMat)
+    (eX : Fin M.m ≃ X) (eY : Fin M.n ≃ Y)
+    (he : ∀ i j, M.e i j = f (eX i) (eY j))
+    {p : ℕ} {x y : ℝ} (hx0 : 0 < x) (hx1 : x ≤ 1) (hy0 : 0 < y) (hy1 : y ≤ 1)
+    (hX : 1 ≤ Fintype.card X) :
+    Dfamily (interlaceFun f p) (bracketGE X Y p x y)
+      ≤ DSet (bracket M p x y) :=
+-- CLAIM-END lem:Dfamily-le-DSet

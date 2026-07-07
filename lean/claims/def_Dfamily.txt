@@ -1,0 +1,13 @@
+-- CLAIM-BEGIN def:Dfamily
+/-- Family complexity `comp{Φ}` (paper §2 preamble: the minimum deterministic
+communication complexity over a nonempty family of submatrices). For an
+ambient game `f` and a family `Φ` of extraction-data pairs, this is the
+infimum over members of the depth-complexity `D` of the induced subgame.
+`sInf` on `ℕ` yields `0` for the empty family — the paper's convention makes
+`Φ` nonempty at every use site (cf. `bracketGE.nonempty`). Instantiated at
+`f = interlaceFun M p`, `Φ = bracketGE X Y p x y` this is the paper's
+`comp⟨M,p,x,y⟩`. -/
+noncomputable def Dfamily {A B : Type*} (f : A → B → Bool)
+    (Φ : Set (Finset A × Finset B)) : ℕ :=
+  sInf { d : ℕ | ∃ RC ∈ Φ, d = D (subgame f RC.1 RC.2) }
+-- CLAIM-END def:Dfamily

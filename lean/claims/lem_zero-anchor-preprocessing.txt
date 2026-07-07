@@ -1,0 +1,36 @@
+-- CLAIM-BEGIN lem:zero-anchor-preprocessing
+/-- Paper `lem:zero-anchor-preprocessing` (arXiv:2508.05597 §5): for a `c = 1`,
+`m = 4` `{0,1}`-`d`-Dimension Vector Bin Packing instance `I`, the replicated
+padded instance `I∘` (five disjoint-coordinate slab copies `ι_t(v_i)` plus four
+zero anchors `z_1 = ⋯ = z_4 = 0^{5d}`), rendered here as the companion
+`preprocess I`, satisfies:
+
+1. **YES iff YES** — `I.IsYes ↔ (preprocess I).IsYes`.
+2. **Canonical anchors** — whenever `I∘` is YES it has a feasible packing
+   `σ : rows → Fin 4` (per-bin/per-coordinate load `≤ 1`) with each anchor in
+   its own bin, `σ (z_p) = p` for every `p ∈ [4]`.
+3. **NO ⟹ bad bin** — whenever `I` is a NO-instance (`¬ I.IsYes`), every
+   4-partition `σ` of the rows of `I∘` has a bin `p` and a coordinate `β` with
+   at least two rows carrying a `1` at `β` and at least one row carrying a `0`
+   at `β` (the `ℓ ≥ 2` and neutral-slot presence at the SAME coordinate the
+   final NoWasteLift contradiction consumes).
+
+(The paper's "computable in polynomial time" is the Layer-B size/complexity
+claim about `preprocess`; per the D2/D7 design rulings the kernel target is the
+combinatorial content above, not an in-kernel polytime sentence.) -/
+theorem zero_anchor_preprocessing (I : VBPInstance) :
+    (I.IsYes ↔ (preprocess I).IsYes) ∧
+    (((preprocess I).IsYes) →
+      ∃ σ : Fin ((preprocess I).n) → Fin 4,
+        (∀ (p : Fin 4) (β : Fin ((preprocess I).d)),
+          (Finset.univ.filter
+            (fun r => σ r = p ∧ (preprocess I).v r β = true)).card ≤ 1) ∧
+        (∀ p : Fin 4, σ ((preprocess I).anchor p) = p)) ∧
+    ((¬ I.IsYes) →
+      ∀ σ : Fin ((preprocess I).n) → Fin 4,
+        ∃ (p : Fin 4) (β : Fin ((preprocess I).d)),
+          2 ≤ (Finset.univ.filter
+                (fun r => σ r = p ∧ (preprocess I).v r β = true)).card ∧
+          1 ≤ (Finset.univ.filter
+                (fun r => σ r = p ∧ (preprocess I).v r β = false)).card) :=
+-- CLAIM-END lem:zero-anchor-preprocessing

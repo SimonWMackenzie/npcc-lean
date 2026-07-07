@@ -1,0 +1,29 @@
+-- CLAIM-BEGIN lem:coord-projection
+/-- Paper `lem:coord-projection` (Coordinate projection), typed form.
+
+Paper: for an `m × n` matrix, `p ≥ 1`, `Q ⊆ [p]` with `|Q| = r ≥ 1`,
+`0 < y ≤ 1`, `T ≥ 1`, a submatrix `N` of the `p`-fold interlace whose row set
+is `(Q,T)`-equipartitioned and whose column set has size ≥ `n^p·y` contains a
+member of `⟨M, r, x, y⟩` whenever `0 < x ≤ 1` and `⌈m·x⌉ ≤ T`.
+
+Typed rendering: the submatrix is its extraction data `(R, C)`; the bijection
+`Q → [r]` of the paper is the explicit equivalence `e : Fin r ≃ {q // q ∈ Q}`
+(its existence pins `r = |Q|`); "contains a member of the `r`-fold bracket" is
+an `RC' ∈ bracketGE X Y r x y` whose rows come from `R` (each row `(j, v)` of
+`RC'` arises from the row `((e j : Fin p), v) ∈ R`) and whose columns are
+`Q`-projections of columns of `C` (each `c' ∈ RC'.2` agrees with some `c ∈ C`
+on all of `Q` via `e`). Side conditions `p ≥ 1`, `T ≥ 1`, `0 < x,y ≤ 1` are
+use-site hypotheses (not needed for truth here); `r ≥ 1` is kept — for `r = 0`
+with `Y` empty the paper's claim degenerates falsely, matching the paper's
+`|Q| = r ≥ 1`. -/
+theorem coord_projection {X Y : Type*} [Fintype X] [Fintype Y]
+    {p r : ℕ} (hr : 0 < r) {Q : Finset (Fin p)} (e : Fin r ≃ {q // q ∈ Q})
+    {R : Finset (Fin p × X)} {C : Finset (Fin p → Y)} {T : ℕ} {x y : ℝ}
+    (hrow : IsEquipartitionedGE R Q T)
+    (hcol : ⌈((Fintype.card Y : ℝ) ^ p) * y⌉₊ ≤ C.card)
+    (hxT : ⌈(Fintype.card X : ℝ) * x⌉₊ ≤ T) :
+    ∃ RC' : Finset (Fin r × X) × Finset (Fin r → Y),
+      RC' ∈ bracketGE X Y r x y ∧
+      (∀ a ∈ RC'.1, ((e a.1).val, a.2) ∈ R) ∧
+      (∀ c' ∈ RC'.2, ∃ c ∈ C, ∀ j : Fin r, c' j = c (e j).val) :=
+-- CLAIM-END lem:coord-projection

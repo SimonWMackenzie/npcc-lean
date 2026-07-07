@@ -1,0 +1,25 @@
+-- CLAIM-BEGIN lem:hard-seed
+/-- Paper `lem:hard-seed`: fix `j ≥ 2`; for all sufficiently large powers of
+two `t` (rendered `t = 2^m` with threshold `∃ m₀`) — NOTE the threshold is
+UNIFORM in the game: `m₀` depends only on `j`, with the game, its Fintypes,
+and the robustness data all quantified INSIDE the threshold, matching the
+paper's quantifier order (load-bearing downstream: in the reduction `M`
+grows with the instance). Content: if `f` is `(δ,b)`-robust with `D f ≥ 3`
+(the paper's hypothesis, strictly stronger than the standing F1 guard) and
+`t ≤ 2^b` (i.e. `(m:ℝ) ≤ b`), then
+`comp⟨f, (2^(j−1)+2)·t/2^j, 2^{−b}·t, 2^{−2^{0.49·√(log t)}}⟩ ≥ D f + log t`:
+copy count `(2^(j−1)+2)·2^(m−j)` (an integer — the threshold enforces
+`j ≤ m`), row density `2^m·2^{−b}`, column density
+`2^{−2^{(49/100)·√m}}` (`49/100 = 0.49`, `log = log₂`, `√ = Real.sqrt`),
+conclusion level `D f + m = comp M + log t`. -/
+theorem hard_seed.{u} (j : ℕ) (hj : 2 ≤ j) :
+    ∃ m₀ : ℕ, j ≤ m₀ ∧ ∀ m : ℕ, m₀ ≤ m →
+      ∀ (X Y : Type u) [Fintype X] [Fintype Y]
+        (f : X → Y → Bool) (δ b : ℝ),
+        IsRobust f δ b → 1 ≤ b → 0 < δ → δ ≤ 1 / 2 → 3 ≤ D f →
+        (m : ℝ) ≤ b →
+        D f + m ≤ Dfamily (interlaceFun f ((2 ^ (j - 1) + 2) * 2 ^ (m - j)))
+          (bracketGE X Y ((2 ^ (j - 1) + 2) * 2 ^ (m - j))
+            ((2 : ℝ) ^ (m : ℕ) * (2 : ℝ) ^ (-b))
+            ((2 : ℝ) ^ (-((2 : ℝ) ^ ((49 / 100 : ℝ) * Real.sqrt (m : ℕ)))))) :=
+-- CLAIM-END lem:hard-seed

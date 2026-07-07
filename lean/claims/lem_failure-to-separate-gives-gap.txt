@@ -1,0 +1,25 @@
+-- CLAIM-BEGIN lem:failure-to-separate-gives-gap
+/-- Paper `lem:failure-to-separate-gives-gap`: for `(δ,b)`-robust `f`
+(with `1 ≤ b`, `D f ≥ 2` — the standing F1-adjacent guard), a bracket member
+`RC ∈ bracketGE X Y q x y` with `(1/2+δ)² ≤ y ≤ 1`, and a row labeling into
+`L ≤ q` parts with `q·T < T₀` for the paper's thresholds
+`T₀ = ⌈m·x⌉, T = ⌈2^(1−b)·m⌉` (`m = |X|`): if the no-waste conclusion FAILS,
+some part `j` — with the FULL column set (zero column bits) — carries a
+subgame of complexity `≥ D f + 1`. Abstract-labeling rendering; power-of-two
+`q` dropped (safe strengthening). -/
+theorem failure_to_separate_gives_gap {X Y : Type*} [Fintype X] [Fintype Y]
+    {f : X → Y → Bool} {δ b : ℝ}
+    (h : IsRobust f δ b) (hb : 1 ≤ b) (hδ0 : 0 < δ) (hδ : δ ≤ 1 / 2)
+    (hD : 2 ≤ D f) (q : ℕ) (hq : 1 ≤ q) {x y : ℝ}
+    (hx0 : 0 < x) (hx1 : x ≤ 1) (hy : (1 / 2 + δ) ^ 2 ≤ y) (hy1 : y ≤ 1)
+    (RC : Finset (Fin q × X) × Finset (Fin q → Y))
+    (hRC : RC ∈ bracketGE X Y q x y)
+    {L : ℕ} (hL : L ≤ q) (lab : Fin q × X → Fin L)
+    (hqT : q * ⌈(2 : ℝ) ^ (1 - b) * (Fintype.card X : ℝ)⌉₊
+        < ⌈(Fintype.card X : ℝ) * x⌉₊)
+    (hfail : ¬ NoWasteConclusion (Finset.univ : Finset (Fin q)) RC.1 lab
+        ⌈(Fintype.card X : ℝ) * x⌉₊
+        ⌈(2 : ℝ) ^ (1 - b) * (Fintype.card X : ℝ)⌉₊) :
+    ∃ j : Fin L, D f + 1 ≤
+      D (subgame (interlaceFun f q) (RC.1.filter (fun p => lab p = j)) RC.2) :=
+-- CLAIM-END lem:failure-to-separate-gives-gap

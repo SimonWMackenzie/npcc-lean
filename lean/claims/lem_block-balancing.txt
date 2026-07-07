@@ -1,0 +1,15 @@
+-- CLAIM-BEGIN lem:block-balancing
+/-- Paper `lem:block-balancing` (Balancing-by-blocks): a typed interlace row
+set of total density `β = |R| / (q·m) ≥ x` (with `0 < x < 1`, `m = |X|`)
+admits at least `⌈q(β−x)/(1−x)⌉` full blocks — a coordinate set `J` on which
+`R` is `(J, ⌈m·x⌉)`-equipartitioned in the `≥`-sense. Callers trim `J` to any
+exact size with `IsEquipartitionedGE.mono_Q`. Degenerate `q·m = 0` is vacuous
+(real division by zero is `0`, contradicting `0 < x ≤ β`). -/
+theorem block_balancing {X : Type*} [Fintype X] {q : ℕ}
+    {R : Finset (Fin q × X)} {x : ℝ} (hx0 : 0 < x) (hx1 : x < 1)
+    (hβ : x ≤ (R.card : ℝ) / ((q : ℝ) * (Fintype.card X : ℝ))) :
+    ∃ J : Finset (Fin q),
+      ⌈(q : ℝ) * ((R.card : ℝ) / ((q : ℝ) * (Fintype.card X : ℝ)) - x)
+          / (1 - x)⌉₊ ≤ J.card ∧
+      IsEquipartitionedGE R J ⌈(Fintype.card X : ℝ) * x⌉₊ :=
+-- CLAIM-END lem:block-balancing

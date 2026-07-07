@@ -1,0 +1,14 @@
+-- CLAIM-BEGIN aux:bracket-nonempty
+/-- Unit test for `bracketGE`: whenever `x ≤ 1`, `y ≤ 1` and `X` is nonempty
+(`1 ≤ Fintype.card X`), the bracket family is nonempty. The witness is
+`(Finset.univ, Finset.univ)`: every fiber of the full row set over a fixed first
+component bijects with `X`, so it has size exactly `Fintype.card X`, and `x ≤ 1`
+forces `⌈(card X)·x⌉₊ ≤ card X`; symmetrically the full column set has size
+`Fintype.card (Fin p → Y) = (card Y)^p` and `y ≤ 1` forces
+`⌈(card Y)^p·y⌉₊ ≤ (card Y)^p`. This verifies the two membership conditions are
+simultaneously satisfiable, so the defined set is nonempty. -/
+theorem bracketGE.nonempty {X Y : Type*} [Fintype X] [Fintype Y] [DecidableEq X]
+    (p : ℕ) (x y : ℝ) (hx1 : x ≤ 1) (hy1 : y ≤ 1)
+    (hX : 1 ≤ Fintype.card X) :
+    (bracketGE X Y p x y).Nonempty :=
+-- CLAIM-END aux:bracket-nonempty

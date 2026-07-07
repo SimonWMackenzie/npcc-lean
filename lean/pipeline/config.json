@@ -1,0 +1,16 @@
+{
+ "allowedAxioms": [
+  "propext",
+  "Classical.choice",
+  "Quot.sound",
+  "NPCC.aghp_balanced_family_exists",
+  "NPCC.vbp_np_hard"
+ ],
+ "policyAxiomsNote": "Additions require editing deployment-pack/01-boundary-certificate.md FIRST (AGHP, source NP-hardness, large-d bundle are pre-approved for Targets C/D, none needed for A/B).",
+ "lanes": [
+  "claude",
+  "codex"
+ ],
+ "attemptsPerLane": 3,
+ "axiomAuthorization": "Simon 2026-07-06: AGHP (Alon et al.) claims + bin-packing NP-hardness as axioms; statements require full judge treatment incl. Ultra before declaration"
+}

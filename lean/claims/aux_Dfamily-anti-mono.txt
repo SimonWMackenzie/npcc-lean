@@ -1,0 +1,13 @@
+-- CLAIM-BEGIN aux:Dfamily-anti-mono
+/-- Unit test for `Dfamily`: family complexity is antitone in the family `Φ`.
+Enlarging the family of extraction-data pairs can only make the minimum
+depth-complexity smaller (more submatrices to choose from). Formally, for
+`Φ₁ ⊆ Φ₂` with `Φ₁` nonempty, `Dfamily f Φ₂ ≤ Dfamily f Φ₁`. The cost-set of
+`Φ₁` is a nonempty subset of the cost-set of `Φ₂` (each `∃`-witness in `Φ₁`
+sits in `Φ₂` via `hsub`), so `Nat.sInf` is antitone: `sInf S₂ ≤ sInf S₁`. The
+nonemptiness of `Φ₁` guarantees `sInf S₁` is actually attained (`Nat.sInf_mem`),
+placing it inside `S₂` where `Nat.sInf_le` applies. -/
+theorem Dfamily.anti_mono {A B : Type*} (f : A → B → Bool)
+    {Φ₁ Φ₂ : Set (Finset A × Finset B)} (hsub : Φ₁ ⊆ Φ₂) (hne : Φ₁.Nonempty) :
+    Dfamily f Φ₂ ≤ Dfamily f Φ₁ :=
+-- CLAIM-END aux:Dfamily-anti-mono

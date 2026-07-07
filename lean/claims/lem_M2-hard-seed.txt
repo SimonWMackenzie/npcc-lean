@@ -1,0 +1,17 @@
+-- CLAIM-BEGIN lem:M2-hard-seed
+/-- Paper `lem:M2-hard-seed`, in the direct hard-seed form.  The two explicit
+large-`d` gates are the generic hard-seed threshold `m0 ≤ log t2` and the
+copy-budget inequality `log t2 ≤ b1`; the latter is usually discharged from
+the large-`d` checklist field `t2 ≤ 2^b1`. -/
+theorem M2_hard_seed (d : ℕ) (hpow : IsPow2 d)
+    (hlog256 : 256 ≤ Nat.log 2 d)
+    (hm0_le : (Classical.choose
+        (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+          Params.delta (by norm_num [Params.delta])
+          (by norm_num [Params.delta])) : ℕ) ≤ Nat.log 2 (Params.t2 d))
+    (hm_le_b1 : (Nat.log 2 (Params.t2 d) : ℝ) ≤ (Params.b1 d : ℝ)) :
+    D (M1T d) + Nat.log 2 (Params.t2 d) ≤
+      Dfamily (interlaceFun (M1T d) (M2_hard_seed_copies d))
+        (bracketGE (C1 d) (R1 d) (M2_hard_seed_copies d)
+          (M2_hard_seed_rowDensity d) (M2_hard_seed_columnDensity d)) := by
+-- CLAIM-END lem:M2-hard-seed

@@ -1,0 +1,212 @@
+-- CLAIM-BEGIN lem:M1-robust
+theorem M1_robust (d : ℕ) (hpow : IsPow2 d)
+    (hlog : 256 ≤ Nat.log 2 d) :
+    IsRobust (fun (j : C1 d) (a : R1 d) => M1 d a j) Params.delta (Params.b1 d) := by
+  classical
+  let MT : C1 d → R1 d → Bool := fun j a => M1 d a j
+  change IsRobust MT Params.delta (Params.b1 d)
+  have hlog64 : 64 ≤ Nat.log 2 d := by omega
+  have hd : 2 ≤ d := by
+    obtain ⟨k, rfl⟩ := hpow
+    have hk : 256 ≤ k := by simpa [log_two_pow] using hlog
+    exact Nat.succ_le_of_lt (Nat.one_lt_two_pow (by omega : k ≠ 0))
+  have hchk : Params.t1 d ≤ Params.q1 d + 5 :=
+    Params.t1_le_q1_add_five hlog64
+  obtain ⟨hdiv, hTb, hRb, hgap⟩ := M1_low_column_stage2_gates hpow hlog64
+  have hcomp : D (M1 d) = Params.a d + 1 := M1_complexity d hpow hlog64
+  have htr : D MT = D (M1 d) := by
+    simpa [MT] using comp_transpose (M1 d)
+  have hcap := M1_capacity_log_identity d hd hdiv
+  have hqpow : Params.q1 d + 2 = 2 ^ Params.a d := (Params.two_pow_a hd).symm
+  have hr1pow_some : ∃ k, Params.r1 d = 2 ^ k := by
+    have hr1dvd : Params.r1 d ∣ 2 ^ Params.a d := by
+      rw [← hqpow]
+      exact ⟨Params.t1 d, hdiv⟩
+    obtain ⟨j, _hjle, hr1j⟩ := (Nat.dvd_prime_pow Nat.prime_two).mp hr1dvd
+    exact ⟨j, hr1j⟩
+  let Rlog : ℕ := Nat.log 2 (Params.r1 d)
+  have hr1pow : Params.r1 d = 2 ^ Rlog := by
+    obtain ⟨k, hk⟩ := hr1pow_some
+    dsimp [Rlog]
+    rw [hk, log_two_pow]
+  have hlog1 : 1 ≤ Nat.log 2 d := by omega
+  have ht_upper : Params.t1 d ≤ 128 * Nat.log 2 d :=
+    (Params.t1_bracket (d := d) hlog1).2
+  have hA64 : 64 ≤ Params.r1 d * Params.t1 d := by
+    rw [← hdiv]
+    have hqlo := Params.le_q1_add_two (d := d) hlog1
+    have hsmall : 64 ≤ 2 * Nat.log 2 d ^ 2 := by nlinarith
+    omega
+  have hr1ge4 : 4 ≤ Params.r1 d := by
+    by_contra hlt
+    have hr1le3 : Params.r1 d ≤ 3 := by omega
+    have hupper : Params.r1 d * Params.t1 d ≤ 3 * (128 * Nat.log 2 d) :=
+      Nat.mul_le_mul hr1le3 ht_upper
+    have hlower : 2 * Nat.log 2 d ^ 2 ≤ Params.r1 d * Params.t1 d := by
+      rw [← hdiv]
+      exact Params.le_q1_add_two (d := d) hlog1
+    have hkey : 3 * (128 * Nat.log 2 d) < 2 * Nat.log 2 d ^ 2 := by
+      nlinarith
+    omega
+  have hRlog_ge2 : 2 ≤ Rlog := by
+    dsimp [Rlog]
+    rw [Nat.le_log_iff_pow_le (by norm_num) (by omega : Params.r1 d ≠ 0)]
+    norm_num
+    exact hr1ge4
+  have ht1_clog : Params.t1 d = 2 ^ Nat.clog 2 (64 * Nat.log 2 d) := rfl
+  have ht1pow : Params.t1 d = 2 ^ Nat.log 2 (Params.t1 d) := by
+    rw [ht1_clog, log_two_pow]
+  have ht1ge16 : 16 ≤ Params.t1 d := by
+    have ht := (Params.t1_bracket (d := d) hlog1).1
+    nlinarith
+  have hlogt_ge4 : 4 ≤ Nat.log 2 (Params.t1 d) := by
+    calc 4 = Nat.log 2 16 := by norm_num [Nat.log]
+      _ ≤ Nat.log 2 (Params.t1 d) := Nat.log_mono_right ht1ge16
+  have hdiv16 : 16 ∣ Params.t1 d := by
+    rw [show 16 = (2 : Nat) ^ 4 by norm_num, ht1pow]
+    exact pow_dvd_pow 2 hlogt_ge4
+  have hn_for : ∀ r'' : ℕ, ∃ n : ℕ, 16 * n = 9 * r'' * Params.t1 d := by
+    intro r''
+    refine ⟨9 * r'' * Params.t1 d / 16, ?_⟩
+    have hdiv16prod : 16 ∣ 9 * r'' * Params.t1 d := by
+      exact dvd_mul_of_dvd_right hdiv16 (9 * r'')
+    rw [mul_comm, Nat.div_mul_cancel hdiv16prod]
+  have hqR : (Params.q1 d : ℝ) = (Params.r1 d * Params.t1 d : ℝ) - 2 := by
+    have hdivR : ((Params.q1 d + 2 : ℕ) : ℝ) =
+        ((Params.r1 d * Params.t1 d : ℕ) : ℝ) := by
+      exact_mod_cast hdiv
+    norm_num at hdivR ⊢
+    linarith
+  have hA64R : (64 : ℝ) ≤ (Params.r1 d * Params.t1 d : ℝ) := by
+    exact_mod_cast hA64
+
+  obtain ⟨n0, hn0⟩ := hn_for (Params.r1 d)
+  have hnβ0 : (n0 : ℝ) ≤ (Params.q1 d : ℝ) * (1 / 2 + Params.delta) := by
+    have hn16R : (16 : ℝ) * n0 = 9 * (Params.r1 d * Params.t1 d : ℝ) := by
+      exact_mod_cast (by simpa [Nat.mul_assoc] using hn0)
+    norm_num [Params.delta]
+    nlinarith [hn16R, hqR, hA64R]
+  have hfam0 := M1T_family_lower_from_slice d hd hchk hdiv hTb hRb hgap
+    (1 / 2 + Params.delta) (by norm_num [Params.delta])
+    hr1pow_some (by
+      obtain ⟨k, hk⟩ := hr1pow_some
+      rw [hk]
+      exact Nat.one_le_two_pow)
+    (le_refl (Params.r1 d)) hn0 hnβ0
+
+  let rhalf : ℕ := 2 ^ (Rlog - 1)
+  have hrhalf_pow : ∃ k, rhalf = 2 ^ k := ⟨Rlog - 1, rfl⟩
+  have hrhalf_one : 1 ≤ rhalf := by
+    dsimp [rhalf]
+    exact Nat.one_le_two_pow
+  have hrhalf_le : rhalf ≤ Params.r1 d := by
+    dsimp [rhalf]
+    rw [hr1pow]
+    exact Nat.pow_le_pow_right (by norm_num) (Nat.sub_le Rlog 1)
+  have h2rhalf : 2 * rhalf = Params.r1 d := by
+    dsimp [rhalf]
+    rw [hr1pow]
+    calc 2 * 2 ^ (Rlog - 1)
+        = 2 ^ (Rlog - 1) * 2 := by ring
+      _ = 2 ^ ((Rlog - 1) + 1) := by rw [pow_succ]
+      _ = 2 ^ Rlog := by congr 1; omega
+  have hlog_half : Nat.log 2 rhalf = Rlog - 1 := by
+    dsimp [rhalf]
+    rw [log_two_pow]
+  obtain ⟨n1, hn1⟩ := hn_for rhalf
+  have hnβ1 : (n1 : ℝ) ≤ (Params.q1 d : ℝ) * (1 / 4 + Params.delta / 2) := by
+    have hn16R : (16 : ℝ) * n1 = 9 * (rhalf : ℝ) * (Params.t1 d : ℝ) := by
+      exact_mod_cast hn1
+    have h2R : (2 : ℝ) * (rhalf : ℝ) = (Params.r1 d : ℝ) := by
+      exact_mod_cast h2rhalf
+    have hn32R : (32 : ℝ) * n1 = 9 * (Params.r1 d * Params.t1 d : ℝ) := by
+      calc (32 : ℝ) * n1
+          = 2 * ((16 : ℝ) * n1) := by ring
+        _ = 2 * (9 * (rhalf : ℝ) * (Params.t1 d : ℝ)) := by rw [hn16R]
+        _ = 9 * ((2 : ℝ) * rhalf) * (Params.t1 d : ℝ) := by ring
+        _ = 9 * (Params.r1 d : ℝ) * (Params.t1 d : ℝ) := by rw [h2R]
+        _ = 9 * (Params.r1 d * Params.t1 d : ℝ) := by ring
+    norm_num [Params.delta]
+    nlinarith [hn32R, hqR, hA64R]
+  have hfam1 := M1T_family_lower_from_slice d hd hchk hdiv hTb hRb hgap
+    (1 / 4 + Params.delta / 2) (by norm_num [Params.delta])
+    hrhalf_pow hrhalf_one hrhalf_le hn1 hnβ1
+
+  let rquarter : ℕ := 2 ^ (Rlog - 2)
+  have hrquarter_pow : ∃ k, rquarter = 2 ^ k := ⟨Rlog - 2, rfl⟩
+  have hrquarter_one : 1 ≤ rquarter := by
+    dsimp [rquarter]
+    exact Nat.one_le_two_pow
+  have hrquarter_le : rquarter ≤ Params.r1 d := by
+    dsimp [rquarter]
+    rw [hr1pow]
+    exact Nat.pow_le_pow_right (by norm_num) (Nat.sub_le Rlog 2)
+  have h4rquarter : 4 * rquarter = Params.r1 d := by
+    dsimp [rquarter]
+    rw [hr1pow]
+    calc 4 * 2 ^ (Rlog - 2)
+        = 2 ^ 2 * 2 ^ (Rlog - 2) := by norm_num
+      _ = 2 ^ (2 + (Rlog - 2)) := by rw [← pow_add]
+      _ = 2 ^ Rlog := by congr 1; omega
+  have hlog_quarter : Nat.log 2 rquarter = Rlog - 2 := by
+    dsimp [rquarter]
+    rw [log_two_pow]
+  obtain ⟨n2, hn2⟩ := hn_for rquarter
+  have hnβ2 : (n2 : ℝ) ≤ (Params.q1 d : ℝ) * (1 / 8 + Params.delta / 4) := by
+    have hn16R : (16 : ℝ) * n2 = 9 * (rquarter : ℝ) * (Params.t1 d : ℝ) := by
+      exact_mod_cast hn2
+    have h4R : (4 : ℝ) * (rquarter : ℝ) = (Params.r1 d : ℝ) := by
+      exact_mod_cast h4rquarter
+    have hn64R : (64 : ℝ) * n2 = 9 * (Params.r1 d * Params.t1 d : ℝ) := by
+      calc (64 : ℝ) * n2
+          = 4 * ((16 : ℝ) * n2) := by ring
+        _ = 4 * (9 * (rquarter : ℝ) * (Params.t1 d : ℝ)) := by rw [hn16R]
+        _ = 9 * ((4 : ℝ) * rquarter) * (Params.t1 d : ℝ) := by ring
+        _ = 9 * (Params.r1 d : ℝ) * (Params.t1 d : ℝ) := by rw [h4R]
+        _ = 9 * (Params.r1 d * Params.t1 d : ℝ) := by ring
+    norm_num [Params.delta]
+    nlinarith [hn64R, hqR, hA64R]
+  have hfam2 := M1T_family_lower_from_slice d hd hchk hdiv hTb hRb hgap
+    (1 / 8 + Params.delta / 4) (by norm_num [Params.delta])
+    hrquarter_pow hrquarter_one hrquarter_le hn2 hnβ2
+
+  unfold IsRobust
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · rw [htr, hcomp]
+    omega
+  · have hDle : (D MT : ℤ) ≤
+        (Dfamily (interlaceFun MT 1)
+          (bracketGE (C1 d) (R1 d) 1 ((2 : ℝ) ^ (-(Params.b1 d : ℝ)))
+            (1 / 2 + Params.delta)) : ℤ) := by
+      rw [htr, hcomp]
+      calc ((Params.a d + 1 : ℕ) : ℤ)
+          = (1 : ℤ) + (Nat.log 2 (Params.t1 d) : ℤ)
+              + (Nat.log 2 (Params.r1 d) : ℤ) := by
+              rw [hcap]
+              omega
+        _ ≤ (Dfamily (interlaceFun MT 1)
+          (bracketGE (C1 d) (R1 d) 1 ((2 : ℝ) ^ (-(Params.b1 d : ℝ)))
+            (1 / 2 + Params.delta)) : ℤ) := by
+              simpa [MT, Rlog] using hfam0
+    exact_mod_cast hDle
+  · rw [htr, hcomp]
+    calc (((Params.a d + 1 : ℕ) : ℤ) - 2)
+        = (1 : ℤ) + (Nat.log 2 (Params.t1 d) : ℤ) + (Nat.log 2 rquarter : ℤ) := by
+            rw [hcap, hlog_quarter]
+            dsimp [Rlog] at hRlog_ge2
+            omega
+      _ ≤ (Dfamily (interlaceFun MT 1)
+          (bracketGE (C1 d) (R1 d) 1 ((2 : ℝ) ^ (-(Params.b1 d : ℝ)))
+            (1 / 8 + Params.delta / 4)) : ℤ) := by
+            simpa [MT] using hfam2
+  · rw [htr, hcomp]
+    calc (((Params.a d + 1 : ℕ) : ℤ) - 1)
+        = (1 : ℤ) + (Nat.log 2 (Params.t1 d) : ℤ) + (Nat.log 2 rhalf : ℤ) := by
+            rw [hcap, hlog_half]
+            dsimp [Rlog] at hRlog_ge2
+            omega
+      _ ≤ (Dfamily (interlaceFun MT 1)
+          (bracketGE (C1 d) (R1 d) 1 ((2 : ℝ) ^ (-(Params.b1 d : ℝ)))
+            (1 / 4 + Params.delta / 2)) : ℤ) := by
+            simpa [MT] using hfam1
+-- CLAIM-END lem:M1-robust

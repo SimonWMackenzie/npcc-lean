@@ -1,0 +1,9 @@
+-- CLAIM-BEGIN def:encCol
+/-- Digit flattening of a typed interlace column: the tuple `c : Fin p → Fin n`
+becomes the base-`n` numeral `Σ γ, c γ · n^γ`. The artifact's interlace reads
+column `j`'s digit `γ` as `(j / n^γ) % n` (`Workspace.Types.Interlace`);
+`encCol` is the inverse presentation, pairing with `encRow` (`NPCC.Bridge`)
+to flatten typed extraction data to artifact extraction data. -/
+def encCol {p n : ℕ} (c : Fin p → Fin n) : ℕ :=
+  ∑ γ : Fin p, (c γ : ℕ) * n ^ (γ : ℕ)
+-- CLAIM-END def:encCol

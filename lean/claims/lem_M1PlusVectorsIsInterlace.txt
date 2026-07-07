@@ -1,0 +1,24 @@
+-- CLAIM-BEGIN lem:M1PlusVectorsIsInterlace
+/-- Paper `lem:M1PlusVectorsIsInterlace`, canonical-transversal formalization.
+The selected `(p, α)` branch restricted to canonical diagonal columns and to
+the vector transversal is isomorphic to a chosen-coordinate Stage-1 local
+game.  Consequently, if the branch has an inactive vector row and at least two
+active vector rows at `α`, then its canonical local subgame has complexity at
+least `B_cap+1 = a+2`. -/
+theorem M1_plus_vectors_is_interlace (d : ℕ) (hd : 2 ≤ d)
+    (hbal : Params.t1 d ≤ Params.q1 d + 5)
+    (hta : Params.a d + 2 ≤ Params.t1 d)
+    (h₂ : Params.t2 d ≤ Params.q2 d) (hq1 : 1 ≤ Params.q1 d)
+    {n : ℕ} (v : Fin n → Fin (Params.q2 d) → Bool) (p : Fin 4)
+    (α : Fin (Params.q2 d)) (B : Finset (Fin n))
+    (hA : (activeSet v α).card ≤ 4) :
+    Nonempty
+      (GameIso (m1PlusBranchCoreSub d h₂ hq1 v p α B (Finset.univ : Finset (C1 d)))
+        (HlocalAtSub d (S1fam d) (Finset.univ : Finset (C1 d))
+          (m1PlusCoordEnum d v α B))) ∧
+      ((B \ activeSet v α).Nonempty →
+        2 ≤ (B ∩ activeSet v α).card →
+        Params.a d + 2 ≤
+          D (m1PlusBranchCoreSub d h₂ hq1 v p α B
+            (Finset.univ : Finset (C1 d)))) :=
+-- CLAIM-END lem:M1PlusVectorsIsInterlace

@@ -1,0 +1,113 @@
+-- CLAIM-BEGIN aux:m3-stopdata
+/-- Dense stopping data needed to promote restricted Bob-onlyness to ambient
+Bob-onlyness by the generic no-waste theorem.
+
+The record is intentionally generic in the residual game.  In the Stage-3 use,
+`Q` is a bin residual, `R` is the dense survivor row set, `C` is the diagonal
+column set, `m = clog q2`, and `Bcap = D (M1 d)`. -/
+structure Stage3StopData
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool) (Q : Protocol A B Bool)
+    (R : Finset A) (C : Finset B) (m Bcap : Nat) : Prop where
+  restricted_col :
+    Protocol.FirstKColBitsOn R C m (Protocol.restrict R C Q)
+  cover :
+    Protocol.FullStoppingFiberCoverage R C (Protocol.restrict R C Q)
+      (List.replicate m Protocol.ActualBitSide.bob)
+  hard :
+    Protocol.TerminalHardWitnesses G R C (Protocol.restrict R C Q)
+      (List.replicate m Protocol.ActualBitSide.bob) Bcap
+
+/-- The generic no-waste application specialized to `Stage3StopData`. -/
+theorem Stage3StopData.ambient_col
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool) (Q : Protocol A B Bool)
+    (R : Finset A) (C : Finset B) (m Bcap : Nat)
+    (hcomp : Q.Computes G) (hbudget : Q.cost <= m + Bcap)
+    (hdata : Stage3StopData G Q R C m Bcap) :
+    Protocol.FirstKColBitsOn
+      (Finset.univ : Finset A) (Finset.univ : Finset B) m Q := by
+  exact
+    Protocol.noWaste_firstKColBitsOn_univ_of_restrict
+      G Q R C m Bcap hcomp hbudget
+      hdata.restricted_col hdata.cover hdata.hard
+
+/-- Stage-3 residual budget in the exact `clog q2 + Bcap` form consumed by
+the no-waste bridge.  The equality hypotheses are the established Stage-2
+complexity identity, the public `clog = log` gate, and the definition of
+`Bcap`. -/
+theorem stage3_bin_residual_budget
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (Bcap : Nat)
+    (hcost : P.cost <= D (M2 d) + 2)
+    (hM2 : D (M2 d) = D (M1 d) + Nat.log 2 (Params.q2 d))
+    (hclog : Nat.clog 2 (Params.q2 d) = Nat.log 2 (Params.q2 d))
+    (hBcap : Bcap = D (M1 d)) :
+    forall p,
+      (binBranch p).residual.cost <=
+        Nat.clog 2 (Params.q2 d) + Bcap := by
+  intro p
+  have hres := M3_binResidual_cost_le_M2 d P binBranch hcost p
+  have htarget :
+      D (M2 d) = Nat.clog 2 (Params.q2 d) + Bcap := by
+    rw [hM2, hclog, hBcap]
+    omega
+  omega
+
+/-- Per-bin no-waste bridge from certified stop data to ambient Bob-onlyness
+of the bin residual. -/
+theorem stage3_binResidual_firstKColBitsOn_ambient
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (Bcap : Nat)
+    (R : Finset {a // a ∈ (binBranch p).rows})
+    (C : Finset {b // b ∈ (binBranch p).cols})
+    (hbudget :
+      (binBranch p).residual.cost <=
+        Nat.clog 2 (Params.q2 d) + Bcap)
+    (hdata :
+      Stage3StopData
+        (subgame (M3 d) (binBranch p).rows (binBranch p).cols)
+        (binBranch p).residual R C
+        (Nat.clog 2 (Params.q2 d)) Bcap) :
+    Protocol.FirstKColBitsOn
+      (Finset.univ : Finset {a // a ∈ (binBranch p).rows})
+      (Finset.univ : Finset {b // b ∈ (binBranch p).cols})
+      (Nat.clog 2 (Params.q2 d)) (binBranch p).residual := by
+  exact
+    Stage3StopData.ambient_col
+      (subgame (M3 d) (binBranch p).rows (binBranch p).cols)
+      (binBranch p).residual R C
+      (Nat.clog 2 (Params.q2 d)) Bcap
+      (binBranch p).residual_computes hbudget hdata
+
+/-- Stop data plus live column-prefix witnesses assemble the exact
+`M3BudgetColumnTarget` consumed by the ambient sync adapter. -/
+theorem M3_budget_column_target_of_stopdata
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (codeOfAlpha :
+      Fin 4 -> Fin (Params.q2 d) -> Fin (2 ^ Nat.clog 2 (Params.q2 d)))
+    (Bcap : Nat)
+    (R : forall p, Finset {a // a ∈ (binBranch p).rows})
+    (C : forall p, Finset {b // b ∈ (binBranch p).cols})
+    (hbudget : forall p,
+      (binBranch p).residual.cost <=
+        Nat.clog 2 (Params.q2 d) + Bcap)
+    (hdata : forall p,
+      Stage3StopData
+        (subgame (M3 d) (binBranch p).rows (binBranch p).cols)
+        (binBranch p).residual (R p) (C p)
+        (Nat.clog 2 (Params.q2 d)) Bcap)
+    (hcols : forall p alpha,
+      (Protocol.colPrefixCols (Nat.clog 2 (Params.q2 d))
+        (binBranch p).residual (codeOfAlpha p alpha)).Nonempty) :
+    M3BudgetColumnTarget d P binBranch codeOfAlpha := by
+  constructor
+  · intro p
+    exact
+      stage3_binResidual_firstKColBitsOn_ambient
+        d P binBranch p Bcap (R p) (C p) (hbudget p) (hdata p)
+  · exact hcols
+-- CLAIM-END aux:m3-stopdata

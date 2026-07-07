@@ -1,0 +1,48 @@
+-- CLAIM-BEGIN lem:polytime
+/-- Paper `lem:polytime`, SIZE-BOUNDS-FIRST kernel half (D2/D7). NAMING FLAG:
+the Lean identifier is `output_size_bounds`, NOT `polytime` — the ruling
+forbids a kernel lemma named as if it certified machine-constructibility
+(trap #41); this theorem proves only cardinality bounds. No Turing machines,
+no O-notation.
+
+For every source vector count `n` and ambient dimension `d`, under the
+large-`d` balancedness gates (`t₁ ≤ q₁+5`, `t₂ ≤ q₂`, `1 ≤ q₁` — all supplied
+on the normalised `d ≥ d_star` regime), the reduction's output matrix `M₄`
+has row and column carriers bounded by EXPLICIT MONOMIALS in `n` and `d`:
+* rows:    `|R₄| ≤ n + rowPoly d`   (linear in `n`, monomial in `d`);
+* columns: `|C₄| ≤ colPoly d`       (monomial in `d`, independent of `n`).
+Both `rowPoly` and `colPoly` are the closed-form monomials defined above,
+whose only transcendental ingredient is the single absolute AGHP constant
+`C = aghpConstant` in the exponents; `q₁,q₂,t₁,t₂` are exact ℕ functions of
+`Nat.log 2 d`. This is the explicit `poly(n+d)` output-size certificate the
+Layer-B NP-hardness wrapper consumes. -/
+theorem output_size_bounds (d n : ℕ)
+    (ht1 : 1 ≤ Params.t1 d) (ht1q : Params.t1 d ≤ Params.q1 d + 5)
+    (ht2 : 1 ≤ Params.t2 d) (ht2q : Params.t2 d ≤ Params.q2 d)
+    (hq1 : 1 ≤ Params.q1 d) :
+    (Fintype.card (R4 d n) : ℝ) ≤ (n : ℝ) + rowPoly d
+      ∧ (Fintype.card (C4 d) : ℝ) ≤ colPoly d := by
+  refine ⟨?_, ?_⟩
+  · -- rows: |R₄| = 4·L₂(d) + n ≤ n + 4·(L₂ monomial) = n + rowPoly d.
+    rw [card_R4, rowPoly]
+    have hL2 := L2_le_poly d ht2 ht2q hq1
+    have hcast : ((4 * L2 d + n : ℕ) : ℝ) = (n : ℝ) + 4 * (L2 d : ℝ) := by
+      push_cast; ring
+    rw [hcast]
+    have : 4 * (L2 d : ℝ)
+        ≤ 4 * (((Params.q2 d + 2 : ℕ) : ℝ) ^ aghpConstant
+              * ((Params.q1 d + 2 : ℕ) : ℝ) ^ (aghpConstant * Params.t2 d)
+              * (((2 * Params.q2 d * Params.t2 d) ^ aghpConstant : ℕ) : ℝ)
+                  ^ aghpConstant) := by
+      gcongr
+    linarith
+  · -- columns: |C₄| = 32·(q₂·L₁)⁴ ≤ 32·(q₂·(L₁ monomial))⁴ = colPoly d.
+    rw [card_C4, colPoly]
+    have hL1 := L1_le_poly d ht1 ht1q
+    have hcast : ((32 * (Params.q2 d * L1 d) ^ 4 : ℕ) : ℝ)
+        = 32 * ((Params.q2 d : ℝ) * (L1 d : ℝ)) ^ 4 := by
+      push_cast; ring
+    rw [hcast]
+    have hq2nn : (0 : ℝ) ≤ (Params.q2 d : ℝ) := by positivity
+    gcongr
+-- CLAIM-END lem:polytime

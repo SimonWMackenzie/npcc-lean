@@ -1,0 +1,21 @@
+-- CLAIM-BEGIN lem:rankclaim
+/-- Paper `lem:rankclaim` (imported there as M&S Lemma 2.5): for the seed
+`M₀ = [1 0]`, any positive `p` and reals `0 < x, y ≤ 1` with `p + log₂ y > 0`,
+the bracket-family complexity satisfies
+`comp⟨M₀,p,x,y⟩ ≥ ⌈log₂(p + log₂ y)⌉ + 1`.
+
+Typed rendering over the complexity layer: the ambient game is the `p`-fold
+`interlaceFun` of `seedGame`; the family is `bracketGE (Fin 1) (Fin 2) p x y`;
+`comp{·}` is `Dfamily`. Logs are base 2 (`Real.logb 2`), the outer ceiling is
+the integer ceiling `⌈·⌉ : ℝ → ℤ` (its argument may be negative, whence the
+`ℤ`-valued comparison with the cast of `Dfamily`). RESCOPED from
+`port:rankclaim`: the artifact holds the generic engine
+(`logRank_lowerBound`, `distinctCols_card_le_two_pow_rank`,
+`protocol_rank_bound`) but not this bracket-form seed bound. -/
+theorem rankclaim {p : ℕ} (hp : 0 < p) {x y : ℝ}
+    (hx0 : 0 < x) (hx1 : x ≤ 1) (hy0 : 0 < y) (hy1 : y ≤ 1)
+    (hlog : 0 < (p : ℝ) + Real.logb 2 y) :
+    (⌈Real.logb 2 ((p : ℝ) + Real.logb 2 y)⌉ + 1 : ℤ) ≤
+      (Dfamily (Workspace.Types.Interlace.interlaceFun seedGame p)
+        (bracketGE (Fin 1) (Fin 2) p x y) : ℤ) :=
+-- CLAIM-END lem:rankclaim

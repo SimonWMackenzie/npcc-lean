@@ -1,0 +1,12 @@
+-- CLAIM-BEGIN cor:plus-one-family
+/-- Paper `cor:plus-one-family`: top-rung scalar consequence of the odd-copy
+seed — `comp⟨f, 2^(k−1)+1, 2^(k−b), (1/2+δ)²⟩ ≥ D f + k` for every integer
+`2 ≤ k ≤ b` (same standing hypotheses, same F1-adjacent `2 ≤ D f`). -/
+theorem plus_one_family {X Y : Type*} [Fintype X] [Fintype Y]
+    {f : X → Y → Bool} {δ b : ℝ}
+    (h : IsRobust f δ b) (hb : 1 ≤ b) (hδ0 : 0 < δ) (hδ : δ ≤ 1 / 2)
+    (hD : 2 ≤ D f) (k : ℕ) (hk2 : 2 ≤ k) (hkb : (k : ℝ) ≤ b) :
+    D f + k ≤ Dfamily (interlaceFun f (2 ^ (k - 1) + 1))
+      (bracketGE X Y (2 ^ (k - 1) + 1) ((2 : ℝ) ^ ((k : ℝ) - b))
+        ((1 / 2 + δ) ^ 2)) :=
+-- CLAIM-END cor:plus-one-family

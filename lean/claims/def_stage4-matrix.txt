@@ -1,0 +1,103 @@
+-- CLAIM-BEGIN def:stage4-matrix
+/-- Paper Stage 4: the active support set `A_α := {i ∈ [n] : v_i(α) = 1}` of
+a dimension `α`, for the attached vector family `v` (the preprocessed,
+power-of-two-normalised source instance; the set-builder tests `v i α = true`
+explicitly, per the Bool-coercion ruling). The source-side screen — the
+`VBPInstance.Promise` of the attached instance — is exactly
+`(activeSet v α).card ≤ 4` for every `α` (companion
+`activeSet_card_le_of_promise`). -/
+def activeSet {n q : ℕ} (v : Fin n → Fin q → Bool) (α : Fin q) :
+    Finset (Fin n) :=
+  Finset.univ.filter (fun i => v i α = true)
+
+/-- The injection `π_α : A_α ↪ [4]` (D4 design, ratified: the
+order-preserving enumeration): the rank of `i` inside `A_α`, i.e. the number
+of strictly smaller active rows. TOTAL — defined for every row, active or
+not (D1 total-fallback pattern); on `A_α` it is strictly increasing
+(`piAlpha_lt_of_lt`), hence injective (`piAlpha_injOn`), and under the
+source-side screen `|A_α| ≤ 4` it lands in `[4]` (`piAlpha_lt_four`). -/
+def piAlpha {n q : ℕ} (v : Fin n → Fin q → Bool) (α : Fin q) (i : Fin n) :
+    ℕ :=
+  ((activeSet v α).filter (fun i' => i' < i)).card
+
+/-- The Stage-4 slot of row `i` at dimension `α` in the 5-row local gadget:
+the active slot `π_α(i) ∈ {0,1,2,3}` when `v_i(α) = 1` (falling back to the
+neutral slot if the promise-supplied range bound `π_α(i) < 4` fails — the
+fallback branch is dead under the screen and no lemma exposes it), and the
+neutral slot `4` when `v_i(α) = 0` (paper slot `q₁+5`, 1-based). The slot
+values follow the `slotIdx` typed-separator convention: four active slots
+`0,1,2,3` and the neutral slot `4`. -/
+def gadgetSlot {n q : ℕ} (v : Fin n → Fin q → Bool) (α : Fin q) (i : Fin n) :
+    Fin 5 :=
+  if h : v i α = true ∧ piAlpha v α i < 4 then ⟨piAlpha v α i, by omega⟩
+  else (4 : Fin 5)
+
+/-- The 5-row local gadget `⟨M₀⟩⁵(s, k)`: the classical 5-fold interlace of
+the seed, with its column tuples `Fin 5 → Fin 2` packed into `k ∈ [2⁵]` by
+the SAME equivalence `finFunctionFinEquiv` that packs the Stage-1 `tail`
+patterns — the two encodings must stay aligned (`localGadget_tail`). -/
+def localGadget (s : Fin 5) (k : Fin (2 ^ 5)) : Bool :=
+  interlaceFun M0 5 (s, 0) (finFunctionFinEquiv.symm k)
+
+/-- The Stage-4 row carrier `R₄ = R₃ ⊕ [n]`: a TAGGED SUM (binding ruling —
+never an untagged union). `Sum.inl` carries the template rows `R₃ = [4]×C₂`,
+`Sum.inr` the vector rows `[n]` of the attached instance (including its four
+zero anchors). -/
+abbrev R4 (d n : ℕ) : Type := R3 d ⊕ Fin n
+
+/-- The Stage-4 column carrier `C₄ = [2⁵] × R₂⁴` (the second factor is the
+Stage-3 column carrier `C₃ = R₂⁴`; the first is the local-gadget
+coordinate). -/
+abbrev C4 (d : ℕ) : Type := Fin (2 ^ 5) × C3 d
+
+/-- The outer (dimension) coordinate a column tuple proposes: the outer
+component of its first entry. A tuple lies on the diagonal outer-block slice
+`α₁ = α₂ = α₃ = α₄ = α` iff ALL FOUR entries have outer component `α`, and
+then `α` is forced to equal `diagCoord`; reading the candidate dimension off
+the tuple makes the Stage-4 case split deterministic (no choice, no `∃`
+elimination in the definition). -/
+def diagCoord (d : ℕ) (y : C3 d) : Fin (Params.q2 d) := (y 0).1
+
+/-- Template half of Stage 4: the rows `R₃` copy the Stage-3 template `M₃`,
+reading only the `R₂⁴` component of the column (the gadget coordinate `k` is
+invisible to template rows). -/
+noncomputable def M4template (d : ℕ) : R3 d → C4 d → Bool :=
+  fun r j => M3 d r j.2
+
+/-- Vector half of Stage 4: on the diagonal outer-block slice
+`α₁ = α₂ = α₃ = α₄ = α` the row `i` plays its Stage-4 slot in the 5-row
+local gadget — the `π_α(i)`-th active row exactly when `v_i(α) = 1`, the
+neutral row otherwise — and off the diagonal it is neutral. Zero rows (in
+particular the four zero anchors of the preprocessed instance) are neutral
+on every column (`M4_zero_row_neutral`). -/
+def M4vector (d : ℕ) {n : ℕ} (v : Fin n → Fin (Params.q2 d) → Bool) :
+    Fin n → C4 d → Bool :=
+  fun i j =>
+    if (∀ m : Fin 4, (j.2 m).1 = diagCoord d j.2) then
+      localGadget (gadgetSlot v (diagCoord d j.2) i) j.1
+    else localGadget (4 : Fin 5) j.1
+
+/-- Paper Stage 4, the matrix `M₄` (`def:stage4-matrix`): template rows carry
+`M₃`, vector rows carry the diagonal-gated 5-row local gadget. Authored in
+the exact `Sum.elim` shape consumed by `GameIso.sumAttachCongr`. The
+attached family `v` is the vector family of the preprocessed,
+power-of-two-normalised source instance over the `q₂` padded source
+dimensions (`q₂ = d` on the normalised regime, `Params.q2_eq_self`); its row
+index set `[n]` includes the four zero anchors of
+`lem:zero-anchor-preprocessing`, whose rows are neutral on every column. -/
+noncomputable def M4 (d : ℕ) {n : ℕ}
+    (v : Fin n → Fin (Params.q2 d) → Bool) : R4 d n → C4 d → Bool :=
+  fun r j =>
+    Sum.elim (fun x => M4template d x j) (fun i => M4vector d v i j) r
+
+/-- The local capacity budget `B_cap := a + 1` (the Stage-1 threshold budget
+available on a successful branch). -/
+def Bcap (d : ℕ) : ℕ := Params.a d + 1
+
+/-- The YES-case target budget
+`B_yes := log 4 + ⌈log q₂⌉ + B_cap = 2 + ⌈log q₂⌉ + B_cap` — choose a bin,
+choose a dimension, then solve the local Stage-1 subproblem. `log 4 = 2` is
+exact; the ceiling log is the exact `Nat.clog 2`, which agrees with
+`Nat.log 2` on the (power-of-two) normalised regime (`clog_q2_eq_log`). -/
+def Byes (d : ℕ) : ℕ := 2 + Nat.clog 2 (Params.q2 d) + Bcap d
+-- CLAIM-END def:stage4-matrix

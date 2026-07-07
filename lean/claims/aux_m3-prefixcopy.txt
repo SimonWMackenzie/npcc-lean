@@ -1,0 +1,218 @@
+-- CLAIM-BEGIN aux:m3-prefixcopy
+
+namespace Protocol
+
+/-- On a rectangle whose next `m` live bits are Bob bits, the length-`m`
+actual bit list is independent of the row coordinate. -/
+theorem actualBitListRaw_eq_of_firstKColBitsOn
+    {A B Z : Type*} [DecidableEq A] [DecidableEq B]
+    {R : Finset A} {C : Finset B} {P : Protocol A B Z}
+    {m : Nat}
+    (hcol : Protocol.FirstKColBitsOn R C m P)
+    {a a' : A} (ha : a ∈ R) (ha' : a' ∈ R)
+    {b : B} (hb : b ∈ C) :
+    Protocol.actualBitListRaw m P a b =
+      Protocol.actualBitListRaw m P a' b := by
+  induction m generalizing R C P with
+  | zero =>
+      rfl
+  | succ m ih =>
+      cases P with
+      | leaf z =>
+          rfl
+      | aNode q l r =>
+          simp only [Protocol.FirstKColBitsOn, Protocol.FirstKRowBitsOn,
+            Protocol.swap] at hcol
+          rcases hcol with hC | hR
+          · rw [hC] at hb
+            exact absurd hb (Finset.notMem_empty b)
+          · rw [hR] at ha
+            exact absurd ha (Finset.notMem_empty a)
+      | bNode q l r =>
+          simp only [Protocol.FirstKColBitsOn, Protocol.FirstKRowBitsOn,
+            Protocol.swap] at hcol
+          by_cases hq : q b
+          · have hb' : b ∈ C.filter fun y => q y = true := by
+              rw [Finset.mem_filter]
+              exact ⟨hb, hq⟩
+            have htail :=
+              ih (R := R) (C := C.filter fun y => q y = true) (P := r)
+                hcol.2 ha ha' hb'
+            simp [Protocol.actualBitListRaw, hq, htail]
+          · have hqf : q b = false := by simp [hq]
+            have hb' : b ∈ C.filter fun y => q y = false := by
+              rw [Finset.mem_filter]
+              exact ⟨hb, hqf⟩
+            have htail :=
+              ih (R := R) (C := C.filter fun y => q y = false) (P := l)
+                hcol.1 ha ha' hb'
+            simp [Protocol.actualBitListRaw, hq, htail]
+
+/-- If every full Bob-prefix fiber is nonempty, then under Bob-onlyness every
+retained row lies in every reached row-prefix set. -/
+theorem rowsAtPrefix_eq_of_firstKColBitsOn
+    {A B Z : Type*} [DecidableEq A] [DecidableEq B]
+    {R : Finset A} {C : Finset B} {P : Protocol A B Z}
+    {m : Nat}
+    (hcol : Protocol.FirstKColBitsOn R C m P)
+    (hcover : Protocol.FullStoppingFiberCoverage R C P
+      (List.replicate m Protocol.ActualBitSide.bob))
+    (w : List Bool) (hw : w.length = m) :
+    Protocol.rowsAtPrefix R C P w = R := by
+  classical
+  ext a
+  constructor
+  · intro ha
+    exact (Finset.mem_filter.mp ha).1
+  · intro ha
+    obtain ⟨a0, ha0, b0, hb0, hbits0⟩ := hcover w (by simp [hw])
+    rw [Protocol.rowsAtPrefix, Finset.mem_filter]
+    refine ⟨ha, b0, hb0, ?_⟩
+    have hsame :=
+      Protocol.actualBitListRaw_eq_of_firstKColBitsOn
+        (R := R) (C := C) (P := P) (m := m) hcol ha ha0 hb0
+    calc
+      Protocol.actualBitListRaw w.length P a b0 =
+          Protocol.actualBitListRaw m P a b0 := by rw [hw]
+      _ = Protocol.actualBitListRaw m P a0 b0 := hsame
+      _ = w := by simpa [hw] using hbits0
+
+/-- The hard-witness part of Stage-3 stop data follows from Bob-onlyness,
+full fiber coverage, column-prefix embeddings, and exact `M1` copies. -/
+theorem M3_terminalHardWitnesses_of_colPrefix_M1_copies
+    (d : Nat)
+    {A B : Type*} [Fintype A] [Fintype B]
+    (hR1 : Nonempty (R1 d)) (hC1 : Nonempty (C1 d))
+    (G : A -> B -> Bool)
+    (R : Finset A) (C : Finset B) (Q : Protocol A B Bool)
+    (m : Nat)
+    (hcol : Protocol.FirstKColBitsOn R C m Q)
+    (hcover : Protocol.FullStoppingFiberCoverage R C Q
+      (List.replicate m Protocol.ActualBitSide.bob))
+    (rowEmbed : List Bool -> R1 d -> A)
+    (colEmbed : List Bool -> C1 d -> B)
+    (hrowMem : forall w, w.length = m -> forall r, rowEmbed w r ∈ R)
+    (hcolPrefix :
+      forall w, w.length = m ->
+        forall gamma, colEmbed w gamma ∈ Protocol.colsAtPrefix R C Q w)
+    (hcopy :
+      forall w, w.length = m ->
+        forall r gamma,
+          G (rowEmbed w r) (colEmbed w gamma) = M1 d r gamma) :
+    Protocol.TerminalHardWitnesses G R C Q
+      (List.replicate m Protocol.ActualBitSide.bob) (D (M1 d)) := by
+  classical
+  refine
+    M3_terminalHardWitnesses_of_prefix_M1_copies d hR1 hC1 G R C Q
+      (List.replicate m Protocol.ActualBitSide.bob)
+      rowEmbed colEmbed ?_ ?_ ?_
+  · intro w hw r
+    have hwlen : w.length = m := by simpa using hw
+    rw [Protocol.rowsAtPrefix_eq_of_firstKColBitsOn
+      (R := R) (C := C) (P := Q) (m := m) hcol hcover w hwlen]
+    exact hrowMem w hwlen r
+  · intro w hw gamma
+    exact hcolPrefix w (by simpa using hw) gamma
+  · intro w hw r gamma
+    exact hcopy w (by simpa using hw) r gamma
+
+end Protocol
+
+/-- Assemble the full stop-data record once the restricted residual has a
+Bob-only prefix, full stopping-fiber coverage, and per-prefix exact `M1` copies.
+
+This is the last checked bridge before the Stage-3-specific orientation
+transport: in the intended use, `Q` is a bin residual, `R` is the dense survivor
+row set, and `C` is the diagonal column set. -/
+theorem Stage3StopData.of_colPrefix_M1_copies
+    (d : Nat)
+    {A B : Type*} [Fintype A] [Fintype B]
+    (hR1 : Nonempty (R1 d)) (hC1 : Nonempty (C1 d))
+    (G : A -> B -> Bool) (Q : Protocol A B Bool)
+    (R : Finset A) (C : Finset B) (m : Nat)
+    (hrestricted_col :
+      Protocol.FirstKColBitsOn R C m (Protocol.restrict R C Q))
+    (hcover :
+      Protocol.FullStoppingFiberCoverage R C (Protocol.restrict R C Q)
+        (List.replicate m Protocol.ActualBitSide.bob))
+    (rowEmbed : List Bool -> R1 d -> A)
+    (colEmbed : List Bool -> C1 d -> B)
+    (hrowMem : forall w, w.length = m -> forall r, rowEmbed w r ∈ R)
+    (hcolPrefix :
+      forall w, w.length = m ->
+        forall gamma,
+          colEmbed w gamma ∈
+            Protocol.colsAtPrefix R C (Protocol.restrict R C Q) w)
+    (hcopy :
+      forall w, w.length = m ->
+        forall r gamma,
+          G (rowEmbed w r) (colEmbed w gamma) = M1 d r gamma) :
+    Stage3StopData G Q R C m (D (M1 d)) where
+  restricted_col := hrestricted_col
+  cover := hcover
+  hard :=
+    Protocol.M3_terminalHardWitnesses_of_colPrefix_M1_copies d hR1 hC1
+      G R C (Protocol.restrict R C Q) m hrestricted_col hcover
+      rowEmbed colEmbed hrowMem hcolPrefix hcopy
+
+/-- Exact per-bin data still needed from the Stage-2-to-Stage-3 orientation
+transport.
+
+The fields are deliberately concrete: they are precisely the data needed to
+turn the restricted bin residual into `Stage3StopData` via the prefix-copy
+bridge above. -/
+structure M3PrefixCopyStopInputs
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (R : forall p, Finset {a // a ∈ (binBranch p).rows})
+    (C : forall p, Finset {b // b ∈ (binBranch p).cols})
+    (m : Nat) where
+  restricted_col :
+    forall p,
+      Protocol.FirstKColBitsOn (R p) (C p) m
+        (Protocol.restrict (R p) (C p) (binBranch p).residual)
+  cover :
+    forall p,
+      Protocol.FullStoppingFiberCoverage (R p) (C p)
+        (Protocol.restrict (R p) (C p) (binBranch p).residual)
+        (List.replicate m Protocol.ActualBitSide.bob)
+  rowEmbed :
+    forall p, List Bool -> R1 d -> {a // a ∈ (binBranch p).rows}
+  colEmbed :
+    forall p, List Bool -> C1 d -> {b // b ∈ (binBranch p).cols}
+  row_mem :
+    forall p w, w.length = m -> forall r, rowEmbed p w r ∈ R p
+  col_prefix :
+    forall p w, w.length = m -> forall gamma,
+      colEmbed p w gamma ∈
+        Protocol.colsAtPrefix (R p) (C p)
+          (Protocol.restrict (R p) (C p) (binBranch p).residual) w
+  copy :
+    forall p w, w.length = m -> forall r gamma,
+      subgame (M3 d) (binBranch p).rows (binBranch p).cols
+        (rowEmbed p w r) (colEmbed p w gamma) = M1 d r gamma
+
+/-- The per-bin prefix-copy inputs assemble the `Stage3StopData` family consumed
+by `M3_budget_column_target_of_stopdata`. -/
+theorem M3PrefixCopyStopInputs.stage3StopData
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (R : forall p, Finset {a // a ∈ (binBranch p).rows})
+    (C : forall p, Finset {b // b ∈ (binBranch p).cols})
+    (m : Nat)
+    (hR1 : Nonempty (R1 d)) (hC1 : Nonempty (C1 d))
+    (hinputs : M3PrefixCopyStopInputs d P binBranch R C m) :
+    forall p,
+      Stage3StopData
+        (subgame (M3 d) (binBranch p).rows (binBranch p).cols)
+        (binBranch p).residual (R p) (C p) m (D (M1 d)) := by
+  intro p
+  exact
+    Stage3StopData.of_colPrefix_M1_copies d hR1 hC1
+      (subgame (M3 d) (binBranch p).rows (binBranch p).cols)
+      (binBranch p).residual (R p) (C p) m
+      (hinputs.restricted_col p) (hinputs.cover p)
+      (hinputs.rowEmbed p) (hinputs.colEmbed p)
+      (hinputs.row_mem p) (hinputs.col_prefix p) (hinputs.copy p)
+
+-- CLAIM-END aux:m3-prefixcopy

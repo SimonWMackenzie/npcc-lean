@@ -1,0 +1,43 @@
+-- CLAIM-BEGIN aux:m2-clr-discharge
+/-- Stage-2 residual column-loss discharge from the robust three-rung ladder.
+The remaining explicit gate is the App-C density window for every residual
+loss consumed by clause (ii). -/
+theorem M2_column_loss_resilient' (d : ℕ) (hpow : IsPow2 d)
+    (hlog256 : 256 ≤ Nat.log 2 d)
+    (hy_le_one : M1_stage2_terminal_density d ≤ 1)
+    (hrowTerm : 9 * Params.t1 d ≤
+      16 * ⌈(Fintype.card (R1 d) : ℝ) * M1_stage2_terminal_density d⌉₊)
+    (hcolTerm : (2 : ℝ) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : ℤ))
+        * (Fintype.card (C1 d) : ℝ) ≤
+      (⌈(Fintype.card (C1 d) : ℝ) *
+        ((2 : ℝ) ^ (-(Params.b1 d : ℤ)))⌉₊ : ℝ))
+    (hresidual_density : ∀ c ≤ M2_T d + D (M1T d),
+      1 / 2 + Params.delta ≤
+          yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c ∧
+        yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c ≤ 1) :
+    IsColumnLossResilient (M1T d) (Params.b1 d : ℝ)
+      (epsQT (Params.q2 d) (Params.t2 d))
+      (Nat.log 2 (Params.q2 d)) (M2_T d) (Params.h2 d) := by
+  classical
+  have hlog64 : 64 ≤ Nat.log 2 d := by omega
+  refine M2_column_loss_resilient d hpow hlog64 hy_le_one hrowTerm hcolTerm ?_
+  intro k hk c hc
+  have hrob : IsRobust (M1T d) Params.delta (Params.b1 d) := by
+    simpa [M1T] using M1_robust d hpow hlog256
+  have hb0 : (0 : ℝ) ≤ (Params.b1 d : ℝ) := by positivity
+  have hCcard : 1 ≤ Fintype.card (C1 d) := by
+    have hchk : Params.t1 d ≤ Params.q1 d + 5 :=
+      Params.t1_le_q1_add_five hlog64
+    simpa [C1, Fintype.card_fin] using L1_pos d hchk
+  have hcD : c ≤ M2_T d + D (M1T d) := by omega
+  obtain ⟨hylo, hyhi⟩ := hresidual_density c hcD
+  have hLamD :
+      D (M1T d) ≤
+        LambdaGE (M1T d) 1 ((2 : ℝ) ^ (-(Params.b1 d : ℝ)))
+          (yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c) :=
+    LambdaGE_one_ge_D_of_robust_stage2 (M1T d) hrob hb0 hylo hyhi hCcard
+  exact le_trans (Nat.sub_le (D (M1T d)) k) hLamD
+-- CLAIM-END aux:m2-clr-discharge

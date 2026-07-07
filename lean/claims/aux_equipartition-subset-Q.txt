@@ -1,0 +1,12 @@
+-- CLAIM-BEGIN aux:equipartition-subset-Q
+/-- Unit test for `IsEquipartitionedGE`: the predicate is antitone in its index
+set `Q`. If a row set `R` is `(Q, T)`-equipartitioned (every `q ∈ Q` has fiber
+of size at least `T`) and `Q2 ⊆ Q`, then `R` is also `(Q2, T)`-equipartitioned,
+since every `q ∈ Q2` is in `Q` and hence inherits the fiber-size bound. This
+verifies that shrinking the index set never invalidates the equipartition
+property — a sanity check on the `∀ q ∈ Q` binder shape. -/
+theorem IsEquipartitionedGE.mono_Q {ι X : Type*} [DecidableEq ι]
+    {R : Finset (ι × X)} {Q Q2 : Finset ι} {T : ℕ}
+    (h : IsEquipartitionedGE R Q T) (hsub : Q2 ⊆ Q) :
+    IsEquipartitionedGE R Q2 T :=
+-- CLAIM-END aux:equipartition-subset-Q

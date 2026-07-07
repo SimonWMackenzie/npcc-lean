@@ -1,0 +1,560 @@
+-- CLAIM-BEGIN aux:m3-binbranch-char
+
+theorem Protocol.mkBranchAt_of_rowPrefix_rows
+    {A B : Type*} [Fintype A] [Fintype B]
+    (P : Protocol A B Bool) (G : A -> B -> Bool)
+    (t : Nat) (j : Fin (2 ^ t))
+    (hrow : Protocol.FirstKRowBitsOn
+      (Finset.univ : Finset A) (Finset.univ : Finset B) t P)
+    (hP : P.Computes G)
+    (hrows : (Protocol.rowPrefixRows t P j).Nonempty)
+    (hcols : (Finset.univ : Finset B).Nonempty) :
+    (Protocol.mkBranchAt_of_rowPrefix P G t j hrow hP hrows hcols).rows =
+      Protocol.rowPrefixRows t P j := rfl
+
+theorem Protocol.mkBranchAt_of_rowPrefix_cols
+    {A B : Type*} [Fintype A] [Fintype B]
+    (P : Protocol A B Bool) (G : A -> B -> Bool)
+    (t : Nat) (j : Fin (2 ^ t))
+    (hrow : Protocol.FirstKRowBitsOn
+      (Finset.univ : Finset A) (Finset.univ : Finset B) t P)
+    (hP : P.Computes G)
+    (hrows : (Protocol.rowPrefixRows t P j).Nonempty)
+    (hcols : (Finset.univ : Finset B).Nonempty) :
+    (Protocol.mkBranchAt_of_rowPrefix P G t j hrow hP hrows hcols).cols =
+      (Finset.univ : Finset B) := rfl
+
+private theorem M3_bin_row_fiber_card_eq_sum_label
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool) (i : Fin 4) :
+    ((Finset.univ : Finset (Fin 4 × C2 d)).filter
+        (fun p => p.1 = i)).card =
+      Finset.sum (Finset.univ : Finset (Fin (2 ^ 2)))
+        (fun j =>
+          ((Finset.univ : Finset (Fin 4 × C2 d)).filter
+            (fun p => Protocol.prefixCodeRaw 2 P p = j /\ p.1 = i)).card) := by
+  classical
+  have h := Finset.card_eq_sum_card_fiberwise
+    (s := (Finset.univ : Finset (Fin 4 × C2 d)).filter
+      (fun p => p.1 = i))
+    (t := (Finset.univ : Finset (Fin (2 ^ 2))))
+    (f := fun p : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P p)
+    (by intro a _; exact Finset.mem_univ (Protocol.prefixCodeRaw 2 P a))
+  simpa [Finset.filter_filter, and_comm, and_left_comm, and_assoc] using h
+
+private theorem M3_bin_row_fiber_card (d : Nat) (i : Fin 4) :
+    ((Finset.univ : Finset (Fin 4 × C2 d)).filter
+        (fun p => p.1 = i)).card =
+      Fintype.card (C2 d) := by
+  classical
+  rw [<- Finset.card_univ]
+  refine Finset.card_bij (fun p _hp => p.2) ?hmem ?hinj ?hsurj
+  · intro p _hp
+    exact Finset.mem_univ p.2
+  · intro p hp q hq hpq
+    rw [Finset.mem_filter] at hp hq
+    rcases hp with ⟨_hpR, hpfirst⟩
+    rcases hq with ⟨_hqR, hqfirst⟩
+    cases p with
+    | mk pi px =>
+        cases q with
+        | mk qi qx =>
+            simp only at hpq hpfirst hqfirst
+            subst px
+            subst pi
+            subst qi
+            rfl
+  · intro x _hx
+    refine ⟨(i, x), ?_, rfl⟩
+    rw [Finset.mem_filter]
+    exact ⟨Finset.mem_univ _, rfl⟩
+
+theorem M3Bin_alphaOfCode_surj_on_Q
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hNW :
+      NoWasteConclusion
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        (Fintype.card (C2 d))
+        (M3_rowLoss d))
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d)) :
+    Protocol.alphaOfCode_surj_on_Q
+      (Finset.univ : Finset (Fin 4))
+      (Finset.univ : Finset (Fin 4 × C2 d))
+      (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+      hNW (fun j : Fin (2 ^ 2) => j) := by
+  classical
+  intro i hi
+  by_contra hnone
+  have hnot :
+      forall j : Fin (2 ^ 2),
+        Protocol.alphaOfCode
+          (Finset.univ : Finset (Fin 4))
+          (Finset.univ : Finset (Fin 4 × C2 d))
+          (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+          hNW (fun j : Fin (2 ^ 2) => j) j ≠ i := by
+    intro j hji
+    exact hnone ⟨j, hji⟩
+  have hlt :
+      forall j : Fin (2 ^ 2),
+        ((Finset.univ : Finset (Fin 4 × C2 d)).filter
+          (fun p => Protocol.prefixCodeRaw 2 P p = j /\ p.1 = i)).card <
+            M3_rowLoss d := by
+    intro j
+    have hspec :=
+      Protocol.alphaOfCode_spec
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        hNW (fun j : Fin (2 ^ 2) => j) j
+    exact hspec.2.2 i hi (by
+      intro hia
+      exact hnot j hia.symm)
+  have hnonempty :
+      (Finset.univ : Finset (Fin (2 ^ 2))).Nonempty := by
+    exact ⟨⟨0, by norm_num⟩, Finset.mem_univ _⟩
+  have hsum_lt :
+      Finset.sum (Finset.univ : Finset (Fin (2 ^ 2)))
+        (fun j =>
+          ((Finset.univ : Finset (Fin 4 × C2 d)).filter
+            (fun p => Protocol.prefixCodeRaw 2 P p = j /\ p.1 = i)).card)
+        <
+      Finset.sum (Finset.univ : Finset (Fin (2 ^ 2))) (fun _j => M3_rowLoss d) := by
+    exact Finset.sum_lt_sum_of_nonempty hnonempty
+      (by intro j _hj; exact hlt j)
+  have hsum_loss :
+      Finset.sum (Finset.univ : Finset (Fin (2 ^ 2)))
+        (fun _j => M3_rowLoss d) =
+        4 * M3_rowLoss d := by
+    simp [Finset.sum_const]
+  have hrow_sum := M3_bin_row_fiber_card_eq_sum_label d P i
+  have hrow_card := M3_bin_row_fiber_card d i
+  have hN_eq_sum :
+      Fintype.card (C2 d) =
+        Finset.sum (Finset.univ : Finset (Fin (2 ^ 2)))
+          (fun j =>
+            ((Finset.univ : Finset (Fin 4 × C2 d)).filter
+              (fun p => Protocol.prefixCodeRaw 2 P p = j /\ p.1 = i)).card) := by
+    exact hrow_card.symm.trans hrow_sum
+  have hN_lt : Fintype.card (C2 d) < 4 * M3_rowLoss d := by
+    rw [hN_eq_sum, <- hsum_loss]
+    exact hsum_lt
+  exact (not_lt_of_ge (Nat.le_of_lt hgap)) hN_lt
+
+noncomputable def M3_codeOfBin
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hNW :
+      NoWasteConclusion
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        (Fintype.card (C2 d))
+        (M3_rowLoss d))
+    (hsurj :
+      Protocol.alphaOfCode_surj_on_Q
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        hNW (fun j : Fin (2 ^ 2) => j))
+    (p : Fin 4) : Fin (2 ^ 2) :=
+  Protocol.codeOfAlpha
+    (Finset.univ : Finset (Fin 4))
+    (Finset.univ : Finset (Fin 4 × C2 d))
+    (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+    hNW (fun j : Fin (2 ^ 2) => j) hsurj p (by simp)
+
+theorem M3_alphaOf_codeOfBin
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hNW :
+      NoWasteConclusion
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        (Fintype.card (C2 d))
+        (M3_rowLoss d))
+    (hsurj :
+      Protocol.alphaOfCode_surj_on_Q
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        hNW (fun j : Fin (2 ^ 2) => j))
+    (p : Fin 4) :
+    Protocol.alphaOfCode
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        hNW (fun j : Fin (2 ^ 2) => j)
+        (M3_codeOfBin d P hNW hsurj p) = p := by
+  unfold M3_codeOfBin
+  exact
+    Protocol.alphaOf_codeOfAlpha
+      (Finset.univ : Finset (Fin 4))
+      (Finset.univ : Finset (Fin 4 × C2 d))
+      (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+      hNW (fun j : Fin (2 ^ 2) => j) hsurj p (by simp)
+
+noncomputable def M3_binSurvivors
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hNW :
+      NoWasteConclusion
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        (Fintype.card (C2 d))
+        (M3_rowLoss d))
+    (hsurj :
+      Protocol.alphaOfCode_surj_on_Q
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        hNW (fun j : Fin (2 ^ 2) => j))
+    (p : Fin 4) : Finset (C2 d) :=
+  Protocol.Yalpha
+    (Finset.univ : Finset (Fin 4))
+    (Finset.univ : Finset (Fin 4 × C2 d))
+    (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+    hNW (fun j : Fin (2 ^ 2) => j) hsurj p (by simp)
+
+theorem M3_rowPrefixRows_nonempty_of_noWaste
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hNW :
+      NoWasteConclusion
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        (Fintype.card (C2 d))
+        (M3_rowLoss d))
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d))
+    (j : Fin (2 ^ 2)) :
+    (Protocol.rowPrefixRows 2 P j).Nonempty := by
+  classical
+  let alpha :=
+    Protocol.alphaOfCode
+      (Finset.univ : Finset (Fin 4))
+      (Finset.univ : Finset (Fin 4 × C2 d))
+      (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+      hNW (fun j : Fin (2 ^ 2) => j) j
+  have hspec :=
+    Protocol.alphaOfCode_spec
+      (Finset.univ : Finset (Fin 4))
+      (Finset.univ : Finset (Fin 4 × C2 d))
+      (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+      hNW (fun j : Fin (2 ^ 2) => j) j
+  have hlower_pos :
+      0 < Fintype.card (C2 d) -
+        (((Finset.univ : Finset (Fin 4)).card - 1) * M3_rowLoss d) := by
+    have hle :
+        (((Finset.univ : Finset (Fin 4)).card - 1) * M3_rowLoss d) <=
+          4 * M3_rowLoss d := by
+      simp
+      omega
+    exact Nat.sub_pos_of_lt (lt_of_le_of_lt hle hgap)
+  have hcard_pos :
+      0 <
+        ((Finset.univ : Finset (Fin 4 × C2 d)).filter
+          (fun p => Protocol.prefixCodeRaw 2 P p = j /\ p.1 = alpha)).card :=
+    lt_of_lt_of_le hlower_pos hspec.2.1
+  obtain ⟨p, hp⟩ := Finset.card_pos.mp hcard_pos
+  rw [Finset.mem_filter] at hp
+  rcases hp with ⟨_hpR, hlabel, _halpha⟩
+  refine ⟨p, ?_⟩
+  rw [Protocol.rowPrefixRows, Finset.mem_filter]
+  exact ⟨Finset.mem_univ _, hlabel⟩
+
+theorem M3_binSurvivors_mem_code
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hNW :
+      NoWasteConclusion
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        (Fintype.card (C2 d))
+        (M3_rowLoss d))
+    (hsurj :
+      Protocol.alphaOfCode_surj_on_Q
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        hNW (fun j : Fin (2 ^ 2) => j))
+    (p : Fin 4) (c : C2 d)
+    (hc : c ∈ M3_binSurvivors d P hNW hsurj p) :
+    Protocol.prefixCodeRaw 2 P (p, c) =
+      M3_codeOfBin d P hNW hsurj p := by
+  classical
+  change c ∈
+    ((Finset.univ : Finset (C2 d)).filter
+      (fun x =>
+        (Protocol.alphaOfCode
+          (Finset.univ : Finset (Fin 4))
+          (Finset.univ : Finset (Fin 4 × C2 d))
+          (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+          hNW (fun j : Fin (2 ^ 2) => j)
+          (M3_codeOfBin d P hNW hsurj p), x) ∈
+            (Finset.univ : Finset (Fin 4 × C2 d)) /\
+        Protocol.prefixCodeRaw 2 P
+          (Protocol.alphaOfCode
+            (Finset.univ : Finset (Fin 4))
+            (Finset.univ : Finset (Fin 4 × C2 d))
+            (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+            hNW (fun j : Fin (2 ^ 2) => j)
+            (M3_codeOfBin d P hNW hsurj p), x) =
+              M3_codeOfBin d P hNW hsurj p)) at hc
+  have hmem := Finset.mem_filter.mp hc
+  have halpha := M3_alphaOf_codeOfBin d P hNW hsurj p
+  have hlabel := hmem.2.2
+  rw [halpha] at hlabel
+  exact hlabel
+
+noncomputable def M3_binBranch
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hsep : M3SeparationConclusion d P)
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d))
+    (hC3 : (Finset.univ : Finset (C3 d)).Nonempty)
+    (p : Fin 4) : Protocol.BranchAt P (M3 d) 2 :=
+  let hsurj :=
+    M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap
+  Protocol.mkBranchAt_of_rowPrefix P (M3 d) 2
+    (M3_codeOfBin d P hsep.dominant_bins hsurj p)
+    hsep.first_row_bits hP
+    (M3_rowPrefixRows_nonempty_of_noWaste d P hsep.dominant_bins hgap
+      (M3_codeOfBin d P hsep.dominant_bins hsurj p))
+    hC3
+
+theorem M3_binBranch_rows
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hsep : M3SeparationConclusion d P)
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d))
+    (hC3 : (Finset.univ : Finset (C3 d)).Nonempty)
+    (p : Fin 4) :
+    (M3_binBranch d P hP hsep hgap hC3 p).rows =
+      Protocol.rowPrefixRows 2 P
+        (M3_codeOfBin d P hsep.dominant_bins
+          (M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap) p) := by
+  rfl
+
+theorem M3_binBranch_cols
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hsep : M3SeparationConclusion d P)
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d))
+    (hC3 : (Finset.univ : Finset (C3 d)).Nonempty)
+    (p : Fin 4) :
+    (M3_binBranch d P hP hsep hgap hC3 p).cols =
+      (Finset.univ : Finset (C3 d)) := by
+  rfl
+
+theorem M3_binBranch_row_mem
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hsep : M3SeparationConclusion d P)
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d))
+    (hC3 : (Finset.univ : Finset (C3 d)).Nonempty)
+    (p : Fin 4) :
+    forall c, c ∈ M3_binSurvivors d P hsep.dominant_bins
+        (M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap) p ->
+      (p, c) ∈ (M3_binBranch d P hP hsep hgap hC3 p).rows := by
+  intro c hc
+  rw [M3_binBranch_rows]
+  rw [Protocol.rowPrefixRows, Finset.mem_filter]
+  exact ⟨Finset.mem_univ _, M3_binSurvivors_mem_code d P
+    hsep.dominant_bins
+    (M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap)
+    p c hc⟩
+
+theorem M3_binBranch_diag_mem
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hsep : M3SeparationConclusion d P)
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d))
+    (hC3 : (Finset.univ : Finset (C3 d)).Nonempty)
+    (p : Fin 4) (hqcast : 2 ^ M2DenseDepth d = Params.q2 d) :
+    forall a : M2DenseRows d,
+      M3_diagCol d (Fin.cast hqcast a.val.1) a.val.2 ∈
+        (M3_binBranch d P hP hsep hgap hC3 p).cols := by
+  intro a
+  rw [M3_binBranch_cols]
+  exact Finset.mem_univ _
+
+theorem M3_C3_univ_nonempty (d : Nat) (hchk : Checklist d) :
+    (Finset.univ : Finset (C3 d)).Nonempty := by
+  classical
+  have hL1 : 0 < L1 d := L1_pos d hchk.t1_le_q1_add_five
+  have hq2 : 0 < Params.q2 d := Params.q2_pos d
+  let r : R2 d := (⟨0, hq2⟩, ⟨0, hL1⟩)
+  exact ⟨fun _ => r, Finset.mem_univ _⟩
+
+theorem M3_binSurvivors_card_ge_nat
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hNW :
+      NoWasteConclusion
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        (Fintype.card (C2 d))
+        (M3_rowLoss d))
+    (hsurj :
+      Protocol.alphaOfCode_surj_on_Q
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        hNW (fun j : Fin (2 ^ 2) => j))
+    (p : Fin 4) :
+    Fintype.card (C2 d) - 3 * M3_rowLoss d <=
+      (M3_binSurvivors d P hNW hsurj p).card := by
+  have h :=
+    Protocol.Yalpha_card_ge
+      (Finset.univ : Finset (Fin 4))
+      (Finset.univ : Finset (Fin 4 × C2 d))
+      (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+      hNW (fun j : Fin (2 ^ 2) => j) hsurj p (by simp)
+  simpa [M3_binSurvivors] using h
+
+theorem M3_binSurvivors_dense_raw
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hNW :
+      NoWasteConclusion
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        (Fintype.card (C2 d))
+        (M3_rowLoss d))
+    (hsurj :
+      Protocol.alphaOfCode_surj_on_Q
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        hNW (fun j : Fin (2 ^ 2) => j))
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d))
+    (p : Fin 4) :
+    (Fintype.card (C2 d) : Real) - 3 * (M3_rowLoss d : Real) <=
+      ((M3_binSurvivors d P hNW hsurj p).card : Real) := by
+  have hnat := M3_binSurvivors_card_ge_nat d P hNW hsurj p
+  have hle3 : 3 * M3_rowLoss d <= Fintype.card (C2 d) := by
+    omega
+  have hcast :
+      ((Fintype.card (C2 d) - 3 * M3_rowLoss d : Nat) : Real) <=
+        ((M3_binSurvivors d P hNW hsurj p).card : Real) := by
+    exact_mod_cast hnat
+  rw [Nat.cast_sub hle3] at hcast
+  simpa [Nat.cast_mul] using hcast
+
+theorem M3_binSurvivors_dense
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hchk : Checklist d)
+    (hNW :
+      NoWasteConclusion
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        (Fintype.card (C2 d))
+        (M3_rowLoss d))
+    (hsurj :
+      Protocol.alphaOfCode_surj_on_Q
+        (Finset.univ : Finset (Fin 4))
+        (Finset.univ : Finset (Fin 4 × C2 d))
+        (fun r : Fin 4 × C2 d => Protocol.prefixCodeRaw 2 P r)
+        hNW (fun j : Fin (2 ^ 2) => j))
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d))
+    (p : Fin 4) :
+    (1 - 8 * Params.h2 d) * (Fintype.card (C2 d) : Real) <=
+      ((M3_binSurvivors d P hNW hsurj p).card : Real) := by
+  have hraw := M3_binSurvivors_dense_raw d P hNW hsurj hgap p
+  have hcard : (Fintype.card (C2 d) : Real) = (L2 d : Real) := by
+    simp [C2]
+  have hloss_eq :
+      M3_rowLoss d =
+        Nat.ceil ((2 : Real) ^ (-(Params.b2 d : Int) + 1) * (L2 d : Real)) := by
+    unfold M3_rowLoss C2
+    rw [Fintype.card_fin]
+    rw [two_zpow_neg_nat_add_one_eq_rpow_one_sub_nat]
+  have hthree :
+      3 * (M3_rowLoss d : Real) <= 8 * Params.h2 d * (L2 d : Real) := by
+    simpa [hloss_eq, Params.h2] using hchk.dens_stage3_rowloss
+  rw [hcard] at hraw ⊢
+  nlinarith
+
+noncomputable def M3_binDenseReindex_for_binBranch
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hsep : M3SeparationConclusion d P)
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d))
+    (hC3 : (Finset.univ : Finset (C3 d)).Nonempty)
+    (p : Fin 4) (hqcast : 2 ^ M2DenseDepth d = Params.q2 d) :
+    let hsurj := M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap
+    M3BinDenseReindex d P (M3_binBranch d P hP hsep hgap hC3) p
+      (M3_binSurvivors d P hsep.dominant_bins hsurj p)
+      (M3_denseSurvivorRows d P (M3_binBranch d P hP hsep hgap hC3) p
+        (M3_binSurvivors d P hsep.dominant_bins hsurj p)
+        (M3_binBranch_row_mem d P hP hsep hgap hC3 p))
+      (M3_denseDiagCols d P (M3_binBranch d P hP hsep hgap hC3) p hqcast
+        (M3_binBranch_diag_mem d P hP hsep hgap hC3 p hqcast))
+      hqcast := by
+  classical
+  dsimp
+  exact
+    M3_binDenseReindex_of_memberships d P
+      (M3_binBranch d P hP hsep hgap hC3) p
+      (M3_binSurvivors d P hsep.dominant_bins
+        (M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap) p)
+      hqcast
+      (M3_binBranch_row_mem d P hP hsep hgap hC3 p)
+      (M3_binBranch_diag_mem d P hP hsep hgap hC3 p hqcast)
+
+theorem M3_bin_dense_alpha_data_for_binBranch
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hsep : M3SeparationConclusion d P)
+    (hchk : Checklist d)
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d))
+    (hC3 : (Finset.univ : Finset (C3 d)).Nonempty)
+    (p : Fin 4) (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (hStage2 :
+      forall (Sdense : Finset (C2 d))
+        (Pdense : Protocol (M2DenseRows d) (M2DenseCols d Sdense) Bool),
+          (1 - 8 * Params.h2 d) * (L2 d : Real) <=
+              (Sdense.card : Real) ->
+          Pdense.Computes (M2DenseGame d hqcast Sdense) ->
+          Pdense.cost <= D (M2 d) ->
+          Nonempty
+            (M2SeparationTransposeDenseRowsAlphaData d hqcast Sdense
+              Pdense))
+    (hcost : P.cost <= D (M2 d) + 2) :
+    let hsurj := M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap
+    let Sdense := M3_binSurvivors d P hsep.dominant_bins hsurj p
+    let hrow_mem := M3_binBranch_row_mem d P hP hsep hgap hC3 p
+    let hdiag_mem := M3_binBranch_diag_mem d P hP hsep hgap hC3 p hqcast
+    let htr := M3_binDenseReindex_for_binBranch d P hP hsep hgap hC3 p hqcast
+    Nonempty
+      (M2SeparationTransposeDenseRowsAlphaData d hqcast Sdense
+        (M3_bin_dense_protocol d P (M3_binBranch d P hP hsep hgap hC3) p
+          Sdense
+          (M3_denseSurvivorRows d P (M3_binBranch d P hP hsep hgap hC3) p
+            Sdense hrow_mem)
+          (M3_denseDiagCols d P (M3_binBranch d P hP hsep hgap hC3) p hqcast
+            hdiag_mem)
+          hqcast htr)) := by
+  classical
+  dsimp
+  exact
+    M3_bin_dense_alpha_data_of_reindex d P
+      (M3_binBranch d P hP hsep hgap hC3) p
+      (M3_binSurvivors d P hsep.dominant_bins
+        (M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap) p)
+      (M3_denseSurvivorRows d P (M3_binBranch d P hP hsep hgap hC3) p
+        (M3_binSurvivors d P hsep.dominant_bins
+          (M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap) p)
+        (M3_binBranch_row_mem d P hP hsep hgap hC3 p))
+      (M3_denseDiagCols d P (M3_binBranch d P hP hsep hgap hC3) p hqcast
+        (M3_binBranch_diag_mem d P hP hsep hgap hC3 p hqcast))
+      hqcast hStage2
+      (by
+        simpa [C2] using
+          M3_binSurvivors_dense d P hchk hsep.dominant_bins
+            (M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap)
+            hgap p)
+      hcost
+      (M3_binDenseReindex_for_binBranch d P hP hsep hgap hC3 p hqcast)
+
+-- CLAIM-END aux:m3-binbranch-char

@@ -1,0 +1,26 @@
+-- CLAIM-BEGIN thm:main-nphard-intro
+/-- Paper `thm:main-nphard-intro` (NP-completeness of deterministic communication
+complexity), Layer-B kernel content: a size-bounded many-one gap reduction from
+edge-list 4-Colouring to the communication matrix `M₄`. For every 4-colouring
+instance `G`, the produced VBP instance is promised, its item/dimension counts and
+the `M₄` truth-table carrier are polynomially bounded in `G.sourceSize`, and `G`
+is 4-colourable IFF `M₄` has a deterministic protocol of cost `≤ B_yes`. Poly-time
+constructibility and NP membership remain Layer-B prose. -/
+theorem main_np_hardness :
+    ∀ G : FourColorInstance,
+      (vbp_np_hard.toVBP G).Promise ∧
+      (vbp_np_hard.toVBP G).n ≤ G.sourceSize ∧
+      (vbp_np_hard.toVBP G).d ≤ G.sourceSize ∧
+      ctorScaleFull (vbp_np_hard.toVBP G)
+          ≤ 2 * max (preprocess (vbp_np_hard.toVBP G)).d ctorDStarFull ∧
+      ((Fintype.card (R4 (ctorScaleFull (vbp_np_hard.toVBP G))
+            (reducedInstanceFull (vbp_np_hard.toVBP G)).n) : ℝ)
+          ≤ ((reducedInstanceFull (vbp_np_hard.toVBP G)).n : ℝ)
+            + rowPoly (ctorScaleFull (vbp_np_hard.toVBP G))) ∧
+      ((Fintype.card (C4 (ctorScaleFull (vbp_np_hard.toVBP G))) : ℝ)
+          ≤ colPoly (ctorScaleFull (vbp_np_hard.toVBP G))) ∧
+      (G.IsYes ↔
+        D (M4 (ctorScaleFull (vbp_np_hard.toVBP G))
+              (reducedVectorsFull (vbp_np_hard.toVBP G)))
+          ≤ Byes (ctorScaleFull (vbp_np_hard.toVBP G)))
+-- CLAIM-END thm:main-nphard-intro

@@ -1,0 +1,185 @@
+-- CLAIM-BEGIN aux:m3-dense-floor
+/-- Dense terminal floor from the chosen-coordinate Stage-1 threshold.
+
+For every terminal word, the caller supplies a prefix-contained copy of the
+chosen-coordinate dense local game on a dense `S'`. The Stage-1 dense threshold
+then gives the `a + 2` lower bound on each reached subrectangle. -/
+theorem terminalHardWitnesses_of_prefix_dense_HlocalAtSub
+    (d : Nat) (hd : 2 <= d)
+    (hbal : Params.t1 d <= Params.q1 d + 5)
+    (hta : Params.a d + 2 <= Params.t1 d)
+    {rho : Real} (hrho0 : 0 <= rho) (hrho1 : rho < 1)
+    (hrho : rho < (1 - epsQT (Params.q1 d + 5) (Params.t1 d)) / 2)
+    (S' : Finset (C1 d))
+    (hS' : (1 - rho) * (L1 d : Real) <= (S'.card : Real))
+    {u : Nat} (e : Fin u -> Fin (Params.q1 d + 5))
+    (he : Function.Injective e) (hu : Params.q1 d + 3 <= u)
+    (hrowNonempty : Nonempty (Fin u × Fin 1))
+    (hcolNonempty : Nonempty {j // j ∈ S'})
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool)
+    (R : Finset A) (C : Finset B) (Q : Protocol A B Bool)
+    (pat : List Protocol.ActualBitSide)
+    (rowEmbed : List Bool -> (Fin u × Fin 1) -> A)
+    (colEmbed : List Bool -> {j // j ∈ S'} -> B)
+    (hrowPrefix :
+      forall w, w.length = pat.length ->
+        forall x, rowEmbed w x ∈ Protocol.rowsAtPrefix R C Q w)
+    (hcolPrefix :
+      forall w, w.length = pat.length ->
+        forall gamma, colEmbed w gamma ∈ Protocol.colsAtPrefix R C Q w)
+    (hcopy :
+      forall w, w.length = pat.length ->
+        forall x gamma,
+          G (rowEmbed w x) (colEmbed w gamma) =
+            HlocalAtSub d (S1fam d) S' e x gamma) :
+    Protocol.TerminalHardWitnesses G R C Q pat (Params.a d + 2) := by
+  letI : Nonempty (Fin u × Fin 1) := hrowNonempty
+  letI : Nonempty {j // j ∈ S'} := hcolNonempty
+  exact
+    terminalHardWitnesses_of_prefix_exact_copy
+      G (HlocalAtSub d (S1fam d) S' e) R C Q pat (Params.a d + 2)
+      rowEmbed colEmbed hrowPrefix hcolPrefix hcopy
+      (stage1_chosen_dense_threshold d hd hbal hta hrho0 hrho1 hrho
+        S' hS' e he hu)
+
+/-- Weaken the dense terminal floor to any budget not exceeding `a + 2`. -/
+theorem terminalHardWitnesses_of_prefix_dense_HlocalAtSub_le
+    (d : Nat) (hd : 2 <= d)
+    (hbal : Params.t1 d <= Params.q1 d + 5)
+    (hta : Params.a d + 2 <= Params.t1 d)
+    {rho : Real} (hrho0 : 0 <= rho) (hrho1 : rho < 1)
+    (hrho : rho < (1 - epsQT (Params.q1 d + 5) (Params.t1 d)) / 2)
+    (S' : Finset (C1 d))
+    (hS' : (1 - rho) * (L1 d : Real) <= (S'.card : Real))
+    {u : Nat} (e : Fin u -> Fin (Params.q1 d + 5))
+    (he : Function.Injective e) (hu : Params.q1 d + 3 <= u)
+    (hrowNonempty : Nonempty (Fin u × Fin 1))
+    (hcolNonempty : Nonempty {j // j ∈ S'})
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool)
+    (R : Finset A) (C : Finset B) (Q : Protocol A B Bool)
+    (pat : List Protocol.ActualBitSide) (Bcap : Nat)
+    (hBcap : Bcap <= Params.a d + 2)
+    (rowEmbed : List Bool -> (Fin u × Fin 1) -> A)
+    (colEmbed : List Bool -> {j // j ∈ S'} -> B)
+    (hrowPrefix :
+      forall w, w.length = pat.length ->
+        forall x, rowEmbed w x ∈ Protocol.rowsAtPrefix R C Q w)
+    (hcolPrefix :
+      forall w, w.length = pat.length ->
+        forall gamma, colEmbed w gamma ∈ Protocol.colsAtPrefix R C Q w)
+    (hcopy :
+      forall w, w.length = pat.length ->
+        forall x gamma,
+          G (rowEmbed w x) (colEmbed w gamma) =
+            HlocalAtSub d (S1fam d) S' e x gamma) :
+    Protocol.TerminalHardWitnesses G R C Q pat Bcap := by
+  intro w hw
+  rcases terminalHardWitnesses_of_prefix_dense_HlocalAtSub
+      d hd hbal hta hrho0 hrho1 hrho S' hS' e he hu
+      hrowNonempty hcolNonempty G R C Q pat rowEmbed colEmbed
+      hrowPrefix hcolPrefix hcopy w hw with
+    ⟨Rw, Cw, hstop, hhard⟩
+  exact ⟨Rw, Cw, hstop, le_trans hBcap hhard⟩
+
+namespace Protocol
+
+/-- Dense Stage-3 terminal floor in the Bob-prefix form used by stop data. -/
+theorem M3_terminalHardWitnesses_of_colPrefix_dense_HlocalAtSub
+    (d : Nat) (hd : 2 <= d)
+    (hbal : Params.t1 d <= Params.q1 d + 5)
+    (hta : Params.a d + 2 <= Params.t1 d)
+    {rho : Real} (hrho0 : 0 <= rho) (hrho1 : rho < 1)
+    (hrho : rho < (1 - epsQT (Params.q1 d + 5) (Params.t1 d)) / 2)
+    (S' : Finset (C1 d))
+    (hS' : (1 - rho) * (L1 d : Real) <= (S'.card : Real))
+    {u : Nat} (e : Fin u -> Fin (Params.q1 d + 5))
+    (he : Function.Injective e) (hu : Params.q1 d + 3 <= u)
+    (hrowNonempty : Nonempty (Fin u × Fin 1))
+    (hcolNonempty : Nonempty {j // j ∈ S'})
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool)
+    (R : Finset A) (C : Finset B) (Q : Protocol A B Bool)
+    (m Bcap : Nat) (hBcap : Bcap <= Params.a d + 2)
+    (hcol : Protocol.FirstKColBitsOn R C m Q)
+    (hcover : Protocol.FullStoppingFiberCoverage R C Q
+      (List.replicate m Protocol.ActualBitSide.bob))
+    (rowEmbed : List Bool -> (Fin u × Fin 1) -> A)
+    (colEmbed : List Bool -> {j // j ∈ S'} -> B)
+    (hrowMem : forall w, w.length = m -> forall x, rowEmbed w x ∈ R)
+    (hcolPrefix :
+      forall w, w.length = m ->
+        forall gamma, colEmbed w gamma ∈ Protocol.colsAtPrefix R C Q w)
+    (hcopy :
+      forall w, w.length = m ->
+        forall x gamma,
+          G (rowEmbed w x) (colEmbed w gamma) =
+            HlocalAtSub d (S1fam d) S' e x gamma) :
+    Protocol.TerminalHardWitnesses G R C Q
+      (List.replicate m Protocol.ActualBitSide.bob) Bcap := by
+  classical
+  refine
+    terminalHardWitnesses_of_prefix_dense_HlocalAtSub_le
+      d hd hbal hta hrho0 hrho1 hrho S' hS' e he hu
+      hrowNonempty hcolNonempty G R C Q
+      (List.replicate m Protocol.ActualBitSide.bob) Bcap hBcap
+      rowEmbed colEmbed ?_ ?_ ?_
+  · intro w hw x
+    have hwlen : w.length = m := by simpa using hw
+    rw [Protocol.rowsAtPrefix_eq_of_firstKColBitsOn
+      (R := R) (C := C) (P := Q) (m := m) hcol hcover w hwlen]
+    exact hrowMem w hwlen x
+  · intro w hw gamma
+    exact hcolPrefix w (by simpa using hw) gamma
+  · intro w hw x gamma
+    exact hcopy w (by simpa using hw) x gamma
+
+end Protocol
+
+/-- Dense `HlocalAtSub` prefix copies assemble the stop-data hard field. -/
+theorem Stage3StopData.of_colPrefix_dense_HlocalAtSub_copies
+    (d : Nat) (hd : 2 <= d)
+    (hbal : Params.t1 d <= Params.q1 d + 5)
+    (hta : Params.a d + 2 <= Params.t1 d)
+    {rho : Real} (hrho0 : 0 <= rho) (hrho1 : rho < 1)
+    (hrho : rho < (1 - epsQT (Params.q1 d + 5) (Params.t1 d)) / 2)
+    (S' : Finset (C1 d))
+    (hS' : (1 - rho) * (L1 d : Real) <= (S'.card : Real))
+    {u : Nat} (e : Fin u -> Fin (Params.q1 d + 5))
+    (he : Function.Injective e) (hu : Params.q1 d + 3 <= u)
+    (hrowNonempty : Nonempty (Fin u × Fin 1))
+    (hcolNonempty : Nonempty {j // j ∈ S'})
+    {A B : Type*} [Fintype A] [Fintype B]
+    (G : A -> B -> Bool) (Q : Protocol A B Bool)
+    (R : Finset A) (C : Finset B) (m Bcap : Nat)
+    (hBcap : Bcap <= Params.a d + 2)
+    (hrestricted_col :
+      Protocol.FirstKColBitsOn R C m (Protocol.restrict R C Q))
+    (hcover :
+      Protocol.FullStoppingFiberCoverage R C (Protocol.restrict R C Q)
+        (List.replicate m Protocol.ActualBitSide.bob))
+    (rowEmbed : List Bool -> (Fin u × Fin 1) -> A)
+    (colEmbed : List Bool -> {j // j ∈ S'} -> B)
+    (hrowMem : forall w, w.length = m -> forall x, rowEmbed w x ∈ R)
+    (hcolPrefix :
+      forall w, w.length = m ->
+        forall gamma,
+          colEmbed w gamma ∈
+            Protocol.colsAtPrefix R C (Protocol.restrict R C Q) w)
+    (hcopy :
+      forall w, w.length = m ->
+        forall x gamma,
+          G (rowEmbed w x) (colEmbed w gamma) =
+            HlocalAtSub d (S1fam d) S' e x gamma) :
+    Stage3StopData G Q R C m Bcap where
+  restricted_col := hrestricted_col
+  cover := hcover
+  hard :=
+    Protocol.M3_terminalHardWitnesses_of_colPrefix_dense_HlocalAtSub
+      d hd hbal hta hrho0 hrho1 hrho S' hS' e he hu
+      hrowNonempty hcolNonempty G R C (Protocol.restrict R C Q)
+      m Bcap hBcap hrestricted_col hcover
+      rowEmbed colEmbed hrowMem hcolPrefix hcopy
+
+-- CLAIM-END aux:m3-dense-floor

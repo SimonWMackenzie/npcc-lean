@@ -1,0 +1,29 @@
+-- CLAIM-BEGIN lem:MFourNoWasteLift
+/-- Paper `lem:MFourNoWasteLift`, staged at statement level. A depth-`Byes`
+protocol for `M4` determines a four-way partition by its first two actual
+communicated bits. For each surviving bin `p` and Stage-2 coordinate `alpha`,
+there is a dynamic branch rectangle after the next `Nat.clog 2 (Params.q2 d)`
+actual bits such that: the vector survivors are exactly `B p`; the remaining
+protocol cost is at most `Bcap d`; the surviving columns contain a dense subset
+`Y` of the canonical diagonal copy `Xhat d alpha`; `SPrime d alpha Y` is the
+induced Stage-1 column set; and the rows `T` together with the vector rows in
+`B p` contain, up to duplicate rows and columns, the chosen-coordinate local
+Stage-1 game indexed by `localCoordSet d v alpha (B p)`. -/
+theorem M4_no_waste_lift
+    (d : Nat) (hd : 2 ≤ d) (hchk : Checklist d) {n : Nat}
+    (v : Fin n → Fin (Params.q2 d) → Bool)
+    (hactive : ∀ alpha : Fin (Params.q2 d), (activeSet v alpha).card ≤ 4)
+    (P : Protocol (R4 d n) (C4 d) Bool)
+    (hP : P.Computes (M4 d v))
+    (hcost : P.cost ≤ Byes d)
+    (k0 : Fin (2 ^ 5)) :
+    ∃ B : Fin 4 → Finset (Fin n),
+      IsPartition4 B ∧
+      ∃ binBr : ∀ p : Fin 4, Protocol.BranchAt P 2,
+        (∀ p i, (Sum.inr i : R4 d n) ∈ (binBr p).rows ↔ i ∈ B p) ∧
+        (∀ p, (binBr p).residual.cost ≤ Nat.clog 2 (Params.q2 d) + Bcap d) ∧
+        ∀ p : Fin 4, ∀ alpha : Fin (Params.q2 d),
+          ∃ br : Protocol.BranchAt P (2 + Nat.clog 2 (Params.q2 d)),
+            Protocol.BranchExtends (binBr p) br ∧
+            M4LocalBranch d v P B p alpha br :=
+-- CLAIM-END lem:MFourNoWasteLift

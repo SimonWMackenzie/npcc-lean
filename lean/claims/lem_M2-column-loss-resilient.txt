@@ -1,0 +1,25 @@
+-- CLAIM-BEGIN lem:M2-column-loss-resilient
+/-- Paper `lem:M2-column-loss-resilient`: the Stage-2 base matrix
+`transpose M1` is column-loss resilient at `(q2, t2, h2)`.  The terminal
+one-copy clause is proved from `M1_terminal_stage2`; the residual three-rung
+Lambda estimates over all allowed column losses are exposed as an explicit
+Stage-2 numeric/selection gate. -/
+theorem M2_column_loss_resilient (d : ℕ) (hpow : IsPow2 d)
+    (hlog : 64 ≤ Nat.log 2 d)
+    (hy_le_one : M1_stage2_terminal_density d ≤ 1)
+    (hrowTerm : 9 * Params.t1 d ≤
+      16 * ⌈(Fintype.card (R1 d) : ℝ) * M1_stage2_terminal_density d⌉₊)
+    (hcolTerm : (2 : ℝ) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : ℤ))
+        * (Fintype.card (C1 d) : ℝ) ≤
+      (⌈(Fintype.card (C1 d) : ℝ) *
+        ((2 : ℝ) ^ (-(Params.b1 d : ℤ)))⌉₊ : ℝ))
+    (hresidual : ∀ k ≤ D (M1T d),
+      ∀ c ≤ M2_T d + k,
+        D (M1T d) - k ≤
+          LambdaGE (M1T d) 1 ((2 : ℝ) ^ (-(Params.b1 d : ℝ)))
+            (yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+              (Params.h2 d) c)) :
+    IsColumnLossResilient (M1T d) (Params.b1 d : ℝ)
+      (epsQT (Params.q2 d) (Params.t2 d))
+      (Nat.log 2 (Params.q2 d)) (M2_T d) (Params.h2 d) := by
+-- CLAIM-END lem:M2-column-loss-resilient

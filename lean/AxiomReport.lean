@@ -1,0 +1,5 @@
+import Workspace
+#print axioms Workspace.MainTheorem.refutation_of_direct_sum_conjecture
+#print axioms Workspace.MainTheorem.multiplicative_consequence
+#print axioms Workspace.MainTheorem.complexity_invariant_to_transposition
+#print axioms Workspace.MainTheorem.subgames_are_easier

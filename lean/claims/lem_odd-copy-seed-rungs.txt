@@ -1,0 +1,14 @@
+-- CLAIM-BEGIN lem:odd-copy-seed-rungs
+/-- Paper `lem:odd-copy-seed-rungs`: for `(δ,b)`-robust `f` with `D f ≥ 2`
+(the paper's `comp M ≥ 2`) and every integer `2 ≤ ℓ ≤ b`,
+`Λ_f(2^(ℓ−1)+1, 2^(ℓ−b), y₀) ≥ D f + ℓ`, where `y₀ = (1/2+δ)^2` per the
+paper's `y := 1/2+δ`, `y₀ := y²`. The copy count `2^(ℓ−1)+1` is odd; the row
+density `2^(ℓ−b)` is a real power (`b : ℝ`). `0 < δ ≤ 1/2` and `1 ≤ b` are
+the paper's standing robustness side conditions. -/
+theorem odd_copy_seed_rungs {X Y : Type*} [Fintype X] [Fintype Y]
+    {f : X → Y → Bool} {δ b : ℝ}
+    (h : IsRobust f δ b) (hb : 1 ≤ b) (hδ0 : 0 < δ) (hδ : δ ≤ 1 / 2)
+    (hD : 2 ≤ D f) (ℓ : ℕ) (hℓ2 : 2 ≤ ℓ) (hℓb : (ℓ : ℝ) ≤ b) :
+    D f + ℓ ≤ LambdaGE f (2 ^ (ℓ - 1) + 1) ((2 : ℝ) ^ ((ℓ : ℝ) - b))
+      ((1 / 2 + δ) ^ 2) :=
+-- CLAIM-END lem:odd-copy-seed-rungs

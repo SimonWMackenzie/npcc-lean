@@ -1,0 +1,29 @@
+-- CLAIM-BEGIN lem:C2FiberSurvival
+/-- Paper `lem:C2FiberSurvival` (arXiv:2508.05597, fibre survival after
+Stage-3 row loss) at the concrete Stage-2 objects. `C₂ := S2fam d`
+(alphabet `R₁ = Fin q₁ × Fin 1`, retained EXACTLY per the rulings trap:
+the witness ranges over the ACTUAL `R₁`), `ε₂ := ε_{q₂,I₂} = epsQT q₂ t₂`,
+`|C₂| = L₂`, `|R₁| = q₁`.  Balancedness of `C₂` bounds every coordinate fibre
+`F_{β,r} = {c ∈ C₂ : c_β = r}` within `(1 ± ε₂)|C₂|/|R₁|`; consequently any
+index subset `𝒮 ⊆ C₂` with `|𝒮| > (1 − (1−ε₂)/|R₁|)|C₂|` has, in every
+coordinate `β`, value set `{c_β : c ∈ 𝒮}` equal to all of `R₁` — a
+`(1−8h₂)`-dense subset (whose size clears this threshold under the audited
+parameter regime) cannot delete a fibre. -/
+theorem C2_fiber_survival (d : ℕ)
+    (h : Params.t2 d ≤ Params.q2 d) (hq1 : 1 ≤ Params.q1 d)
+    (𝒮 : Finset (Fin (L2 d)))
+    (hbig : (1 - (1 - epsQT (Params.q2 d) (Params.t2 d))
+              / (Fintype.card (Fin (Params.q1 d) × Fin 1) : ℝ)) * (L2 d : ℝ)
+            < (𝒮.card : ℝ))
+    (β : Fin (Params.q2 d)) :
+    -- fibre two-sided bound
+    (∀ r : Fin (Params.q1 d) × Fin 1,
+      (1 - epsQT (Params.q2 d) (Params.t2 d))
+          / (Fintype.card (Fin (Params.q1 d) × Fin 1) : ℝ) * (L2 d : ℝ)
+        ≤ ((coordFiber (S2fam d) β r).card : ℝ) ∧
+      ((coordFiber (S2fam d) β r).card : ℝ)
+        ≤ (1 + epsQT (Params.q2 d) (Params.t2 d))
+            / (Fintype.card (Fin (Params.q1 d) × Fin 1) : ℝ) * (L2 d : ℝ)) ∧
+    -- value cover: {c_β : c ∈ 𝒮} = R₁
+    (𝒮.image (fun j => S2fam d j β)) = (Finset.univ : Finset (Fin (Params.q1 d) × Fin 1)) :=
+-- CLAIM-END lem:C2FiberSurvival

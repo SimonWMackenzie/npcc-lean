@@ -1,0 +1,13 @@
+-- CLAIM-BEGIN lem:D-equiv-invariance
+/-- Deterministic communication complexity is invariant under reindexing both
+inputs by equivalences: relabeling Alice's and Bob's input spaces changes
+neither protocols (transport node predicates through the equivalences,
+preserving tree shape, hence cost) nor computed functions. This is the
+game-level bridge device: the reduction's "canonically identified with" steps
+and the typed↔flattened complexity transfer both consume it. Output type `Z`
+arbitrary (covers Bool and tuple-valued direct sums alike). -/
+theorem D_equiv_invariance {A B A' B' Z : Type*}
+    [Fintype A] [Fintype B] [Fintype A'] [Fintype B']
+    (f : A → B → Z) (e₁ : A' ≃ A) (e₂ : B' ≃ B) :
+    D (fun a b => f (e₁ a) (e₂ b)) = D f :=
+-- CLAIM-END lem:D-equiv-invariance

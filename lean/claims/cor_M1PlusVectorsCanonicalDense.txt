@@ -1,0 +1,26 @@
+-- CLAIM-BEGIN cor:M1PlusVectorsCanonicalDense
+/-- Paper `cor:M1PlusVectorsCanonicalDense`, canonical diagonal-block
+formalization.  A dense subset of the canonical diagonal block pulls back to a
+dense Stage-1 subfamily `S'`; the same canonical-transversal branch subgame is
+isomorphic to `HlocalAtSub` over `S'`, and the chosen-coordinate threshold
+gives the advertised lower bound under the same active/inactive hypotheses. -/
+theorem M1_plus_vectors_canonical_dense (d : ℕ) (hd : 2 ≤ d)
+    (hbal : Params.t1 d ≤ Params.q1 d + 5)
+    (hta : Params.a d + 2 ≤ Params.t1 d)
+    (h₂ : Params.t2 d ≤ Params.q2 d) (hq1 : 1 ≤ Params.q1 d)
+    {ρ : ℝ} (hρ0 : 0 ≤ ρ) (hρ1 : ρ < 1)
+    (hρ : ρ < (1 - epsQT (Params.q1 d + 5) (Params.t1 d)) / 2)
+    {n : ℕ} (v : Fin n → Fin (Params.q2 d) → Bool) (p : Fin 4)
+    (α : Fin (Params.q2 d)) (B : Finset (Fin n))
+    (hA : (activeSet v α).card ≤ 4)
+    (Y : Finset (C4 d)) (hYsub : Y ⊆ diagCopySet d α)
+    (hYdense : (1 - ρ) * ((diagCopySet d α).card : ℝ) ≤ (Y.card : ℝ)) :
+    ∃ S' : Finset (C1 d),
+      (1 - ρ) * (L1 d : ℝ) ≤ (S'.card : ℝ) ∧
+      Nonempty
+        (GameIso (m1PlusBranchCoreSub d h₂ hq1 v p α B S')
+          (HlocalAtSub d (S1fam d) S' (m1PlusCoordEnum d v α B))) ∧
+      ((B \ activeSet v α).Nonempty →
+        2 ≤ (B ∩ activeSet v α).card →
+        Params.a d + 2 ≤ D (m1PlusBranchCoreSub d h₂ hq1 v p α B S')) :=
+-- CLAIM-END cor:M1PlusVectorsCanonicalDense

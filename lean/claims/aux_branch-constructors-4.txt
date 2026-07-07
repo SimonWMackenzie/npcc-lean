@@ -1,0 +1,606 @@
+-- CLAIM-BEGIN aux:branch-constructors-4
+
+theorem actualPrefixCodeRaw_append_val {A B Z : Type*}
+    (t1 t2 : Nat) (P : Protocol A B Z) (a : A) (b : B) :
+    (Protocol.actualPrefixCodeRaw (t1 + t2) P a b).val =
+      (Protocol.actualPrefixCodeRaw t1 P a b).val * 2 ^ t2 +
+        (Protocol.actualPrefixCodeRaw t2
+          (Protocol.actualSubtreeAtRaw t1 P
+            (Protocol.actualPrefixCodeRaw t1 P a b)) a b).val := by
+  induction t1 generalizing P with
+  | zero =>
+      rw [Nat.zero_add]
+      simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+        Protocol.zeroPow2]
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          cases t2 with
+          | zero =>
+              simp [Protocol.actualPrefixCodeRaw, Protocol.zeroPow2]
+          | succ m =>
+              simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+                Protocol.zeroPow2]
+      | aNode q l r =>
+          rw [show n + 1 + t2 = n + t2 + 1 by omega]
+          cases hqa : q a
+          · have hsub :
+                Protocol.actualSubtreeAtRaw (n + 1) (Protocol.aNode q l r)
+                    (Protocol.actualPrefixCodeRaw (n + 1)
+                      (Protocol.aNode q l r) a b) =
+                  Protocol.actualSubtreeAtRaw n l
+                    (Protocol.actualPrefixCodeRaw n l a b) := by
+              simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+                hqa]
+            rw [hsub]
+            simpa [Protocol.actualPrefixCodeRaw, hqa, Protocol.bitCons]
+              using ih l
+          · have hsub :
+                Protocol.actualSubtreeAtRaw (n + 1) (Protocol.aNode q l r)
+                    (Protocol.actualPrefixCodeRaw (n + 1)
+                      (Protocol.aNode q l r) a b) =
+                  Protocol.actualSubtreeAtRaw n r
+                    (Protocol.actualPrefixCodeRaw n r a b) := by
+              simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+                hqa]
+            rw [hsub]
+            calc
+              (Protocol.actualPrefixCodeRaw (n + t2 + 1)
+                  (Protocol.aNode q l r) a b).val
+                  = 2 ^ (n + t2) +
+                      (Protocol.actualPrefixCodeRaw (n + t2) r a b).val := by
+                    simp [Protocol.actualPrefixCodeRaw, hqa, Protocol.bitCons]
+              _ = 2 ^ (n + t2) +
+                    ((Protocol.actualPrefixCodeRaw n r a b).val * 2 ^ t2 +
+                      (Protocol.actualPrefixCodeRaw t2
+                        (Protocol.actualSubtreeAtRaw n r
+                          (Protocol.actualPrefixCodeRaw n r a b)) a b).val) := by
+                    rw [ih r]
+              _ = (2 ^ n + (Protocol.actualPrefixCodeRaw n r a b).val) *
+                    2 ^ t2 +
+                      (Protocol.actualPrefixCodeRaw t2
+                        (Protocol.actualSubtreeAtRaw n r
+                          (Protocol.actualPrefixCodeRaw n r a b)) a b).val := by
+                    rw [Nat.pow_add]
+                    ring
+              _ = (Protocol.actualPrefixCodeRaw (n + 1)
+                    (Protocol.aNode q l r) a b).val * 2 ^ t2 +
+                    (Protocol.actualPrefixCodeRaw t2
+                      (Protocol.actualSubtreeAtRaw n r
+                        (Protocol.actualPrefixCodeRaw n r a b)) a b).val := by
+                    simp [Protocol.actualPrefixCodeRaw, hqa, Protocol.bitCons]
+      | bNode q l r =>
+          rw [show n + 1 + t2 = n + t2 + 1 by omega]
+          cases hqb : q b
+          · have hsub :
+                Protocol.actualSubtreeAtRaw (n + 1) (Protocol.bNode q l r)
+                    (Protocol.actualPrefixCodeRaw (n + 1)
+                      (Protocol.bNode q l r) a b) =
+                  Protocol.actualSubtreeAtRaw n l
+                    (Protocol.actualPrefixCodeRaw n l a b) := by
+              simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+                hqb]
+            rw [hsub]
+            simpa [Protocol.actualPrefixCodeRaw, hqb, Protocol.bitCons]
+              using ih l
+          · have hsub :
+                Protocol.actualSubtreeAtRaw (n + 1) (Protocol.bNode q l r)
+                    (Protocol.actualPrefixCodeRaw (n + 1)
+                      (Protocol.bNode q l r) a b) =
+                  Protocol.actualSubtreeAtRaw n r
+                    (Protocol.actualPrefixCodeRaw n r a b) := by
+              simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+                hqb]
+            rw [hsub]
+            calc
+              (Protocol.actualPrefixCodeRaw (n + t2 + 1)
+                  (Protocol.bNode q l r) a b).val
+                  = 2 ^ (n + t2) +
+                      (Protocol.actualPrefixCodeRaw (n + t2) r a b).val := by
+                    simp [Protocol.actualPrefixCodeRaw, hqb, Protocol.bitCons]
+              _ = 2 ^ (n + t2) +
+                    ((Protocol.actualPrefixCodeRaw n r a b).val * 2 ^ t2 +
+                      (Protocol.actualPrefixCodeRaw t2
+                        (Protocol.actualSubtreeAtRaw n r
+                          (Protocol.actualPrefixCodeRaw n r a b)) a b).val) := by
+                    rw [ih r]
+              _ = (2 ^ n + (Protocol.actualPrefixCodeRaw n r a b).val) *
+                    2 ^ t2 +
+                      (Protocol.actualPrefixCodeRaw t2
+                        (Protocol.actualSubtreeAtRaw n r
+                          (Protocol.actualPrefixCodeRaw n r a b)) a b).val := by
+                    rw [Nat.pow_add]
+                    ring
+              _ = (Protocol.actualPrefixCodeRaw (n + 1)
+                    (Protocol.bNode q l r) a b).val * 2 ^ t2 +
+                    (Protocol.actualPrefixCodeRaw t2
+                      (Protocol.actualSubtreeAtRaw n r
+                        (Protocol.actualPrefixCodeRaw n r a b)) a b).val := by
+                    simp [Protocol.actualPrefixCodeRaw, hqb, Protocol.bitCons]
+
+theorem actualPrefixCodeRaw_append {A B Z : Type*}
+    (t1 t2 : Nat) (P : Protocol A B Z) (a : A) (b : B) :
+    Protocol.actualPrefixCodeRaw (t1 + t2) P a b =
+      Protocol.prefixCodeAppend
+        (Protocol.actualPrefixCodeRaw t1 P a b)
+        (Protocol.actualPrefixCodeRaw t2
+          (Protocol.actualSubtreeAtRaw t1 P
+            (Protocol.actualPrefixCodeRaw t1 P a b)) a b) := by
+  apply Fin.ext
+  rw [Protocol.actualPrefixCodeRaw_append_val,
+    Protocol.prefixCodeAppend_val]
+
+theorem actualSideListRaw_append {A B Z : Type*}
+    (t1 t2 : Nat) (P : Protocol A B Z) (a : A) (b : B) :
+    Protocol.actualSideListRaw (t1 + t2) P a b =
+      Protocol.actualSideListRaw t1 P a b ++
+        Protocol.actualSideListRaw t2
+          (Protocol.actualSubtreeAtRaw t1 P
+            (Protocol.actualPrefixCodeRaw t1 P a b)) a b := by
+  induction t1 generalizing P with
+  | zero =>
+      simp [Protocol.actualSideListRaw, Protocol.actualSubtreeAtRaw]
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          cases t2 with
+          | zero =>
+              simp [Protocol.actualSideListRaw]
+          | succ m =>
+              simp [Protocol.actualSideListRaw, Protocol.actualSubtreeAtRaw]
+      | aNode q l r =>
+          rw [show n + 1 + t2 = n + t2 + 1 by omega]
+          cases hqa : q a <;>
+            simp [Protocol.actualSideListRaw, Protocol.actualPrefixCodeRaw,
+              Protocol.actualSubtreeAtRaw, hqa, ih]
+      | bNode q l r =>
+          rw [show n + 1 + t2 = n + t2 + 1 by omega]
+          cases hqb : q b <;>
+            simp [Protocol.actualSideListRaw, Protocol.actualPrefixCodeRaw,
+              Protocol.actualSubtreeAtRaw, hqb, ih]
+
+theorem actualSubtreeAtRaw_append_actualPrefix {A B Z : Type*}
+    (t1 t2 : Nat) (P : Protocol A B Z) (a : A) (b : B) :
+    Protocol.actualSubtreeAtRaw (t1 + t2) P
+        (Protocol.actualPrefixCodeRaw (t1 + t2) P a b) =
+      Protocol.actualSubtreeAtRaw t2
+        (Protocol.actualSubtreeAtRaw t1 P
+          (Protocol.actualPrefixCodeRaw t1 P a b))
+        (Protocol.actualPrefixCodeRaw t2
+          (Protocol.actualSubtreeAtRaw t1 P
+            (Protocol.actualPrefixCodeRaw t1 P a b)) a b) := by
+  induction t1 generalizing P with
+  | zero =>
+      rw [Nat.zero_add]
+      simp [Protocol.actualSubtreeAtRaw]
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          cases t2 with
+          | zero =>
+              simp [Protocol.actualSubtreeAtRaw]
+          | succ m =>
+              simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw]
+      | aNode q l r =>
+          rw [show n + 1 + t2 = n + t2 + 1 by omega]
+          cases hqa : q a <;>
+            simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+              hqa, ih]
+      | bNode q l r =>
+          rw [show n + 1 + t2 = n + t2 + 1 by omega]
+          cases hqb : q b <;>
+            simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+              hqb, ih]
+
+theorem eval_actualSubtreeAtRaw_eq_of_actualPrefix {A B Z : Type*}
+    (k : Nat) (P : Protocol A B Z) (a : A) (b : B) :
+    (Protocol.actualSubtreeAtRaw k P
+      (Protocol.actualPrefixCodeRaw k P a b)).eval a b = P.eval a b := by
+  induction k generalizing P with
+  | zero =>
+      simp [Protocol.actualSubtreeAtRaw]
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          simp [Protocol.actualSubtreeAtRaw, Protocol.eval]
+      | aNode q l r =>
+          cases hqa : q a
+          · simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+              Protocol.eval, hqa, ih l]
+          · simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+              Protocol.eval, hqa, ih r]
+      | bNode q l r =>
+          cases hqb : q b
+          · simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+              Protocol.eval, hqb, ih l]
+          · simp [Protocol.actualPrefixCodeRaw, Protocol.actualSubtreeAtRaw,
+              Protocol.eval, hqb, ih r]
+
+theorem evalDepth_eq_actualSideListRaw_length_add {A B Z : Type*}
+    (k : Nat) (P : Protocol A B Z) (a : A) (b : B) :
+    Protocol.evalDepth P a b =
+      (Protocol.actualSideListRaw k P a b).length +
+        Protocol.evalDepth
+          (Protocol.actualSubtreeAtRaw k P
+            (Protocol.actualPrefixCodeRaw k P a b)) a b := by
+  induction k generalizing P with
+  | zero =>
+      simp [Protocol.actualSideListRaw, Protocol.actualSubtreeAtRaw]
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          simp [Protocol.actualSideListRaw, Protocol.actualSubtreeAtRaw,
+            Protocol.evalDepth]
+      | aNode q l r =>
+          cases hqa : q a
+          · have hih := ih l
+            simp [Protocol.actualSideListRaw, Protocol.actualPrefixCodeRaw,
+              Protocol.actualSubtreeAtRaw, Protocol.evalDepth, hqa] at hih ⊢
+            omega
+          · have hih := ih r
+            simp [Protocol.actualSideListRaw, Protocol.actualPrefixCodeRaw,
+              Protocol.actualSubtreeAtRaw, Protocol.evalDepth, hqa] at hih ⊢
+            omega
+      | bNode q l r =>
+          cases hqb : q b
+          · have hih := ih l
+            simp [Protocol.actualSideListRaw, Protocol.actualPrefixCodeRaw,
+              Protocol.actualSubtreeAtRaw, Protocol.evalDepth, hqb] at hih ⊢
+            omega
+          · have hih := ih r
+            simp [Protocol.actualSideListRaw, Protocol.actualPrefixCodeRaw,
+              Protocol.actualSubtreeAtRaw, Protocol.evalDepth, hqb] at hih ⊢
+            omega
+
+theorem actualSideListRaw_length_add_cost_actualSubtreeAtRaw_le {A B Z : Type*}
+    (k : Nat) (P : Protocol A B Z) (a : A) (b : B) :
+    (Protocol.actualSideListRaw k P a b).length +
+        (Protocol.actualSubtreeAtRaw k P
+          (Protocol.actualPrefixCodeRaw k P a b)).cost <=
+      P.cost := by
+  induction k generalizing P with
+  | zero =>
+      simp [Protocol.actualSideListRaw, Protocol.actualSubtreeAtRaw]
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          simp [Protocol.actualSideListRaw, Protocol.actualSubtreeAtRaw,
+            Protocol.cost]
+      | aNode q l r =>
+          cases hqa : q a
+          · have hih := ih l
+            simp [Protocol.actualSideListRaw, Protocol.actualPrefixCodeRaw,
+              Protocol.actualSubtreeAtRaw, Protocol.cost, hqa] at hih ⊢
+            omega
+          · have hih := ih r
+            simp [Protocol.actualSideListRaw, Protocol.actualPrefixCodeRaw,
+              Protocol.actualSubtreeAtRaw, Protocol.cost, hqa] at hih ⊢
+            omega
+      | bNode q l r =>
+          cases hqb : q b
+          · have hih := ih l
+            simp [Protocol.actualSideListRaw, Protocol.actualPrefixCodeRaw,
+              Protocol.actualSubtreeAtRaw, Protocol.cost, hqb] at hih ⊢
+            omega
+          · have hih := ih r
+            simp [Protocol.actualSideListRaw, Protocol.actualPrefixCodeRaw,
+              Protocol.actualSubtreeAtRaw, Protocol.cost, hqb] at hih ⊢
+            omega
+
+namespace BranchAt
+
+theorem compose_eval_eq_game {A B : Type*} [DecidableEq A] [DecidableEq B]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1)
+    (b2 : Protocol.BranchAt b1.residual (subgame G b1.rows b1.cols) t2)
+    {a : A} (ha : a ∈ liftRows b1 b2)
+    {b : B} (hb : b ∈ liftCols b1 b2) :
+    P.eval a b = G a b := by
+  obtain ⟨ha1, _ha2⟩ := (mem_liftRows b1 b2 a).1 ha
+  obtain ⟨hb1, _hb2⟩ := (mem_liftCols b1 b2 b).1 hb
+  have hcomp := b1.residual_computes ⟨a, ha1⟩ ⟨b, hb1⟩
+  have heval := b1.residual_eval_eq ⟨a, ha1⟩ ⟨b, hb1⟩
+  rw [heval] at hcomp
+  simpa [subgame] using hcomp
+
+theorem compose_rectangle_transcript {A B : Type*} [DecidableEq A] [DecidableEq B]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1)
+    (b2 : Protocol.BranchAt b1.residual (subgame G b1.rows b1.cols) t2)
+    (a : A) (ha : a ∈ liftRows b1 b2)
+    (b : B) (hb : b ∈ liftCols b1 b2) :
+    Protocol.actualPrefixCodeRaw (t1 + t2) P a b =
+      Protocol.prefixCodeAppend b1.transcript b2.transcript := by
+  obtain ⟨ha1, ha2⟩ := (mem_liftRows b1 b2 a).1 ha
+  obtain ⟨hb1, hb2⟩ := (mem_liftCols b1 b2 b).1 hb
+  have hfirst := b1.rectangle_transcript a ha1 b hb1
+  have hsecond :
+      Protocol.actualPrefixCodeRaw t2
+          (Protocol.actualSubtreeAtRaw t1 P
+            (Protocol.actualPrefixCodeRaw t1 P a b)) a b =
+        b2.transcript := by
+    rw [hfirst]
+    have hres := b2.rectangle_transcript ⟨a, ha1⟩ ha2 ⟨b, hb1⟩ hb2
+    simpa [b1.residual_eq_actual, Protocol.actualPrefixCodeRaw_restrictSub]
+      using hres
+  calc
+    Protocol.actualPrefixCodeRaw (t1 + t2) P a b =
+        Protocol.prefixCodeAppend
+          (Protocol.actualPrefixCodeRaw t1 P a b)
+          (Protocol.actualPrefixCodeRaw t2
+            (Protocol.actualSubtreeAtRaw t1 P
+              (Protocol.actualPrefixCodeRaw t1 P a b)) a b) := by
+          exact Protocol.actualPrefixCodeRaw_append t1 t2 P a b
+    _ = Protocol.prefixCodeAppend b1.transcript b2.transcript := by
+          have hsecond' :
+              Protocol.actualPrefixCodeRaw t2
+                  (Protocol.actualSubtreeAtRaw t1 P b1.transcript) a b =
+                b2.transcript := by
+            simpa [hfirst] using hsecond
+          rw [hfirst, hsecond']
+
+theorem compose_sideTrace_eq {A B : Type*} [DecidableEq A] [DecidableEq B]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1)
+    (b2 : Protocol.BranchAt b1.residual (subgame G b1.rows b1.cols) t2)
+    (a : A) (ha : a ∈ liftRows b1 b2)
+    (b : B) (hb : b ∈ liftCols b1 b2) :
+    Protocol.actualSideListRaw (t1 + t2) P a b =
+      b1.sideTrace ++ b2.sideTrace := by
+  obtain ⟨ha1, ha2⟩ := (mem_liftRows b1 b2 a).1 ha
+  obtain ⟨hb1, hb2⟩ := (mem_liftCols b1 b2 b).1 hb
+  have hfirstCode := b1.rectangle_transcript a ha1 b hb1
+  have hfirstSide := b1.sideTrace_eq a ha1 b hb1
+  have hsecondSide :
+      Protocol.actualSideListRaw t2
+          (Protocol.actualSubtreeAtRaw t1 P
+            (Protocol.actualPrefixCodeRaw t1 P a b)) a b =
+        b2.sideTrace := by
+    rw [hfirstCode]
+    have hres := b2.sideTrace_eq ⟨a, ha1⟩ ha2 ⟨b, hb1⟩ hb2
+    simpa [b1.residual_eq_actual, Protocol.actualSideListRaw_restrictSub]
+      using hres
+  calc
+    Protocol.actualSideListRaw (t1 + t2) P a b =
+        Protocol.actualSideListRaw t1 P a b ++
+          Protocol.actualSideListRaw t2
+            (Protocol.actualSubtreeAtRaw t1 P
+              (Protocol.actualPrefixCodeRaw t1 P a b)) a b := by
+          exact Protocol.actualSideListRaw_append t1 t2 P a b
+    _ = b1.sideTrace ++ b2.sideTrace := by
+          rw [hfirstSide, hsecondSide]
+
+theorem compose_rows_reachable {A B : Type*} [DecidableEq A] [DecidableEq B]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1)
+    (b2 : Protocol.BranchAt b1.residual (subgame G b1.rows b1.cols) t2)
+    (a : A) :
+    a ∈ liftRows b1 b2 ↔
+      ∃ b : B, b ∈ liftCols b1 b2 ∧
+        Protocol.actualPrefixCodeRaw (t1 + t2) P a b =
+          Protocol.prefixCodeAppend b1.transcript b2.transcript := by
+  constructor
+  · intro ha
+    obtain ⟨ha1, ha2⟩ := (mem_liftRows b1 b2 a).1 ha
+    obtain ⟨b, hb2, hcode2⟩ :=
+      (b2.rows_reachable ⟨a, ha1⟩).1 ha2
+    have hb : b.val ∈ liftCols b1 b2 :=
+      (mem_liftCols b1 b2 b.val).2 ⟨b.2, hb2⟩
+    refine ⟨b.val, hb, ?_⟩
+    exact compose_rectangle_transcript b1 b2 a ha b.val hb
+  · rintro ⟨b, hb, hcode⟩
+    obtain ⟨hb1, hb2⟩ := (mem_liftCols b1 b2 b).1 hb
+    have happ :
+        Protocol.prefixCodeAppend
+            (Protocol.actualPrefixCodeRaw t1 P a b)
+            (Protocol.actualPrefixCodeRaw t2
+              (Protocol.actualSubtreeAtRaw t1 P
+                (Protocol.actualPrefixCodeRaw t1 P a b)) a b) =
+          Protocol.prefixCodeAppend b1.transcript b2.transcript := by
+      rw [← Protocol.actualPrefixCodeRaw_append t1 t2 P a b]
+      exact hcode
+    have hsplit := (Protocol.prefixCodeAppend_inj).1 happ
+    have hfirst : Protocol.actualPrefixCodeRaw t1 P a b = b1.transcript := hsplit.1
+    have ha1 : a ∈ b1.rows :=
+      (b1.rows_reachable a).2 ⟨b, hb1, hfirst⟩
+    have hsecond :
+        Protocol.actualPrefixCodeRaw t2 b1.residual
+            ⟨a, ha1⟩ ⟨b, hb1⟩ =
+          b2.transcript := by
+      have htail := hsplit.2
+      rw [hfirst] at htail
+      simpa [b1.residual_eq_actual, Protocol.actualPrefixCodeRaw_restrictSub]
+        using htail
+    have ha2 : (⟨a, ha1⟩ : {a // a ∈ b1.rows}) ∈ b2.rows :=
+      (b2.rows_reachable ⟨a, ha1⟩).2 ⟨⟨b, hb1⟩, hb2, hsecond⟩
+    exact (mem_liftRows b1 b2 a).2 ⟨ha1, ha2⟩
+
+theorem compose_cols_reachable {A B : Type*} [DecidableEq A] [DecidableEq B]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1)
+    (b2 : Protocol.BranchAt b1.residual (subgame G b1.rows b1.cols) t2)
+    (b : B) :
+    b ∈ liftCols b1 b2 ↔
+      ∃ a : A, a ∈ liftRows b1 b2 ∧
+        Protocol.actualPrefixCodeRaw (t1 + t2) P a b =
+          Protocol.prefixCodeAppend b1.transcript b2.transcript := by
+  constructor
+  · intro hb
+    obtain ⟨hb1, hb2⟩ := (mem_liftCols b1 b2 b).1 hb
+    obtain ⟨a, ha2, hcode2⟩ :=
+      (b2.cols_reachable ⟨b, hb1⟩).1 hb2
+    have ha : a.val ∈ liftRows b1 b2 :=
+      (mem_liftRows b1 b2 a.val).2 ⟨a.2, ha2⟩
+    refine ⟨a.val, ha, ?_⟩
+    exact compose_rectangle_transcript b1 b2 a.val ha b hb
+  · rintro ⟨a, ha, hcode⟩
+    obtain ⟨ha1, ha2⟩ := (mem_liftRows b1 b2 a).1 ha
+    have happ :
+        Protocol.prefixCodeAppend
+            (Protocol.actualPrefixCodeRaw t1 P a b)
+            (Protocol.actualPrefixCodeRaw t2
+              (Protocol.actualSubtreeAtRaw t1 P
+                (Protocol.actualPrefixCodeRaw t1 P a b)) a b) =
+          Protocol.prefixCodeAppend b1.transcript b2.transcript := by
+      rw [← Protocol.actualPrefixCodeRaw_append t1 t2 P a b]
+      exact hcode
+    have hsplit := (Protocol.prefixCodeAppend_inj).1 happ
+    have hfirst : Protocol.actualPrefixCodeRaw t1 P a b = b1.transcript := hsplit.1
+    have hb1 : b ∈ b1.cols :=
+      (b1.cols_reachable b).2 ⟨a, ha1, hfirst⟩
+    have hsecond :
+        Protocol.actualPrefixCodeRaw t2 b1.residual
+            ⟨a, ha1⟩ ⟨b, hb1⟩ =
+          b2.transcript := by
+      have htail := hsplit.2
+      rw [hfirst] at htail
+      simpa [b1.residual_eq_actual, Protocol.actualPrefixCodeRaw_restrictSub]
+        using htail
+    have hb2 : (⟨b, hb1⟩ : {b // b ∈ b1.cols}) ∈ b2.cols :=
+      (b2.cols_reachable ⟨b, hb1⟩).2 ⟨⟨a, ha1⟩, ha2, hsecond⟩
+    exact (mem_liftCols b1 b2 b).2 ⟨hb1, hb2⟩
+
+noncomputable def compose {A B : Type*} [DecidableEq A] [DecidableEq B]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1)
+    (b2 : Protocol.BranchAt b1.residual (subgame G b1.rows b1.cols) t2) :
+    Protocol.BranchAt P G (t1 + t2) where
+  rows := liftRows b1 b2
+  cols := liftCols b1 b2
+  transcript := Protocol.prefixCodeAppend b1.transcript b2.transcript
+  sideTrace := b1.sideTrace ++ b2.sideTrace
+  residual :=
+    Protocol.restrictSub (liftRows b1 b2) (liftCols b1 b2)
+      (Protocol.actualSubtreeAtRaw (t1 + t2) P
+        (Protocol.prefixCodeAppend b1.transcript b2.transcript))
+  rows_nonempty := by
+    obtain ⟨a, ha⟩ := b2.rows_nonempty
+    exact ⟨a.val, (mem_liftRows b1 b2 a.val).2 ⟨a.2, ha⟩⟩
+  cols_nonempty := by
+    obtain ⟨b, hb⟩ := b2.cols_nonempty
+    exact ⟨b.val, (mem_liftCols b1 b2 b.val).2 ⟨b.2, hb⟩⟩
+  sideTrace_length := by
+    rw [List.length_append, b1.sideTrace_length, b2.sideTrace_length]
+  sideTrace_eq := by
+    intro a ha b hb
+    exact compose_sideTrace_eq b1 b2 a ha b hb
+  rectangle_transcript := by
+    intro a ha b hb
+    exact compose_rectangle_transcript b1 b2 a ha b hb
+  rows_reachable := by
+    intro a
+    exact compose_rows_reachable b1 b2 a
+  cols_reachable := by
+    intro b
+    exact compose_cols_reachable b1 b2 b
+  residual_eq_actual := rfl
+  residual_eval_eq := by
+    intro a b
+    rw [Protocol.eval_restrictSub]
+    have hcode := compose_rectangle_transcript b1 b2 a.val a.2 b.val b.2
+    rw [← hcode]
+    exact Protocol.eval_actualSubtreeAtRaw_eq_of_actualPrefix (t1 + t2) P a.val b.val
+  residual_computes := by
+    intro a b
+    rw [Protocol.eval_restrictSub]
+    have hcode := compose_rectangle_transcript b1 b2 a.val a.2 b.val b.2
+    rw [← hcode]
+    rw [Protocol.eval_actualSubtreeAtRaw_eq_of_actualPrefix]
+    exact compose_eval_eq_game b1 b2 a.2 b.2
+  restricted_residual_computes := by
+    intro a b
+    rw [Protocol.eval_restrictSub]
+    rw [Protocol.eval_restrict_of_mem (liftRows b1 b2) (liftCols b1 b2) P a.2 b.2]
+    exact compose_eval_eq_game b1 b2 a.2 b.2
+  restrict_evalDepth_ledger := by
+    intro a ha b hb
+    exact Protocol.evalDepth_restrict_add_foldCount_of_mem
+      (liftRows b1 b2) (liftCols b1 b2) P ha hb
+  actualDepth_eq := by
+    intro a ha b hb
+    rw [Protocol.evalDepth_restrictSub]
+    have hcode := compose_rectangle_transcript b1 b2 a ha b hb
+    rw [← hcode]
+    have hdepth :=
+      Protocol.evalDepth_eq_actualSideListRaw_length_add (t1 + t2) P a b
+    have hside := compose_sideTrace_eq b1 b2 a ha b hb
+    have hlen :
+        (Protocol.actualSideListRaw (t1 + t2) P a b).length = t1 + t2 := by
+      rw [hside, List.length_append, b1.sideTrace_length, b2.sideTrace_length]
+    rw [hlen] at hdepth
+    exact hdepth
+  cost_after_actualBits := by
+    obtain ⟨a0, ha0⟩ := b2.rows_nonempty
+    obtain ⟨b0, hb0⟩ := b2.cols_nonempty
+    let a : A := a0.val
+    let b : B := b0.val
+    have ha : a ∈ liftRows b1 b2 :=
+      (mem_liftRows b1 b2 a).2 ⟨a0.2, by simpa [a] using ha0⟩
+    have hb : b ∈ liftCols b1 b2 :=
+      (mem_liftCols b1 b2 b).2 ⟨b0.2, by simpa [b] using hb0⟩
+    rw [Protocol.cost_restrictSub]
+    have hcost :=
+      Protocol.actualSideListRaw_length_add_cost_actualSubtreeAtRaw_le
+        (t1 + t2) P a b
+    have hside := compose_sideTrace_eq b1 b2 a ha b hb
+    have hcode := compose_rectangle_transcript b1 b2 a ha b hb
+    rw [hside, List.length_append, b1.sideTrace_length, b2.sideTrace_length] at hcost
+    rw [hcode] at hcost
+    exact hcost
+
+theorem branchExtends_compose_left {A B : Type*} [DecidableEq A] [DecidableEq B]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1)
+    (b2 : Protocol.BranchAt b1.residual (subgame G b1.rows b1.cols) t2) :
+    Protocol.BranchExtends b1 (compose b1 b2) where
+  depth_le := by omega
+  rows_sub := by
+    intro a ha
+    exact ((mem_liftRows b1 b2 a).1 ha).1
+  cols_sub := by
+    intro b hb
+    exact ((mem_liftCols b1 b2 b).1 hb).1
+  transcript_compatible := by
+    intro a ha b hb
+    constructor
+    · exact b1.rectangle_transcript a (((mem_liftRows b1 b2 a).1 ha).1)
+        b (((mem_liftCols b1 b2 b).1 hb).1)
+    · exact compose_rectangle_transcript b1 b2 a ha b hb
+  residual_eval_refines := by
+    intro a ha b hb
+    have ha1 := ((mem_liftRows b1 b2 a).1 ha).1
+    have hb1 := ((mem_liftCols b1 b2 b).1 hb).1
+    calc
+      b1.residual.eval ⟨a, ha1⟩ ⟨b, hb1⟩ =
+          P.eval a b := b1.residual_eval_eq ⟨a, ha1⟩ ⟨b, hb1⟩
+      _ = (compose b1 b2).residual.eval ⟨a, ha⟩ ⟨b, hb⟩ := by
+          exact ((compose b1 b2).residual_eval_eq ⟨a, ha⟩ ⟨b, hb⟩).symm
+  residual_depth_refines := by
+    intro a ha b hb
+    have ha1 := ((mem_liftRows b1 b2 a).1 ha).1
+    have hb1 := ((mem_liftCols b1 b2 b).1 hb).1
+    have h1 := b1.actualDepth_eq a ha1 b hb1
+    have h12 := (compose b1 b2).actualDepth_eq a ha b hb
+    omega
+
+noncomputable def compose_colPrefix {A B : Type*} [Fintype A] [Fintype B]
+    [DecidableEq A] [DecidableEq B]
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t1 t2 : Nat}
+    (b1 : Protocol.BranchAt P G t1) (j : Fin (2 ^ t2))
+    (hcol : Protocol.FirstKColBitsOn
+      (Finset.univ : Finset {a // a ∈ b1.rows})
+      (Finset.univ : Finset {b // b ∈ b1.cols}) t2 b1.residual)
+    (hcols : (Protocol.colPrefixCols t2 b1.residual j).Nonempty) :
+    Protocol.BranchAt P G (t1 + t2) :=
+  compose b1 <|
+    Protocol.mkBranchAt_of_colPrefix
+      b1.residual (subgame G b1.rows b1.cols) t2 j hcol
+      b1.residual_computes
+      (by
+        obtain ⟨a, ha⟩ := b1.rows_nonempty
+        exact ⟨⟨a, ha⟩, Finset.mem_univ _⟩)
+      hcols
+
+end BranchAt
+
+-- CLAIM-END aux:branch-constructors-4

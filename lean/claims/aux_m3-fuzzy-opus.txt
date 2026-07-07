@@ -1,0 +1,327 @@
+-- CLAIM-BEGIN aux:m3-fuzzy-opus
+
+/- Opus assembly for lem:MThreeFuzzyLeaves: the four load-bearing building
+blocks toward `NPCC.M3_fuzzy_leaves`.  (1) the `restricted_col` transport from the
+reindexed dense protocol's first-row-bits back to the ambient bin residual;
+(2) the M1 dense-COLUMN-slice terminal floor a+1 (avoids both the full-C1 copy
+trap and the Stage-4 vector machinery); (3) the dense-Yalpha hard-witness builder;
+(4) the explicit sync-bridge assembler (sync + diag_cols) from the three per-bin
+structural inputs.  Each compiles cleanly against the live Stage-3 surface. -/
+
+namespace Protocol
+
+variable {A B A' B' Z : Type*} [DecidableEq A] [DecidableEq B] [DecidableEq A'] [DecidableEq B']
+
+-- reverse reindex FirstKRowBits (from opus_probe_C, re-declared here)
+theorem firstKRowBitsOn_of_reindex
+    (e1 : A' ≃ A) (e2 : B' ≃ B) (P : Protocol A B Z) (k : Nat)
+    (R' : Finset A') (C' : Finset B')
+    (h : Protocol.FirstKRowBitsOn R' C' k (Protocol.reindex e1 e2 P)) :
+    Protocol.FirstKRowBitsOn (R'.map e1.toEmbedding) (C'.map e2.toEmbedding) k P := by
+  induction k generalizing R' C' P with
+  | zero => trivial
+  | succ k ih =>
+      cases P with
+      | leaf z =>
+          simp only [Protocol.reindex, Protocol.FirstKRowBitsOn] at h ⊢
+          rcases h with hR | hC
+          · left; rw [hR]; simp
+          · right; rw [hC]; simp
+      | bNode b l r =>
+          simp only [Protocol.reindex, Protocol.FirstKRowBitsOn] at h ⊢
+          rcases h with hR | hC
+          · left; rw [hR]; simp
+          · right; rw [hC]; simp
+      | aNode a l r =>
+          simp only [Protocol.reindex, Protocol.FirstKRowBitsOn] at h ⊢
+          refine ⟨?_, ?_⟩
+          · have hl := ih (R' := R'.filter fun x => a (e1 x) = false) (C' := C') (P := l) h.1
+            have hfilter :
+                ((R'.filter fun x => a (e1 x) = false).map e1.toEmbedding) =
+                  ((R'.map e1.toEmbedding).filter fun x => a x = false) := by
+              ext x
+              simp only [Finset.mem_map, Finset.mem_filter, Equiv.coe_toEmbedding]
+              constructor
+              · rintro ⟨y, ⟨hy, hya⟩, rfl⟩; exact ⟨⟨y, hy, rfl⟩, hya⟩
+              · rintro ⟨⟨y, hy, rfl⟩, hya⟩; exact ⟨y, ⟨hy, hya⟩, rfl⟩
+            rw [hfilter] at hl; exact hl
+          · have hr := ih (R' := R'.filter fun x => a (e1 x) = true) (C' := C') (P := r) h.2
+            have hfilter :
+                ((R'.filter fun x => a (e1 x) = true).map e1.toEmbedding) =
+                  ((R'.map e1.toEmbedding).filter fun x => a x = true) := by
+              ext x
+              simp only [Finset.mem_map, Finset.mem_filter, Equiv.coe_toEmbedding]
+              constructor
+              · rintro ⟨y, ⟨hy, hya⟩, rfl⟩; exact ⟨⟨y, hy, rfl⟩, hya⟩
+              · rintro ⟨⟨y, hy, rfl⟩, hya⟩; exact ⟨y, ⟨hy, hya⟩, rfl⟩
+            rw [hfilter] at hr; exact hr
+
+theorem map_univ_equiv [Fintype A'] [Fintype A] (e : A' ≃ A) :
+    ((Finset.univ : Finset A').map e.toEmbedding) = (Finset.univ : Finset A) := by
+  ext a
+  simp only [Finset.mem_map, Finset.mem_univ, Equiv.coe_toEmbedding, true_and, iff_true]
+  exact ⟨e.symm a, by simp⟩
+
+end Protocol
+
+-- THE restricted_col TRANSPORT: from FirstKRowBitsOn univ univ m (reindex eA eB (restrictSub C R (swap Q0)))
+-- to FirstKColBitsOn R C m Q0, where Q0 = restrict R C residual.
+theorem M3_restricted_col_of_dense_first_row_bits
+    {X Y : Type*} [Fintype X] [Fintype Y] [DecidableEq X] [DecidableEq Y]
+    (residual : Protocol X Y Bool)
+    (R : Finset X) (C : Finset Y) (m : Nat)
+    {A' B' : Type*} [Fintype A'] [Fintype B'] [DecidableEq A'] [DecidableEq B']
+    (eA : A' ≃ {b // b ∈ C}) (eB : B' ≃ {a // a ∈ R})
+    (hfrb :
+      Protocol.FirstKRowBitsOn
+        (Finset.univ : Finset A') (Finset.univ : Finset B') m
+        (Protocol.reindex eA eB
+          (Protocol.restrictSub C R
+            (Protocol.swap (Protocol.restrict R C residual))))) :
+    Protocol.FirstKColBitsOn R C m (Protocol.restrict R C residual) := by
+  classical
+  -- step 1: reverse reindex → FirstKRowBitsOn univ univ m (restrictSub C R (swap (restrict R C residual)))
+  have h1 := Protocol.firstKRowBitsOn_of_reindex eA eB
+    (Protocol.restrictSub C R (Protocol.swap (Protocol.restrict R C residual)))
+    m (Finset.univ : Finset A') (Finset.univ : Finset B') hfrb
+  rw [Protocol.map_univ_equiv eA, Protocol.map_univ_equiv eB] at h1
+  -- step 2: restrictSub peel → FirstKRowBitsOn C R m (swap (restrict R C residual))
+  have h2 := Protocol.firstKRowBitsOn_of_restrictSub C R
+    (Finset.univ : Finset {b // b ∈ C}) (Finset.univ : Finset {a // a ∈ R})
+    m (Protocol.swap (Protocol.restrict R C residual)) h1
+  have himgC : ((Finset.univ : Finset {b // b ∈ C}).image fun b => b.val) = C := by
+    ext x
+    constructor
+    · intro hx; rcases Finset.mem_image.mp hx with ⟨y, _, rfl⟩; exact y.2
+    · intro hx; exact Finset.mem_image.mpr ⟨⟨x, hx⟩, Finset.mem_univ _, rfl⟩
+  have himgR : ((Finset.univ : Finset {a // a ∈ R}).image fun a => a.val) = R := by
+    ext x
+    constructor
+    · intro hx; rcases Finset.mem_image.mp hx with ⟨y, _, rfl⟩; exact y.2
+    · intro hx; exact Finset.mem_image.mpr ⟨⟨x, hx⟩, Finset.mem_univ _, rfl⟩
+  rw [himgC, himgR] at h2
+  -- h2 : FirstKRowBitsOn C R m (swap (restrict R C residual)) = FirstKColBitsOn R C m (restrict R C residual)
+  exact h2
+
+theorem M1_dense_column_subgame_floor
+    (d : Nat) (hpow : IsPow2 d) (hlog : 64 <= Nat.log 2 d)
+    (hchk : Checklist d)
+    (Yalpha : Finset (C1 d))
+    (hYdense : (1 - Params.eta2 d) * (Fintype.card (C1 d) : Real) <=
+        (Yalpha.card : Real)) :
+    Params.a d + 1 <= D (subgame (M1 d) (Finset.univ : Finset (R1 d)) Yalpha) := by
+  classical
+  have hd : 2 <= d := by
+    obtain ⟨k, rfl⟩ := hpow
+    have hk : 64 <= k := by simpa [log_two_pow] using hlog
+    exact Nat.succ_le_of_lt (Nat.one_lt_two_pow (by omega : k ≠ 0))
+  have hchk' : Params.t1 d <= Params.q1 d + 5 := Params.t1_le_q1_add_five hlog
+  obtain ⟨hdiv, hTb, hRb, hgap⟩ := M1_low_column_stage2_gates hpow hlog
+  -- r' = r1 setup (copied from M1_capacity_lower_canonical)
+  have hr1pow : ∃ k, Params.r1 d = 2 ^ k := by
+    have hqpow : Params.q1 d + 2 = 2 ^ Params.a d := (Params.two_pow_a hd).symm
+    have hr1dvd : Params.r1 d ∣ 2 ^ Params.a d := by
+      rw [hqpow.symm]; exact ⟨Params.t1 d, hdiv⟩
+    obtain ⟨j, _hjle, hr1j⟩ := (Nat.dvd_prime_pow Nat.prime_two).mp hr1dvd
+    exact ⟨j, hr1j⟩
+  have hr1pos : 1 <= Params.r1 d := by
+    obtain ⟨k, hk⟩ := hr1pow; rw [hk]; exact Nat.one_le_two_pow
+  -- Column density: 2^(-(b1+log r2)) * |C1| <= |Yalpha| from dens_survive + Yalpha_dense
+  have hcol : (2 : Real) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : Int))
+        * (Fintype.card (C1 d) : Real) <= (Yalpha.card : Real) := by
+    have hsurv : (2 : Real) ^ (-((Params.b1 d : Int) + Nat.log 2 (Params.r2 d)))
+        <= 1 - Params.eta2 d := hchk.dens_survive
+    have hcard_nonneg : (0 : Real) <= (Fintype.card (C1 d) : Real) := by positivity
+    calc (2 : Real) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : Int))
+            * (Fintype.card (C1 d) : Real)
+        <= (1 - Params.eta2 d) * (Fintype.card (C1 d) : Real) := by
+          apply mul_le_mul_of_nonneg_right _ hcard_nonneg
+          have hcast : (-(Params.b1 d + Nat.log 2 (Params.r2 d) : Int)) =
+              (-((Params.b1 d : Int) + Nat.log 2 (Params.r2 d))) := by push_cast; ring
+          rw [hcast]; exact hsurv
+      _ <= (Yalpha.card : Real) := hYdense
+  -- The row equipartition for r'=r1 needs a Q with 16|Q| = 9*r1*t1; take R'=univ.
+  -- Reuse the exact construction from M1_capacity_lower_canonical.
+  obtain ⟨n, hn_eq⟩ : ∃ n : Nat, 16 * n = 9 * Params.r1 d * Params.t1 d := by
+    refine ⟨9 * Params.r1 d * Params.t1 d / 16, ?_⟩
+    have ht1_clog : Params.t1 d = 2 ^ Nat.clog 2 (64 * Nat.log 2 d) := rfl
+    have ht1pow : Params.t1 d = 2 ^ Nat.log 2 (Params.t1 d) := by
+      rw [ht1_clog, log_two_pow]
+    have hlog1 : 1 <= Nat.log 2 d := by omega
+    have ht1ge16 : 16 <= Params.t1 d := by
+      have ht := (Params.t1_bracket (d := d) hlog1).1; nlinarith
+    have hlogt_ge4 : 4 <= Nat.log 2 (Params.t1 d) := by
+      calc 4 = Nat.log 2 16 := by norm_num [Nat.log]
+        _ <= Nat.log 2 (Params.t1 d) := Nat.log_mono_right ht1ge16
+    have hdiv16 : 16 ∣ Params.t1 d := by
+      rw [show 16 = (2 : Nat) ^ 4 by norm_num, ht1pow]
+      exact pow_dvd_pow 2 hlogt_ge4
+    have hdiv16prod : 16 ∣ 9 * Params.r1 d * Params.t1 d :=
+      dvd_mul_of_dvd_right hdiv16 (9 * Params.r1 d)
+    rw [mul_comm, Nat.div_mul_cancel hdiv16prod]
+  have hn_le : n <= (Finset.univ : Finset (Fin (Params.q1 d))).card := by
+    rw [Finset.card_univ, Fintype.card_fin]
+    have hqt : Params.q1 d + 2 = Params.r1 d * Params.t1 d := hdiv
+    have hprod_ge5 : 5 <= Params.r1 d * Params.t1 d := by
+      rw [← hqt]
+      have hqlo := Params.le_q1_add_two (d := d) (by omega : 1 <= Nat.log 2 d)
+      have hsmall : 5 <= 2 * Nat.log 2 d ^ 2 := by nlinarith
+      omega
+    have hmain_plus : n + 2 <= Params.r1 d * Params.t1 d := by
+      have hn16lin : 16 * n = 9 * (Params.r1 d * Params.t1 d) := by
+        simpa [Nat.mul_assoc] using hn_eq
+      omega
+    omega
+  obtain ⟨Q, _hQsub, hQcard'⟩ :=
+    Finset.exists_subset_card_eq (s := (Finset.univ : Finset (Fin (Params.q1 d)))) hn_le
+  have hQcard : 16 * Q.card = 9 * Params.r1 d * Params.t1 d := by rw [hQcard', hn_eq]
+  let R' : Finset (R1 d) := (Finset.univ : Finset (R1 d))
+  have hrow : IsEquipartitionedGE
+              (R'.image (fun a => ((a.1 : Fin (Params.q1 d)), a.2))) Q 1 := by
+    intro q hq
+    apply Nat.succ_le_of_lt
+    apply Finset.card_pos.mpr
+    exact ⟨(q, 0), by simp [R']⟩
+  -- Apply the SUBGAME floor lemma (M1_low_column_stage2) at r'=r1.
+  have hslice := M1_low_column_stage2 d hd hchk' hdiv hTb hRb hgap
+    hr1pow hr1pos (le_refl (Params.r1 d)) R' Yalpha Q hQcard hrow hcol
+  rw [Dfamily.singleton] at hslice
+  -- 1 + log t1 + log r1 = a + 1
+  have hcap := M1_capacity_log_identity d hd hdiv
+  have hInt : ((Params.a d + 1 : Nat) : Int) <=
+      (D (subgame (M1 d) R' Yalpha) : Int) := by
+    calc ((Params.a d + 1 : Nat) : Int)
+        = (1 : Int) + (Nat.log 2 (Params.t1 d) : Int)
+            + (Nat.log 2 (Params.r1 d) : Int) := by rw [hcap]; omega
+      _ <= (D (subgame (M1 d) R' Yalpha) : Int) := hslice
+  exact_mod_cast hInt
+
+theorem M3_terminalHardWitnesses_of_prefix_M1_dense
+    (d : Nat)
+    {A B : Type*} [Fintype A] [Fintype B]
+    (hR1 : Nonempty (R1 d))
+    (Yalpha : Finset (C1 d)) (hYnonempty : Yalpha.Nonempty)
+    (G : A -> B -> Bool)
+    (R : Finset A) (C : Finset B) (Q : Protocol A B Bool)
+    (pat : List Protocol.ActualBitSide)
+    (hfloor : Params.a d + 1 <=
+      D (subgame (M1 d) (Finset.univ : Finset (R1 d)) Yalpha))
+    (rowEmbed : List Bool -> R1 d -> A)
+    (colEmbed : List Bool -> {gamma // gamma ∈ Yalpha} -> B)
+    (hrowPrefix :
+      forall w, w.length = pat.length ->
+        forall r, rowEmbed w r ∈ Protocol.rowsAtPrefix R C Q w)
+    (hcolPrefix :
+      forall w, w.length = pat.length ->
+        forall gamma, colEmbed w gamma ∈ Protocol.colsAtPrefix R C Q w)
+    (hcopy :
+      forall w, w.length = pat.length ->
+        forall r (gamma : {gamma // gamma ∈ Yalpha}),
+          G (rowEmbed w r) (colEmbed w gamma) = M1 d r gamma.val) :
+    Protocol.TerminalHardWitnesses G R C Q pat (Params.a d + 1) := by
+  classical
+  haveI : Nonempty (R1 d) := hR1
+  haveI : Nonempty {gamma // gamma ∈ Yalpha} := hYnonempty.to_subtype
+  haveI : Nonempty {a // a ∈ (Finset.univ : Finset (R1 d))} := by
+    obtain ⟨r⟩ := hR1
+    exact ⟨⟨r, Finset.mem_univ _⟩⟩
+  -- H = subgame (M1 d) univ Yalpha, A0 = {a // a ∈ univ(R1)}, B0 = {gamma // gamma ∈ Yalpha}
+  let H : {a // a ∈ (Finset.univ : Finset (R1 d))} -> {gamma // gamma ∈ Yalpha} -> Bool :=
+    subgame (M1 d) (Finset.univ : Finset (R1 d)) Yalpha
+  -- rowEmbed' takes A0 = {a // a ∈ univ}; strip the subtype
+  let rowEmbed' : List Bool -> {a // a ∈ (Finset.univ : Finset (R1 d))} -> A :=
+    fun w a => rowEmbed w a.val
+  refine
+    terminalHardWitnesses_of_prefix_exact_copy
+      G H R C Q pat (Params.a d + 1)
+      rowEmbed' colEmbed ?_ ?_ ?_ ?_
+  · intro w hw a
+    exact hrowPrefix w hw a.val
+  · intro w hw gamma
+    exact hcolPrefix w hw gamma
+  · intro w hw a gamma
+    -- G (rowEmbed' w a) (colEmbed w gamma) = H a gamma = M1 d a.val gamma.val
+    change G (rowEmbed w a.val) (colEmbed w gamma) = M1 d a.val gamma.val
+    exact hcopy w hw a.val gamma
+  · exact hfloor
+
+noncomputable def M3_build_sync_bridge
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (Y : Fin 4 -> Fin (Params.q2 d) -> Finset (C1 d))
+    (codeOfAlpha :
+      Fin 4 -> Fin (Params.q2 d) -> Fin (2 ^ Nat.clog 2 (Params.q2 d)))
+    (hcol : forall p,
+      Protocol.FirstKColBitsOn
+        (Finset.univ : Finset {a // a ∈ (binBranch p).rows})
+        (Finset.univ : Finset {b // b ∈ (binBranch p).cols})
+        (Nat.clog 2 (Params.q2 d)) (binBranch p).residual)
+    (hcols : forall p alpha,
+      (Protocol.colPrefixCols (Nat.clog 2 (Params.q2 d))
+        (binBranch p).residual (codeOfAlpha p alpha)).Nonempty)
+    -- diag reachability: the Yalpha diagonals land in the colPrefix cols and in binBranch.cols
+    (hdiag : forall p alpha gamma, gamma ∈ Y p alpha ->
+      exists (hb : M3_diagCol d alpha gamma ∈ (binBranch p).cols),
+        (⟨M3_diagCol d alpha gamma, hb⟩ : {b // b ∈ (binBranch p).cols}) ∈
+          Protocol.colPrefixCols (Nat.clog 2 (Params.q2 d))
+            (binBranch p).residual (codeOfAlpha p alpha)) :
+    M3PackageSyncBridge d P binBranch Y := by
+  classical
+  -- Build the sync explicitly (NOT via Classical.choice) so dimBranch is the concrete
+  -- compose_colPrefix and diag_cols is provable.
+  refine
+    { sync :=
+        { dimBranch := fun p alpha =>
+            Protocol.BranchAt.compose_colPrefix (binBranch p) (codeOfAlpha p alpha)
+              (hcol p) (hcols p alpha)
+          dim_sideTrace := ?_
+          dim_extends := ?_ }
+      diag_cols := ?_ }
+  · intro p alpha
+    unfold Protocol.BranchAt.compose_colPrefix Protocol.BranchAt.compose
+    simp [Protocol.mkBranchAt_of_colPrefix, Protocol.branchAt_of_swap,
+      Protocol.mkBranchAt_of_rowPrefix, Protocol.ActualBitSide.swap]
+  · intro p alpha
+    exact Protocol.BranchAt.branchExtends_compose_left
+      (binBranch p)
+      (Protocol.mkBranchAt_of_colPrefix
+        (binBranch p).residual
+        (subgame (M3 d) (binBranch p).rows (binBranch p).cols)
+        (Nat.clog 2 (Params.q2 d)) (codeOfAlpha p alpha)
+        (hcol p) (binBranch p).residual_computes
+        (by
+          obtain ⟨a, ha⟩ := (binBranch p).rows_nonempty
+          exact ⟨⟨a, ha⟩, Finset.mem_univ _⟩)
+        (hcols p alpha))
+  · intro p alpha gamma hgamma
+    -- M3_diagCol alpha gamma ∈ (dimBranch p alpha).cols
+    -- dimBranch = compose_colPrefix = compose b1 (mkBranchAt_of_colPrefix ...)
+    -- cols = liftCols b1 (mkBranchAt_of_colPrefix ...)
+    obtain ⟨hb, hprefix⟩ := hdiag p alpha gamma hgamma
+    show M3_diagCol d alpha gamma ∈
+      (Protocol.BranchAt.compose_colPrefix (binBranch p) (codeOfAlpha p alpha)
+        (hcol p) (hcols p alpha)).cols
+    unfold Protocol.BranchAt.compose_colPrefix
+    rw [show (Protocol.BranchAt.compose (binBranch p)
+        (Protocol.mkBranchAt_of_colPrefix (binBranch p).residual
+          (subgame (M3 d) (binBranch p).rows (binBranch p).cols)
+          (Nat.clog 2 (Params.q2 d)) (codeOfAlpha p alpha)
+          (hcol p) (binBranch p).residual_computes _ (hcols p alpha))).cols =
+        Protocol.BranchAt.liftCols (binBranch p)
+          (Protocol.mkBranchAt_of_colPrefix (binBranch p).residual
+            (subgame (M3 d) (binBranch p).rows (binBranch p).cols)
+            (Nat.clog 2 (Params.q2 d)) (codeOfAlpha p alpha)
+            (hcol p) (binBranch p).residual_computes _ (hcols p alpha)) from rfl]
+    rw [Protocol.BranchAt.mem_liftCols]
+    refine ⟨hb, ?_⟩
+    -- (mkBranchAt_of_colPrefix ...).cols = colPrefixCols (via branchAt_of_swap rows→cols)
+    show (⟨M3_diagCol d alpha gamma, hb⟩ : {b // b ∈ (binBranch p).cols}) ∈
+      (Protocol.mkBranchAt_of_colPrefix
+        (binBranch p).residual
+        (subgame (M3 d) (binBranch p).rows (binBranch p).cols)
+        (Nat.clog 2 (Params.q2 d)) (codeOfAlpha p alpha)
+        (hcol p) (binBranch p).residual_computes _ (hcols p alpha)).cols
+    unfold Protocol.mkBranchAt_of_colPrefix Protocol.branchAt_of_swap
+    exact hprefix
+
+-- CLAIM-END aux:m3-fuzzy-opus

@@ -1,0 +1,163 @@
+-- CLAIM-BEGIN aux:m3-package
+
+noncomputable def M3_fiber_cRep
+    (d : Nat) (S : Finset (C2 d)) (alpha : Fin (Params.q2 d))
+    (hcover :
+      S.image (fun c : C2 d => S2fam d c alpha) =
+        (Finset.univ : Finset (R1 d)))
+    (r : R1 d) : C2 d :=
+  Classical.choose
+    (Finset.mem_image.mp
+      (by
+        rw [hcover]
+        exact Finset.mem_univ r))
+
+theorem M3_fiber_cRep_spec
+    (d : Nat) (S : Finset (C2 d)) (alpha : Fin (Params.q2 d))
+    (hcover :
+      S.image (fun c : C2 d => S2fam d c alpha) =
+        (Finset.univ : Finset (R1 d)))
+    (r : R1 d) :
+    M3_fiber_cRep d S alpha hcover r ∈ S ∧
+      S2fam d (M3_fiber_cRep d S alpha hcover r) alpha = r := by
+  classical
+  unfold M3_fiber_cRep
+  let himage :
+      r ∈ S.image (fun c : C2 d => S2fam d c alpha) := by
+    rw [hcover]
+    exact Finset.mem_univ r
+  exact Classical.choose_spec (Finset.mem_image.mp himage)
+
+theorem M3_fiber_cRep_mem
+    (d : Nat) (S : Finset (C2 d)) (alpha : Fin (Params.q2 d))
+    (hcover :
+      S.image (fun c : C2 d => S2fam d c alpha) =
+        (Finset.univ : Finset (R1 d)))
+    (r : R1 d) :
+    M3_fiber_cRep d S alpha hcover r ∈ S :=
+  (M3_fiber_cRep_spec d S alpha hcover r).1
+
+theorem M3_fiber_cRep_eval
+    (d : Nat) (S : Finset (C2 d)) (alpha : Fin (Params.q2 d))
+    (hcover :
+      S.image (fun c : C2 d => S2fam d c alpha) =
+        (Finset.univ : Finset (R1 d)))
+    (r : R1 d) :
+    S2fam d (M3_fiber_cRep d S alpha hcover r) alpha = r :=
+  (M3_fiber_cRep_spec d S alpha hcover r).2
+
+structure M3PackageSyncBridge
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (Y : Fin 4 -> Fin (Params.q2 d) -> Finset (C1 d)) where
+  sync : M3AmbientSyncData d P binBranch
+  diag_cols :
+    forall p alpha gamma,
+      gamma ∈ Y p alpha ->
+        M3_diagCol d alpha gamma ∈ (sync.dimBranch p alpha).cols
+
+theorem M3_fuzzy_leaves_package_from_sync_bridge
+    (d : Nat) (hchk : Checklist d)
+    (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hcost : P.cost <= D (M2 d) + 2)
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (hsep : M3SeparationConclusion d P)
+    (hStage2 :
+      forall (Sdense : Finset (C2 d))
+        (Pdense : Protocol (M2DenseRows d) (M2DenseCols d Sdense) Bool),
+          (1 - 8 * Params.h2 d) * (L2 d : Real) <=
+              (Sdense.card : Real) ->
+          Pdense.Computes (M2DenseGame d hqcast Sdense) ->
+          Pdense.cost <= D (M2 d) ->
+          Nonempty
+            (M2SeparationTransposeDenseRowsAlphaData d hqcast Sdense
+              Pdense))
+    (hgap : 4 * M3_rowLoss d < Fintype.card (C2 d))
+    (hC3 : (Finset.univ : Finset (C3 d)).Nonempty)
+    (hbridge :
+      M3PackageSyncBridge d P
+        (M3_binBranch d P hP hsep hgap hC3)
+        (fun p alpha =>
+          (Classical.choice
+            (M3_bin_dense_alpha_data_for_binBranch d P hP hsep hchk hgap hC3
+              p hqcast hStage2 hcost)).Yalpha alpha)) :
+    M3FuzzyLeavesConclusion d P := by
+  classical
+  let hsurj := M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap
+  let binBranch := M3_binBranch d P hP hsep hgap hC3
+  let S : Fin 4 -> Finset (C2 d) :=
+    fun p => M3_binSurvivors d P hsep.dominant_bins hsurj p
+  let alphaData :=
+    fun p =>
+      Classical.choice
+        (M3_bin_dense_alpha_data_for_binBranch d P hP hsep hchk hgap hC3
+          p hqcast hStage2 hcost)
+  let Y : Fin 4 -> Fin (Params.q2 d) -> Finset (C1 d) :=
+    fun p alpha => (alphaData p).Yalpha alpha
+  let fiberCover :
+      forall p alpha,
+        (S p).image (fun c : C2 d => S2fam d c alpha) =
+          (Finset.univ : Finset (R1 d)) := by
+    intro p alpha
+    exact
+      M3_C2_fiber_cover_of_dense d hchk (S p)
+        (by
+          change
+            (1 - 8 * Params.h2 d) * (Fintype.card (C2 d) : Real) <=
+              ((M3_binSurvivors d P hsep.dominant_bins hsurj p).card : Real)
+          exact M3_binSurvivors_dense d P hchk hsep.dominant_bins hsurj hgap p)
+        alpha
+  let cRep : Fin 4 -> Fin (Params.q2 d) -> R1 d -> C2 d :=
+    fun p alpha r => M3_fiber_cRep d (S p) alpha (fiberCover p alpha) r
+  refine ⟨
+    { separation := hsep
+      binBranch := binBranch
+      dimBranch := hbridge.sync.dimBranch
+      bin_sideTrace := ?_
+      dim_sideTrace := hbridge.sync.dim_sideTrace
+      dim_extends := hbridge.sync.dim_extends
+      S := S
+      Y := Y
+      cRep := cRep
+      bin_rows := ?_
+      S_dense_raw := ?_
+      S_dense := ?_
+      Y_dense := ?_
+      diag_cols := ?_
+      fiber_cover := ?_
+      cRep_mem := ?_
+      cRep_eval := ?_
+      exact_M1_copy := ?_ }⟩
+  · intro p
+    simp [binBranch, M3_binBranch, Protocol.mkBranchAt_of_rowPrefix]
+  · intro p c hc
+    change c ∈ M3_binSurvivors d P hsep.dominant_bins hsurj p at hc
+    change (p, c) ∈ (M3_binBranch d P hP hsep hgap hC3 p).rows
+    exact M3_binBranch_row_mem d P hP hsep hgap hC3 p c hc
+  · intro p
+    change
+      (Fintype.card (C2 d) : Real) - 3 * (M3_rowLoss d : Real) <=
+        ((M3_binSurvivors d P hsep.dominant_bins hsurj p).card : Real)
+    exact M3_binSurvivors_dense_raw d P hsep.dominant_bins hsurj hgap p
+  · intro p
+    change
+      (1 - 8 * Params.h2 d) * (Fintype.card (C2 d) : Real) <=
+        ((M3_binSurvivors d P hsep.dominant_bins hsurj p).card : Real)
+    exact M3_binSurvivors_dense d P hchk hsep.dominant_bins hsurj hgap p
+  · intro p alpha
+    exact (alphaData p).Yalpha_dense alpha
+  · intro p alpha gamma hgamma
+    exact hbridge.diag_cols p alpha gamma hgamma
+  · intro p alpha
+    exact fiberCover p alpha
+  · intro p alpha r
+    exact M3_fiber_cRep_mem d (S p) alpha (fiberCover p alpha) r
+  · intro p alpha r
+    exact M3_fiber_cRep_eval d (S p) alpha (fiberCover p alpha) r
+  · intro p alpha r gamma hgamma
+    exact
+      M3_diagCol_exact_M1_of_fiber d p (cRep p alpha r) alpha gamma r
+        (M3_fiber_cRep_eval d (S p) alpha (fiberCover p alpha) r)
+
+-- CLAIM-END aux:m3-package

@@ -1,0 +1,33 @@
+-- CLAIM-BEGIN thm:Extension
+/-- Paper `thm:Extension` (Extension theorem, §4 black box #1). Renderings:
+`t = 2^T`, `r = 2^R` powers of two (`q = r·t = 2^(R+T)`, so `log q = R + T`,
+`log t = T`, `log = log₂`); `t ≤ 2^b` is `(T:ℝ) ≤ b`; `t/2 ≤ p_seed` is
+`2^T ≤ 2·p_seed` (exact integer form, correct at `T = 0`). The relaxed
+interlace `Ŝ = ⟨M⟩_{q,S}` is `relaxedInterlace f S` for an ARBITRARY
+`(q,t)`-balanced family `S : Fin L → Fin q → Y` with accuracy `ε`
+(the paper's specific AGHP family `S_{q,t}(Cols M)` instantiates this —
+safe-stronger generalization; `|Cols Ŝ| = L`, family-index columns per
+`def:relaxed-interlace`). Submatrix condition (i) is GE-equipartition at
+threshold `⌈r·x_seed·m⌉` over an EXACT-size block set `|Q| = r·p_seed`;
+(ii) is `h·L ≤ |C'|`. Conclusion: `comp N ≥ comp M + log q` with
+`N = subgame (relaxedInterlace f S) R' C'` and `comp N = D N`. -/
+theorem extension_theorem {X Y : Type*} [Fintype X] [Fintype Y]
+    [DecidableEq Y] (f : X → Y → Bool) {b ε : ℝ} (hb : 1 ≤ b) (hε : 0 ≤ ε)
+    (T R : ℕ) (hTb : (T : ℝ) ≤ b)
+    {L : ℕ} (S : Fin L → Fin (2 ^ (R + T)) → Y)
+    (hS : IsBalancedFamily (2 ^ T) S ε)
+    (pseed : ℕ) {xseed h hseed : ℝ}
+    (hx1 : (2 : ℝ) ^ (-b) ≤ xseed) (hx2 : xseed ≤ 1)
+    (hh0 : 0 < h) (hh1 : h ≤ 1) (hs0 : 0 < hseed) (hs1 : hseed ≤ 1)
+    (hp1 : 2 ^ T ≤ 2 * pseed) (hp2 : pseed ≤ 2 ^ T)
+    (hres : IsColumnLossResilient f b ε (R + T) T h)
+    (hseedbd : D f + T ≤ Dfamily (interlaceFun f pseed)
+        (bracketGE X Y pseed xseed hseed))
+    (hbridge : hseed ≤ h * (2 : ℝ) ^ (-((T + D f : ℕ) : ℝ)) / (1 + ε))
+    (R' : Finset (Fin (2 ^ (R + T)) × X)) (C' : Finset (Fin L))
+    (hR' : ∃ Qs : Finset (Fin (2 ^ (R + T))), Qs.card = 2 ^ R * pseed ∧
+        IsEquipartitionedGE R' Qs
+          ⌈(2 : ℝ) ^ (R : ℕ) * xseed * (Fintype.card X : ℝ)⌉₊)
+    (hC' : h * (L : ℝ) ≤ (C'.card : ℝ)) :
+    D f + (R + T) ≤ D (subgame (relaxedInterlace f S) R' C') :=
+-- CLAIM-END thm:Extension

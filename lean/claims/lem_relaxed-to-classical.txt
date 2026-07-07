@@ -1,0 +1,28 @@
+-- CLAIM-BEGIN lem:relaxed-to-classical
+/-- Paper `lem:relaxed-to-classical` (THE bridge of Section 4): a submatrix of
+the relaxed interlace that keeps a `(Q,T)`-equipartitioned row set (`|Q| = u`,
+`1 <= u <= t`, realized by the equivalence `e`) and an index set `C'` of density
+`>= y` yields a member of the classical `u`-fold bracket at column density
+`y / (1 + eps)`: project the family to the `Q`-coordinates; balancedness (upper
+side) bounds every projected pattern's index-fiber by `(1+eps)L/|Y|^u`, so at
+least `y|Y|^u/(1+eps)` distinct patterns appear among `C'`; choosing one
+representative index per pattern gives the bracket columns. Provenance mirrors
+`coord_projection`: bracket rows come from `R` through `e`; every bracket
+column is the `Q`-projection of an ACTUAL family member with index in `C'`
+(the representative), which is what lets the protocol subtree transfer at the
+separation theorem's handoff point. The paper's `T := ceil(m x)` is the
+use-site hypothesis `hxT`; `eps >= 0` suffices here (the paper's
+`eps_{q,t} < 1` matters only for later size lower bounds). -/
+theorem relaxed_to_classical {X Y : Type*} [Fintype X] [Fintype Y] [DecidableEq Y]
+    {q u t L : ℕ} (hu : 0 < u) (hut : u ≤ t)
+    {S : Fin L → Fin q → Y} {ε : ℝ} (hS : IsBalancedFamily t S ε) (hε : 0 ≤ ε)
+    {Q : Finset (Fin q)} (e : Fin u ≃ {i // i ∈ Q})
+    {R : Finset (Fin q × X)} {C' : Finset (Fin L)} {T : ℕ} {x y : ℝ}
+    (hrow : IsEquipartitionedGE R Q T)
+    (hcol : y * (L : ℝ) ≤ (C'.card : ℝ))
+    (hxT : ⌈(Fintype.card X : ℝ) * x⌉₊ ≤ T) :
+    ∃ RC' : Finset (Fin u × X) × Finset (Fin u → Y),
+      RC' ∈ bracketGE X Y u x (y / (1 + ε)) ∧
+      (∀ a ∈ RC'.1, ((e a.1).val, a.2) ∈ R) ∧
+      (∀ c' ∈ RC'.2, ∃ j ∈ C', ∀ i : Fin u, c' i = S j (e i).val) :=
+-- CLAIM-END lem:relaxed-to-classical

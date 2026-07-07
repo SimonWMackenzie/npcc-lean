@@ -1,0 +1,142 @@
+-- CLAIM-BEGIN aux:vbp-wrapper-support
+theorem preprocess_promise (I : VBPInstance) (hI : I.Promise) :
+    (preprocess I).Promise := by
+  classical
+  intro beta
+  set s : Fin 5 := ((preprocessCoordEquiv I.d).symm beta).1 with hs
+  set alpha : Fin I.d := ((preprocessCoordEquiv I.d).symm beta).2 with halpha
+  have hsub : (Finset.univ.filter
+        (fun r => (preprocess I).v r beta = true))
+      ⊆ (Finset.univ.filter (fun i => I.v i alpha = true)).image
+          (slabRow I s) := by
+    intro r hr
+    rw [Finset.mem_filter] at hr
+    obtain ⟨-, hval⟩ := hr
+    rw [Finset.mem_image]
+    rcases preprocess_row_cases I r with ⟨t, i, rfl⟩ | ⟨q, rfl⟩
+    · rw [preprocess_v_slabRow] at hval
+      by_cases hst : s = t
+      · subst hst
+        rw [if_pos rfl] at hval
+        exact ⟨i, Finset.mem_filter.mpr ⟨Finset.mem_univ i, hval⟩, rfl⟩
+      · rw [if_neg (by simpa [eq_comm] using hst)] at hval
+        exact absurd hval (by simp)
+    · rw [anchor_val_false] at hval
+      exact absurd hval (by simp)
+  calc (Finset.univ.filter
+        (fun r => (preprocess I).v r beta = true)).card
+      ≤ ((Finset.univ.filter (fun i => I.v i alpha = true)).image
+          (slabRow I s)).card := Finset.card_le_card hsub
+    _ ≤ (Finset.univ.filter (fun i => I.v i alpha = true)).card :=
+          Finset.card_image_le
+    _ ≤ 4 := hI alpha
+
+theorem normalizeInstance_promise (dstar : Nat) (I : PreprocessedInstance)
+    (hI : I.Promise) : (normalizeInstance dstar I).Promise := by
+  classical
+  intro beta
+  rcases hbeta :
+      (padCoordEquiv
+        (le_trans (le_max_left I.d dstar) (le_ceilPowTwo _))).symm beta with
+    alpha | gamma
+  · simpa [normalizeInstance, hbeta] using hI alpha
+  · have hempty : (Finset.univ.filter
+        (fun i => (normalizeInstance dstar I).v i beta = true)) = ∅ := by
+      ext i
+      simp [normalizeInstance, hbeta]
+    rw [hempty]
+    norm_num
+
+theorem normalizeInstance_feasible_of_feasible
+    (dstar : Nat) (I : PreprocessedInstance) (sigma : Fin I.n -> Fin 4)
+    (hfeas : forall p alpha,
+      (Finset.univ.filter (fun i => sigma i = p ∧ I.v i alpha = true)).card ≤ 1) :
+    forall p beta,
+      (Finset.univ.filter
+        (fun i => sigma i = p ∧
+          (normalizeInstance dstar I).v i beta = true)).card ≤ 1 := by
+  classical
+  intro p beta
+  rcases hbeta :
+      (padCoordEquiv
+        (le_trans (le_max_left I.d dstar) (le_ceilPowTwo _))).symm beta with
+    alpha | gamma
+  · simpa [normalizeInstance, hbeta] using hfeas p alpha
+  · simp [normalizeInstance, hbeta]
+
+theorem normalizeInstance_isYes_iff (dstar : Nat) (I : PreprocessedInstance) :
+    I.IsYes ↔ (normalizeInstance dstar I).IsYes := by
+  constructor
+  · intro h
+    obtain ⟨sigma, hsigma⟩ := h
+    exact ⟨sigma, normalizeInstance_feasible_of_feasible dstar I sigma hsigma⟩
+  · intro h
+    obtain ⟨sigma, hsigma⟩ := h
+    refine ⟨sigma, ?_⟩
+    intro p alpha
+    have h :=
+      hsigma p
+        (padCoordEquiv
+          (le_trans (le_max_left I.d dstar) (le_ceilPowTwo _))
+          (Sum.inl alpha))
+    simpa [normalizeInstance, Equiv.symm_apply_apply] using h
+
+theorem normalizeInstance_bad_bin_of_bad_bin
+    (dstar : Nat) (I : PreprocessedInstance) (sigma : Fin I.n -> Fin 4) :
+    (∃ p alpha,
+      2 ≤ (Finset.univ.filter
+        (fun i => sigma i = p ∧ I.v i alpha = true)).card ∧
+      1 ≤ (Finset.univ.filter
+        (fun i => sigma i = p ∧ I.v i alpha = false)).card) ->
+    ∃ p beta,
+      2 ≤ (Finset.univ.filter
+        (fun i => sigma i = p ∧
+          (normalizeInstance dstar I).v i beta = true)).card ∧
+      1 ≤ (Finset.univ.filter
+        (fun i => sigma i = p ∧
+          (normalizeInstance dstar I).v i beta = false)).card := by
+  intro h
+  rcases h with ⟨p, alpha, htrue, hfalse⟩
+  refine ⟨p,
+    padCoordEquiv
+      (le_trans (le_max_left I.d dstar) (le_ceilPowTwo _))
+      (Sum.inl alpha), ?_, ?_⟩
+  · simpa [normalizeInstance, Equiv.symm_apply_apply] using htrue
+  · simpa [normalizeInstance, Equiv.symm_apply_apply] using hfalse
+
+theorem not_isYes_of_not_promise (I : VBPInstance) :
+    ¬ I.Promise -> ¬ I.IsYes := by
+  classical
+  intro hnp hyes
+  obtain ⟨alpha, halpha⟩ : ∃ alpha : Fin I.d,
+      4 < (Finset.univ.filter (fun i => I.v i alpha = true)).card := by
+    simpa [VBPInstance.Promise] using hnp
+  obtain ⟨sigma, hsigma⟩ := hyes
+  let active : Finset (Fin I.n) :=
+    Finset.univ.filter (fun i => I.v i alpha = true)
+  have hfiber : forall p : Fin 4,
+      (active.filter (fun i => sigma i = p)).card ≤ 1 := by
+    intro p
+    have hset : active.filter (fun i => sigma i = p)
+        = Finset.univ.filter (fun i => sigma i = p ∧ I.v i alpha = true) := by
+      ext i
+      simp [active, and_comm]
+    rw [hset]
+    exact hsigma p alpha
+  have hinj : Function.Injective (fun x : {i // i ∈ active} => sigma x.1) := by
+    intro x y hxy
+    apply Subtype.ext
+    have hxmem : x.1 ∈ active.filter (fun i => sigma i = sigma x.1) := by
+      rw [Finset.mem_filter]
+      exact ⟨x.2, rfl⟩
+    have hymem : y.1 ∈ active.filter (fun i => sigma i = sigma x.1) := by
+      rw [Finset.mem_filter]
+      exact ⟨y.2, hxy.symm⟩
+    exact (Finset.card_le_one.mp (hfiber (sigma x.1)) x.1 hxmem y.1 hymem)
+  have hcardSubtype :
+      Fintype.card {i // i ∈ active} ≤ Fintype.card (Fin 4) :=
+    Fintype.card_le_of_injective (fun x : {i // i ∈ active} => sigma x.1) hinj
+  have hactive : active.card ≤ 4 := by
+    simpa [active, Fintype.card_subtype] using hcardSubtype
+  exact not_lt_of_ge hactive halpha
+-- CLAIM-END aux:vbp-wrapper-support

@@ -1,0 +1,10 @@
+-- CLAIM-BEGIN lem:D-subgame-le
+/-- Subgames are easier, typed form: restricting a game to selected rows and
+columns cannot increase its deterministic communication complexity (the same
+protocol tree, with node predicates precomposed with the subtype inclusions,
+computes the restriction at equal cost). Typed analogue of the artifact's
+`subgames_are_easier`. -/
+theorem D_subgame_le {A B : Type*} [Fintype A] [Fintype B]
+    (f : A → B → Bool) (R : Finset A) (C : Finset B) :
+    D (subgame f R C) ≤ D f :=
+-- CLAIM-END lem:D-subgame-le

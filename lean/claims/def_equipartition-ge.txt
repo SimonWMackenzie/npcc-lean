@@ -1,0 +1,17 @@
+-- CLAIM-BEGIN def:equipartition-ge
+/-- Paper `def:equipartition` ((Q,T)-Equipartitioned Row Set), `≥`-form, typed.
+
+The paper's row set `R ⊆ [k] × X` (X a finite set) is a `Finset (ι × X)` over
+an index type `ι` playing the role of `[k]` (the paper's `k` only scopes `Q`;
+taking an arbitrary index type is the standard faithful generalization, and
+`X` may be any type since `R : Finset _` already makes the engaged rows
+finite). The paper's slice `R_q = {x ∈ X : (q,x) ∈ R}` is the fiber of `R`
+over first component `q`; filtering pairs with `p.1 = q` counts exactly
+`|R_q|` (the first component is fixed, so pairs biject with their second
+components). `R` is `(Q,T)`-equipartitioned iff every `q ∈ Q` has fiber of
+size at least `T`. The paper's side conditions `T ≥ 1` and `Q ⊆ [k]` are
+hypotheses at use sites, not baked into the predicate. -/
+def IsEquipartitionedGE {ι X : Type*} [DecidableEq ι]
+    (R : Finset (ι × X)) (Q : Finset ι) (T : ℕ) : Prop :=
+  ∀ q ∈ Q, T ≤ (R.filter (fun p => p.1 = q)).card
+-- CLAIM-END def:equipartition-ge

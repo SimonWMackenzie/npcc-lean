@@ -1,0 +1,17 @@
+-- CLAIM-BEGIN aux:bracket-top
+/-- Unit test for `bracketGE`: the full pair `(univ, univ)` is a member of the
+`x = y = 1` bracket. This checks the two membership conditions at their tightest
+thresholds. Row side: every fiber of `univ : Finset (Fin p × X)` over a fixed
+first component has card `Fintype.card X`, and the required threshold is
+`⌈(card X : ℝ) * 1⌉₊ = card X` (by `mul_one` then `Nat.ceil_natCast`), so the
+`≥` holds with equality. Column side: `(univ : Finset (Fin p → Y)).card =
+Fintype.card (Fin p → Y) = (card Y) ^ p` (`Fintype.card_pi_const`), and the
+required threshold is `⌈((card Y : ℝ) ^ p) * 1⌉₊ = (card Y) ^ p`, again meeting
+it with equality. This pins down that `bracketGE` at `x = y = 1` demands full
+fibers and the full column type, exercising both `IsEquipartitionedGE` and the
+column-count clause of the definition. -/
+theorem bracketGE.self_mem {X Y : Type*} [Fintype X] [Fintype Y]
+    (p : ℕ) [DecidableEq (Fin p → Y)] :
+    ((Finset.univ : Finset (Fin p × X)), (Finset.univ : Finset (Fin p → Y)))
+      ∈ bracketGE X Y p 1 1 :=
+-- CLAIM-END aux:bracket-top

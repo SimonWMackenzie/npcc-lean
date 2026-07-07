@@ -1,0 +1,24 @@
+-- CLAIM-BEGIN bridge:bracket
+/-- Bridge (typed → artifact) for bracket families, set level. A typed member
+`RC ∈ bracketGE X Y p x y` yields flattened extraction data `(R, C)` meeting
+the artifact bracket's conditions — rows exactly-equipartitioned at the
+artifact's real target `(m:ℝ)·x`, columns an exact-size subset of
+`range (n^p)` (both column conditions are pure counts, and
+`card (Fin p → Y) = n^p`) — and hence, for every `BoolMat` of matching
+dimensions, an actual member of `Workspace.Types.Bracket.bracket M p x y`.
+This makes the artifact's verified bracket machinery available behind the
+typed definitions; game-level value correspondence is Target A′. -/
+theorem bridge_bracket {X Y : Type*} [Fintype X] [Fintype Y] {p : ℕ} {x y : ℝ}
+    (RC : Finset (Fin p × X) × Finset (Fin p → Y))
+    (h : RC ∈ bracketGE X Y p x y) :
+    ∃ (R C : Finset ℕ),
+      R ⊆ Finset.range (Fintype.card X * p) ∧
+      IsEquipartitioned R (Fintype.card X) ((Fintype.card X : ℝ) * x) p ∧
+      C ⊆ Finset.range (Fintype.card Y ^ p) ∧
+      C.card = ⌈((Fintype.card Y ^ p : ℕ) : ℝ) * y⌉₊ ∧
+      ∀ M : Workspace.Types.BoolMat.BoolMat,
+        M.m = Fintype.card X → M.n = Fintype.card Y →
+        Workspace.Types.Extract.extract
+          (Workspace.Types.Interlace.interlace M p) R C
+          ∈ Workspace.Types.Bracket.bracket M p x y :=
+-- CLAIM-END bridge:bracket

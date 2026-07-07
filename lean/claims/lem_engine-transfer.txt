@@ -1,0 +1,15 @@
+-- CLAIM-BEGIN lem:engine-transfer
+/-- THE ENGINE-TRANSFER EQUALITY. Under the union of both directions'
+hypotheses, the paper's typed family complexity `comp⟨M,p,x,y⟩ = Dfamily`
+equals the artifact's set complexity `DSet (bracket M p x y)`. Proof:
+`le_antisymm` of `Dfamily_le_DSet` and `DSet_le_Dfamily`. Every artifact lower
+bound on `DSet` now transfers verbatim to `Dfamily`, and vice versa. -/
+theorem Dfamily_eq_DSet {X Y : Type*} [Fintype X] [Fintype Y]
+    (f : X → Y → Bool) (M : Workspace.Types.BoolMat.BoolMat)
+    (eX : Fin M.m ≃ X) (eY : Fin M.n ≃ Y)
+    (he : ∀ i j, M.e i j = f (eX i) (eY j))
+    {p : ℕ} {x y : ℝ} (hx0 : 0 < x) (hx1 : x ≤ 1) (hy0 : 0 < y) (hy1 : y ≤ 1)
+    (hX : 1 ≤ Fintype.card X) :
+    Dfamily (interlaceFun f p) (bracketGE X Y p x y)
+      = DSet (bracket M p x y) :=
+-- CLAIM-END lem:engine-transfer

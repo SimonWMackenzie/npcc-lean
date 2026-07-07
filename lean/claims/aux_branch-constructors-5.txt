@@ -1,0 +1,348 @@
+-- CLAIM-BEGIN aux:branch-constructors-5
+
+theorem actualPrefixCodeRaw_reindex {A B A' B' Z : Type*}
+    (eA : A' ≃ A) (eB : B' ≃ B)
+    (k : Nat) (P : Protocol A B Z) (a : A') (b : B') :
+    Protocol.actualPrefixCodeRaw k (Protocol.reindex eA eB P) a b =
+      Protocol.actualPrefixCodeRaw k P (eA a) (eB b) := by
+  induction k generalizing P with
+  | zero =>
+      rfl
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          rfl
+      | aNode q l r =>
+          simp only [Protocol.reindex, Protocol.actualPrefixCodeRaw]
+          by_cases hq : q (eA a)
+          · rw [if_pos hq, if_pos hq, ih r]
+          · rw [if_neg hq, if_neg hq, ih l]
+      | bNode q l r =>
+          simp only [Protocol.reindex, Protocol.actualPrefixCodeRaw]
+          by_cases hq : q (eB b)
+          · rw [if_pos hq, if_pos hq, ih r]
+          · rw [if_neg hq, if_neg hq, ih l]
+
+theorem actualSideListRaw_reindex {A B A' B' Z : Type*}
+    (eA : A' ≃ A) (eB : B' ≃ B)
+    (k : Nat) (P : Protocol A B Z) (a : A') (b : B') :
+    Protocol.actualSideListRaw k (Protocol.reindex eA eB P) a b =
+      Protocol.actualSideListRaw k P (eA a) (eB b) := by
+  induction k generalizing P with
+  | zero =>
+      rfl
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          rfl
+      | aNode q l r =>
+          simp only [Protocol.reindex, Protocol.actualSideListRaw]
+          by_cases hq : q (eA a)
+          · rw [if_pos hq, if_pos hq, ih r]
+          · rw [if_neg hq, if_neg hq, ih l]
+      | bNode q l r =>
+          simp only [Protocol.reindex, Protocol.actualSideListRaw]
+          by_cases hq : q (eB b)
+          · rw [if_pos hq, if_pos hq, ih r]
+          · rw [if_neg hq, if_neg hq, ih l]
+
+theorem actualSubtreeAtRaw_reindex {A B A' B' Z : Type*}
+    (eA : A' ≃ A) (eB : B' ≃ B)
+    (k : Nat) (P : Protocol A B Z) (w : Fin (2 ^ k)) :
+    Protocol.actualSubtreeAtRaw k (Protocol.reindex eA eB P) w =
+      Protocol.reindex eA eB (Protocol.actualSubtreeAtRaw k P w) := by
+  induction k generalizing P with
+  | zero =>
+      rfl
+  | succ n ih =>
+      cases P with
+      | leaf z =>
+          rfl
+      | aNode q l r =>
+          simp only [Protocol.reindex, Protocol.actualSubtreeAtRaw]
+          by_cases hw : Protocol.bitHead w
+          · rw [if_pos hw, if_pos hw, ih r]
+          · rw [if_neg hw, if_neg hw, ih l]
+      | bNode q l r =>
+          simp only [Protocol.reindex, Protocol.actualSubtreeAtRaw]
+          by_cases hw : Protocol.bitHead w
+          · rw [if_pos hw, if_pos hw, ih r]
+          · rw [if_neg hw, if_neg hw, ih l]
+
+@[simp] theorem evalDepth_reindex {A B A' B' Z : Type*}
+    (eA : A' ≃ A) (eB : B' ≃ B)
+    (P : Protocol A B Z) (a : A') (b : B') :
+    Protocol.evalDepth (Protocol.reindex eA eB P) a b =
+      Protocol.evalDepth P (eA a) (eB b) := by
+  induction P generalizing a b with
+  | leaf z =>
+      rfl
+  | aNode q l r ihl ihr =>
+      simp [Protocol.reindex, Protocol.evalDepth, ihl, ihr]
+  | bNode q l r ihl ihr =>
+      simp [Protocol.reindex, Protocol.evalDepth, ihl, ihr]
+
+theorem mem_map_equiv {A A' : Type*} (e : A' ≃ A) (s : Finset A') (a : A) :
+    a ∈ s.map ⟨e, e.injective⟩ ↔ e.symm a ∈ s := by
+  constructor
+  · intro ha
+    rcases Finset.mem_map.mp ha with ⟨x, hxmem, hxval⟩
+    have hxeq : x = e.symm a := by
+      apply e.injective
+      simpa using hxval
+    simpa [hxeq] using hxmem
+  · intro ha
+    exact Finset.mem_map.mpr ⟨e.symm a, ha, by simp⟩
+
+noncomputable def branchAt_of_reindex
+    {A B A' B' : Type*} [DecidableEq A] [DecidableEq B]
+    [DecidableEq A'] [DecidableEq B']
+    (eA : A' ≃ A) (eB : B' ≃ B)
+    {P : Protocol A B Bool} {G : A -> B -> Bool} {t : Nat}
+    (br : Protocol.BranchAt (Protocol.reindex eA eB P)
+      (fun a b => G (eA a) (eB b)) t) :
+    Protocol.BranchAt P G t where
+  rows := br.rows.map ⟨eA, eA.injective⟩
+  cols := br.cols.map ⟨eB, eB.injective⟩
+  transcript := br.transcript
+  sideTrace := br.sideTrace
+  residual :=
+    Protocol.restrictSub
+      (br.rows.map ⟨eA, eA.injective⟩)
+      (br.cols.map ⟨eB, eB.injective⟩)
+      (Protocol.actualSubtreeAtRaw t P br.transcript)
+  rows_nonempty := by
+    obtain ⟨a, ha⟩ := br.rows_nonempty
+    exact ⟨eA a, Finset.mem_map.mpr ⟨a, ha, rfl⟩⟩
+  cols_nonempty := by
+    obtain ⟨b, hb⟩ := br.cols_nonempty
+    exact ⟨eB b, Finset.mem_map.mpr ⟨b, hb, rfl⟩⟩
+  sideTrace_length := br.sideTrace_length
+  sideTrace_eq := by
+    intro a ha b hb
+    have ha' : eA.symm a ∈ br.rows :=
+      (Protocol.mem_map_equiv eA br.rows a).1 ha
+    have hb' : eB.symm b ∈ br.cols :=
+      (Protocol.mem_map_equiv eB br.cols b).1 hb
+    calc
+      Protocol.actualSideListRaw t P a b =
+          Protocol.actualSideListRaw t P (eA (eA.symm a)) (eB (eB.symm b)) := by
+            simp
+      _ = Protocol.actualSideListRaw t (Protocol.reindex eA eB P)
+            (eA.symm a) (eB.symm b) := by
+            rw [Protocol.actualSideListRaw_reindex]
+      _ = br.sideTrace := br.sideTrace_eq (eA.symm a) ha' (eB.symm b) hb'
+  rectangle_transcript := by
+    intro a ha b hb
+    have ha' : eA.symm a ∈ br.rows :=
+      (Protocol.mem_map_equiv eA br.rows a).1 ha
+    have hb' : eB.symm b ∈ br.cols :=
+      (Protocol.mem_map_equiv eB br.cols b).1 hb
+    calc
+      Protocol.actualPrefixCodeRaw t P a b =
+          Protocol.actualPrefixCodeRaw t P (eA (eA.symm a)) (eB (eB.symm b)) := by
+            simp
+      _ = Protocol.actualPrefixCodeRaw t (Protocol.reindex eA eB P)
+            (eA.symm a) (eB.symm b) := by
+            rw [Protocol.actualPrefixCodeRaw_reindex]
+      _ = br.transcript := br.rectangle_transcript (eA.symm a) ha' (eB.symm b) hb'
+  rows_reachable := by
+    intro a
+    constructor
+    · intro ha
+      have ha' : eA.symm a ∈ br.rows :=
+        (Protocol.mem_map_equiv eA br.rows a).1 ha
+      obtain ⟨b', hb', hcode⟩ := (br.rows_reachable (eA.symm a)).1 ha'
+      refine ⟨eB b', Finset.mem_map.mpr ⟨b', hb', rfl⟩, ?_⟩
+      calc
+        Protocol.actualPrefixCodeRaw t P a (eB b') =
+            Protocol.actualPrefixCodeRaw t P (eA (eA.symm a)) (eB b') := by
+              simp
+        _ = Protocol.actualPrefixCodeRaw t (Protocol.reindex eA eB P)
+              (eA.symm a) b' := by
+              rw [Protocol.actualPrefixCodeRaw_reindex]
+        _ = br.transcript := hcode
+    · rintro ⟨b, hb, hcode⟩
+      have hb' : eB.symm b ∈ br.cols :=
+        (Protocol.mem_map_equiv eB br.cols b).1 hb
+      have hcode' :
+          Protocol.actualPrefixCodeRaw t (Protocol.reindex eA eB P)
+              (eA.symm a) (eB.symm b) = br.transcript := by
+        calc
+          Protocol.actualPrefixCodeRaw t (Protocol.reindex eA eB P)
+              (eA.symm a) (eB.symm b) =
+              Protocol.actualPrefixCodeRaw t P (eA (eA.symm a)) (eB (eB.symm b)) := by
+              rw [Protocol.actualPrefixCodeRaw_reindex]
+          _ = Protocol.actualPrefixCodeRaw t P a b := by simp
+          _ = br.transcript := hcode
+      have ha' : eA.symm a ∈ br.rows :=
+        (br.rows_reachable (eA.symm a)).2 ⟨eB.symm b, hb', hcode'⟩
+      exact (Protocol.mem_map_equiv eA br.rows a).2 ha'
+  cols_reachable := by
+    intro b
+    constructor
+    · intro hb
+      have hb' : eB.symm b ∈ br.cols :=
+        (Protocol.mem_map_equiv eB br.cols b).1 hb
+      obtain ⟨a', ha', hcode⟩ := (br.cols_reachable (eB.symm b)).1 hb'
+      refine ⟨eA a', Finset.mem_map.mpr ⟨a', ha', rfl⟩, ?_⟩
+      calc
+        Protocol.actualPrefixCodeRaw t P (eA a') b =
+            Protocol.actualPrefixCodeRaw t P (eA a') (eB (eB.symm b)) := by
+              simp
+        _ = Protocol.actualPrefixCodeRaw t (Protocol.reindex eA eB P)
+              a' (eB.symm b) := by
+              rw [Protocol.actualPrefixCodeRaw_reindex]
+        _ = br.transcript := hcode
+    · rintro ⟨a, ha, hcode⟩
+      have ha' : eA.symm a ∈ br.rows :=
+        (Protocol.mem_map_equiv eA br.rows a).1 ha
+      have hcode' :
+          Protocol.actualPrefixCodeRaw t (Protocol.reindex eA eB P)
+              (eA.symm a) (eB.symm b) = br.transcript := by
+        calc
+          Protocol.actualPrefixCodeRaw t (Protocol.reindex eA eB P)
+              (eA.symm a) (eB.symm b) =
+              Protocol.actualPrefixCodeRaw t P (eA (eA.symm a)) (eB (eB.symm b)) := by
+              rw [Protocol.actualPrefixCodeRaw_reindex]
+          _ = Protocol.actualPrefixCodeRaw t P a b := by simp
+          _ = br.transcript := hcode
+      have hb' : eB.symm b ∈ br.cols :=
+        (br.cols_reachable (eB.symm b)).2 ⟨eA.symm a, ha', hcode'⟩
+      exact (Protocol.mem_map_equiv eB br.cols b).2 hb'
+  residual_eq_actual := rfl
+  residual_eval_eq := by
+    intro a b
+    rw [Protocol.eval_restrictSub]
+    have hcode :
+        Protocol.actualPrefixCodeRaw t P a.val b.val = br.transcript := by
+      have ha' : eA.symm a.val ∈ br.rows :=
+        (Protocol.mem_map_equiv eA br.rows a.val).1 a.2
+      have hb' : eB.symm b.val ∈ br.cols :=
+        (Protocol.mem_map_equiv eB br.cols b.val).1 b.2
+      calc
+        Protocol.actualPrefixCodeRaw t P a.val b.val =
+            Protocol.actualPrefixCodeRaw t P
+              (eA (eA.symm a.val)) (eB (eB.symm b.val)) := by
+              simp
+        _ = Protocol.actualPrefixCodeRaw t (Protocol.reindex eA eB P)
+              (eA.symm a.val) (eB.symm b.val) := by
+              rw [Protocol.actualPrefixCodeRaw_reindex]
+        _ = br.transcript := br.rectangle_transcript _ ha' _ hb'
+    rw [← hcode]
+    exact Protocol.eval_actualSubtreeAtRaw_eq_of_actualPrefix t P a.val b.val
+  residual_computes := by
+    intro a b
+    rw [Protocol.eval_restrictSub]
+    have hcode :
+        Protocol.actualPrefixCodeRaw t P a.val b.val = br.transcript := by
+      have ha' : eA.symm a.val ∈ br.rows :=
+        (Protocol.mem_map_equiv eA br.rows a.val).1 a.2
+      have hb' : eB.symm b.val ∈ br.cols :=
+        (Protocol.mem_map_equiv eB br.cols b.val).1 b.2
+      calc
+        Protocol.actualPrefixCodeRaw t P a.val b.val =
+            Protocol.actualPrefixCodeRaw t P
+              (eA (eA.symm a.val)) (eB (eB.symm b.val)) := by
+              simp
+        _ = Protocol.actualPrefixCodeRaw t (Protocol.reindex eA eB P)
+              (eA.symm a.val) (eB.symm b.val) := by
+              rw [Protocol.actualPrefixCodeRaw_reindex]
+        _ = br.transcript := br.rectangle_transcript _ ha' _ hb'
+    rw [← hcode]
+    rw [Protocol.eval_actualSubtreeAtRaw_eq_of_actualPrefix]
+    have ha' : eA.symm a.val ∈ br.rows :=
+      (Protocol.mem_map_equiv eA br.rows a.val).1 a.2
+    have hb' : eB.symm b.val ∈ br.cols :=
+      (Protocol.mem_map_equiv eB br.cols b.val).1 b.2
+    have hcomp := br.residual_computes
+      ⟨eA.symm a.val, ha'⟩ ⟨eB.symm b.val, hb'⟩
+    have heval := br.residual_eval_eq
+      ⟨eA.symm a.val, ha'⟩ ⟨eB.symm b.val, hb'⟩
+    rw [heval] at hcomp
+    simpa [Protocol.eval_reindex, subgame] using hcomp
+  restricted_residual_computes := by
+    intro a b
+    rw [Protocol.eval_restrictSub]
+    rw [Protocol.eval_restrict_of_mem
+      (br.rows.map ⟨eA, eA.injective⟩)
+      (br.cols.map ⟨eB, eB.injective⟩) P a.2 b.2]
+    have ha' : eA.symm a.val ∈ br.rows :=
+      (Protocol.mem_map_equiv eA br.rows a.val).1 a.2
+    have hb' : eB.symm b.val ∈ br.cols :=
+      (Protocol.mem_map_equiv eB br.cols b.val).1 b.2
+    have hcomp := br.residual_computes
+      ⟨eA.symm a.val, ha'⟩ ⟨eB.symm b.val, hb'⟩
+    have heval := br.residual_eval_eq
+      ⟨eA.symm a.val, ha'⟩ ⟨eB.symm b.val, hb'⟩
+    rw [heval] at hcomp
+    simpa [Protocol.eval_reindex, subgame] using hcomp
+  restrict_evalDepth_ledger := by
+    intro a ha b hb
+    exact Protocol.evalDepth_restrict_add_foldCount_of_mem
+      (br.rows.map ⟨eA, eA.injective⟩)
+      (br.cols.map ⟨eB, eB.injective⟩) P ha hb
+  actualDepth_eq := by
+    intro a ha b hb
+    rw [Protocol.evalDepth_restrictSub]
+    have hdepth :=
+      Protocol.evalDepth_eq_actualSideListRaw_length_add t P a b
+    have hside :
+        Protocol.actualSideListRaw t P a b = br.sideTrace := by
+      have ha' : eA.symm a ∈ br.rows :=
+        (Protocol.mem_map_equiv eA br.rows a).1 ha
+      have hb' : eB.symm b ∈ br.cols :=
+        (Protocol.mem_map_equiv eB br.cols b).1 hb
+      calc
+        Protocol.actualSideListRaw t P a b =
+            Protocol.actualSideListRaw t P (eA (eA.symm a)) (eB (eB.symm b)) := by
+              simp
+        _ = Protocol.actualSideListRaw t (Protocol.reindex eA eB P)
+              (eA.symm a) (eB.symm b) := by
+              rw [Protocol.actualSideListRaw_reindex]
+        _ = br.sideTrace := br.sideTrace_eq _ ha' _ hb'
+    have hcode :
+        Protocol.actualPrefixCodeRaw t P a b = br.transcript := by
+      have ha' : eA.symm a ∈ br.rows :=
+        (Protocol.mem_map_equiv eA br.rows a).1 ha
+      have hb' : eB.symm b ∈ br.cols :=
+        (Protocol.mem_map_equiv eB br.cols b).1 hb
+      calc
+        Protocol.actualPrefixCodeRaw t P a b =
+            Protocol.actualPrefixCodeRaw t P (eA (eA.symm a)) (eB (eB.symm b)) := by
+              simp
+        _ = Protocol.actualPrefixCodeRaw t (Protocol.reindex eA eB P)
+              (eA.symm a) (eB.symm b) := by
+              rw [Protocol.actualPrefixCodeRaw_reindex]
+        _ = br.transcript := br.rectangle_transcript _ ha' _ hb'
+    have hlen :
+        (Protocol.actualSideListRaw t P a b).length = t := by
+      rw [hside, br.sideTrace_length]
+    rw [hlen] at hdepth
+    rw [hcode] at hdepth
+    exact hdepth
+  cost_after_actualBits := by
+    obtain ⟨a0, ha0⟩ := br.rows_nonempty
+    obtain ⟨b0, hb0⟩ := br.cols_nonempty
+    rw [Protocol.cost_restrictSub]
+    have hcost :=
+      Protocol.actualSideListRaw_length_add_cost_actualSubtreeAtRaw_le
+        t P (eA a0) (eB b0)
+    have hside :
+        Protocol.actualSideListRaw t P (eA a0) (eB b0) = br.sideTrace := by
+      calc
+        Protocol.actualSideListRaw t P (eA a0) (eB b0) =
+            Protocol.actualSideListRaw t (Protocol.reindex eA eB P) a0 b0 := by
+            rw [Protocol.actualSideListRaw_reindex]
+        _ = br.sideTrace := br.sideTrace_eq a0 ha0 b0 hb0
+    have hcode :
+        Protocol.actualPrefixCodeRaw t P (eA a0) (eB b0) = br.transcript := by
+      calc
+        Protocol.actualPrefixCodeRaw t P (eA a0) (eB b0) =
+            Protocol.actualPrefixCodeRaw t (Protocol.reindex eA eB P) a0 b0 := by
+            rw [Protocol.actualPrefixCodeRaw_reindex]
+        _ = br.transcript := br.rectangle_transcript a0 ha0 b0 hb0
+    rw [hside, br.sideTrace_length, hcode] at hcost
+    exact hcost
+
+-- CLAIM-END aux:branch-constructors-5

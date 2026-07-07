@@ -1,0 +1,28 @@
+-- CLAIM-BEGIN lem:M1LowColumnStage2
+/-- Paper `lem:M1LowColumnStage2`, residual Stage-1 hardness at Stage-2 densities:
+with `h₂↓ := 2^{-(b₁ + log r₂)}`, for every power of two `1 ≤ r' ≤ r₁`,
+any extraction `N = M₁[R'; C']` with `R'` a `(Q,1)`-equipartition,
+`|Q| = (9/16) r' · t₁`, and `|C'| / |C₁| ≥ h₂↓` satisfies
+`comp N ≥ comp M₀ + log t₁ + log r'`. The vehicle is `cor:localized-extension`
+at `f = M₀`, `T = log t₁`, `R'ₑ = log r'`, `a = 0`,
+`p_seed = (9/16)t₁`; the four numeric gates are checklist-deliverable
+use-site hypotheses. -/
+theorem M1_low_column_stage2 (d : ℕ) (hd : 2 ≤ d)
+    (hchk : Params.t1 d ≤ Params.q1 d + 5)
+    (hdiv : Params.q1 d + 2 = Params.r1 d * Params.t1 d)
+    (hTb : Nat.log 2 (Params.t1 d) ≤ Params.b1 d)
+    (hRb : Nat.log 2 (Params.r1 d) ≤ Params.b1 d)
+    (hgap : Params.b1 d + Nat.log 2 (Params.r2 d) + Nat.log 2 (Params.r1 d)
+        + Nat.log 2 (Params.t1 d) + 8 ≤ Params.t1 d / 16)
+    {r' : ℕ} (hr'pow : ∃ k, r' = 2 ^ k) (hr'1 : 1 ≤ r')
+    (hr'r1 : r' ≤ Params.r1 d)
+    (R' : Finset (R1 d)) (C' : Finset (C1 d))
+    (Q : Finset (Fin (Params.q1 d)))
+    (hQcard : 16 * Q.card = 9 * r' * Params.t1 d)
+    (hrow : IsEquipartitionedGE
+              (R'.image (fun a => ((a.1 : Fin (Params.q1 d)), a.2))) Q 1)
+    (hcol : (2 : ℝ) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : ℤ))
+              * (Fintype.card (C1 d) : ℝ) ≤ (C'.card : ℝ)) :
+    (1 : ℤ) + (Nat.log 2 (Params.t1 d) : ℤ) + (Nat.log 2 r' : ℤ)
+      ≤ (Dfamily (M1 d) {(R', C')} : ℤ) := by
+-- CLAIM-END lem:M1LowColumnStage2

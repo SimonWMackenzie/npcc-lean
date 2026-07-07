@@ -1,0 +1,12 @@
+-- CLAIM-BEGIN aux:upper-partition
+/-- Partition composition upper bound, row side (no paper label). If the rows
+of `g : A → B → Bool` split into `2 ^ s` classes via `σ : A → Fin (2 ^ s)` and
+every class-submatrix — the game restricted to the rows of one class, all
+columns kept — admits a protocol of depth at most `c`, then `D g ≤ s + c`: an
+`s`-deep Alice announce tree names the class and the class subprotocol runs at
+its leaves. The column-side twin (Bob announces) is `comp_le_partition_cols`. -/
+theorem comp_le_partition {A B : Type*} [Fintype A] [Fintype B]
+    (g : A → B → Bool) (s c : ℕ) (σ : A → Fin (2 ^ s))
+    (hc : ∀ k : Fin (2 ^ s), D (fun (x : {x : A // σ x = k}) (y : B) => g x.val y) ≤ c) :
+    D g ≤ s + c :=
+-- CLAIM-END aux:upper-partition

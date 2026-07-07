@@ -1,0 +1,433 @@
+-- CLAIM-BEGIN aux:m2-dense-code-family
+
+abbrev M2DenseDepth (d : Nat) : Nat :=
+  Nat.log 2 (Params.r2 d) + M2_T d
+
+noncomputable abbrev M2DenseRin (d : Nat) :
+    Finset (Fin (2 ^ M2DenseDepth d) × C1 d) :=
+  Finset.univ
+
+noncomputable abbrev M2DenseRows (d : Nat) : Type :=
+  {a // a ∈ M2DenseRin d}
+
+noncomputable abbrev M2DenseCols (d : Nat) (Sdense : Finset (C2 d)) : Type :=
+  {c // c ∈ Sdense}
+
+noncomputable abbrev M2DenseLoss (d : Nat) : Nat :=
+  Nat.ceil ((2 : Real) ^ (1 - (Params.b1 d : Real)) *
+    (Fintype.card (C1 d) : Real))
+
+noncomputable abbrev M2DenseLabel (d : Nat) {B : Type*}
+    (P : Protocol (M2DenseRows d) B Bool) :
+    Fin (2 ^ M2DenseDepth d) × C1 d -> Fin (2 ^ M2DenseDepth d) :=
+  Protocol.prefixLabelFinQ (M2DenseRin d) P
+
+noncomputable abbrev M2DenseGame (d : Nat)
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (Sdense : Finset (C2 d)) :
+    M2DenseRows d -> M2DenseCols d Sdense -> Bool :=
+  subgame
+    (relaxedInterlace (M1T d)
+      (fun j gamma => S2fam d j (Fin.cast hqcast gamma)))
+    (M2DenseRin d) Sdense
+
+private theorem two_zpow_neg_nat_add_one_eq_rpow_one_sub_nat_stage2 (n : Nat) :
+    (2 : Real) ^ (-(n : Int) + 1) =
+      (2 : Real) ^ (1 - (n : Real)) := by
+  have hcast : (((-(n : Int) + 1 : Int) : Real) = 1 - (n : Real)) := by
+    norm_num
+    ring
+  rw [hcast.symm]
+  exact (Real.rpow_intCast (2 : Real) (-(n : Int) + 1)).symm
+
+private theorem M2DenseDepth_eq_log_q2 (d : Nat)
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d) :
+    M2DenseDepth d = Nat.log 2 (Params.q2 d) := by
+  rw [← hqcast]
+  simp [M2DenseDepth]
+
+private theorem M2DenseDepth_eq_clog_q2 (d : Nat) (hlarge : Checklist d)
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d) :
+    M2DenseDepth d = Nat.clog 2 (Params.q2 d) := by
+  rw [hlarge.clog_q2_eq]
+  exact M2DenseDepth_eq_log_q2 d hqcast
+
+private theorem M2Dense_YofCode_dense (d : Nat) (hlarge : Checklist d)
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (hgap : 2 ^ M2DenseDepth d * M2DenseLoss d < Fintype.card (C1 d))
+    (Sdense : Finset (C2 d))
+    (P : Protocol (M2DenseRows d) (M2DenseCols d Sdense) Bool)
+    (hNW :
+      NoWasteConclusion
+        (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+        (M2DenseRin d)
+        (M2DenseLabel d P)
+        (Fintype.card (C1 d))
+        (M2DenseLoss d))
+    (j : Fin (2 ^ M2DenseDepth d)) :
+    (1 - Params.eta2 d) * (Fintype.card (C1 d) : Real) <=
+      ((Protocol.YofCode
+        (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+        (M2DenseRin d) (M2DenseLabel d P) hNW (fun j => j) j).card : Real) := by
+  classical
+  let q := 2 ^ M2DenseDepth d
+  let N := Fintype.card (C1 d)
+  let loss := M2DenseLoss d
+  let X := (2 : Real) ^ (1 - (Params.b1 d : Real)) * (N : Real)
+  have hk_lt_N :
+      (((Finset.univ : Finset (Fin q)).card - 1) * loss) < N := by
+    have hcard :
+        (Finset.univ : Finset (Fin q)).card = q := by simp
+    have hle :
+        (((Finset.univ : Finset (Fin q)).card - 1) * loss) <= q * loss := by
+      rw [hcard]
+      exact Nat.mul_le_mul_right _ (Nat.sub_le _ _)
+    exact lt_of_le_of_lt hle (by simpa [q, N, loss] using hgap)
+  have hk_le_N :
+      (((Finset.univ : Finset (Fin q)).card - 1) * loss) <= N :=
+    Nat.le_of_lt hk_lt_N
+  have hYnat :
+      N - (((Finset.univ : Finset (Fin q)).card - 1) * loss) <=
+        (Protocol.YofCode
+          (Finset.univ : Finset (Fin q))
+          (M2DenseRin d) (M2DenseLabel d P) hNW (fun j => j) j).card := by
+    simpa [q, N, loss] using
+      Protocol.YofCode_card_ge
+        (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+        (M2DenseRin d) (M2DenseLabel d P) hNW (fun j => j) j
+  have hcardQ :
+      ((Finset.univ : Finset (Fin q)).card - 1 : Nat) = q - 1 := by
+    simp [q]
+  have hqpos : 1 <= q := by
+    dsimp [q]
+    exact Nat.one_le_two_pow
+  have hqsub_cast : (((Finset.univ : Finset (Fin q)).card - 1 : Nat) : Real) =
+      (q : Real) - 1 := by
+    rw [hcardQ]
+    rw [Nat.cast_sub hqpos]
+    norm_num
+  have hqsub_nonneg : 0 <= (q : Real) - 1 := by
+    exact sub_nonneg.mpr (by exact_mod_cast hqpos)
+  have hceil_lt : (loss : Real) < X + 1 := by
+    dsimp [loss, X, N, M2DenseLoss]
+    exact Nat.ceil_lt_add_one (by positivity)
+  have hceil_le : (loss : Real) <= X + 1 := le_of_lt hceil_lt
+  have hleft_le :
+      (((Finset.univ : Finset (Fin q)).card - 1 : Nat) : Real) *
+          (loss : Real) <=
+        ((q : Real) - 1) * (X + 1) := by
+    rw [hqsub_cast]
+    exact mul_le_mul_of_nonneg_left hceil_le hqsub_nonneg
+  have hslack :
+      ((q : Real) - 1) * (X + 1) <
+        Params.eta2 d * (N : Real) := by
+    dsimp [q, X, N]
+    have hpow :
+        (2 : Real) ^ (-(Params.b1 d : Int) + 1) =
+          (2 : Real) ^ (1 - (Params.b1 d : Real)) :=
+      two_zpow_neg_nat_add_one_eq_rpow_one_sub_nat_stage2 (Params.b1 d)
+    simpa [M2DenseDepth, C1, hpow, hqcast] using
+      hlarge.dens_nondominant_slack
+  have hloss_eta :
+      (((Finset.univ : Finset (Fin q)).card - 1 : Nat) : Real) *
+          (loss : Real) <
+        Params.eta2 d * (N : Real) :=
+    lt_of_le_of_lt hleft_le hslack
+  have hsub_real :
+      (((N - (((Finset.univ : Finset (Fin q)).card - 1) * loss)) : Nat) : Real) <=
+        ((Protocol.YofCode
+          (Finset.univ : Finset (Fin q))
+          (M2DenseRin d) (M2DenseLabel d P) hNW (fun j => j) j).card : Real) := by
+    exact_mod_cast hYnat
+  have htarget :
+      (1 - Params.eta2 d) * (N : Real) <=
+        (((N - (((Finset.univ : Finset (Fin q)).card - 1) * loss)) : Nat) : Real) := by
+    have hcastmul :
+        (((((Finset.univ : Finset (Fin q)).card - 1) * loss) : Nat) : Real) =
+          (((Finset.univ : Finset (Fin q)).card - 1 : Nat) : Real) *
+            (loss : Real) := by norm_num
+    rw [Nat.cast_sub hk_le_N]
+    rw [hcastmul]
+    nlinarith
+  exact le_trans htarget hsub_real
+
+structure M2SeparationTransposeDenseRowsCodeData
+    (d : Nat) (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (Sdense : Finset (C2 d))
+    (P : Protocol (M2DenseRows d) (M2DenseCols d Sdense) Bool) where
+  first_row_bits :
+    Protocol.FirstKRowBitsOn
+      (Finset.univ : Finset (M2DenseRows d))
+      (Finset.univ : Finset (M2DenseCols d Sdense))
+      (M2DenseDepth d) P
+  noWaste :
+    NoWasteConclusion
+      (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+      (M2DenseRin d)
+      (M2DenseLabel d P)
+      (Fintype.card (C1 d))
+      (M2DenseLoss d)
+  branch :
+    Fin (2 ^ M2DenseDepth d) ->
+      Protocol.BranchAt (Protocol.swap P)
+        (fun c a => M2DenseGame d hqcast Sdense a c)
+        (M2DenseDepth d)
+  branch_sideTrace :
+    forall j,
+      (branch j).sideTrace =
+        List.replicate (M2DenseDepth d) Protocol.ActualBitSide.bob
+  depth_eq_log_q2 :
+    M2DenseDepth d = Nat.log 2 (Params.q2 d)
+  depth_eq_clog_q2 :
+    M2DenseDepth d = Nat.clog 2 (Params.q2 d)
+  alphaOfCode :
+    Fin (2 ^ M2DenseDepth d) -> Fin (2 ^ M2DenseDepth d)
+  alphaOfCode_eq :
+    forall j,
+      alphaOfCode j =
+        Protocol.alphaOfCode
+          (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+          (M2DenseRin d) (M2DenseLabel d P) noWaste (fun j => j) j
+  YofCode :
+    Fin (2 ^ M2DenseDepth d) -> Finset (C1 d)
+  YofCode_eq :
+    forall j,
+      YofCode j =
+        Protocol.YofCode
+          (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+          (M2DenseRin d) (M2DenseLabel d P) noWaste (fun j => j) j
+  YofCode_card_ge :
+    forall j,
+      Fintype.card (C1 d) -
+          (((Finset.univ : Finset (Fin (2 ^ M2DenseDepth d))).card - 1) *
+            M2DenseLoss d) <=
+        (YofCode j).card
+  YofCode_dense :
+    forall j,
+      (1 - Params.eta2 d) * (Fintype.card (C1 d) : Real) <=
+        ((YofCode j).card : Real)
+  S_rows_survive :
+    forall j (c : C2 d) (hc : c ∈ Sdense),
+      (⟨c, hc⟩ : M2DenseCols d Sdense) ∈ (branch j).rows
+  diagonal_cols :
+    forall j gamma, gamma ∈ YofCode j ->
+      (⟨(alphaOfCode j, gamma), by simp [M2DenseRin]⟩ : M2DenseRows d) ∈
+        (branch j).cols
+
+theorem M2_separation_transpose_dense_rows_code_data (d : Nat) (hpow : IsPow2 d)
+    (hlog256 : 256 <= Nat.log 2 d)
+    (hlarge : Checklist d)
+    (hm0_le : (Classical.choose
+        (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+          Params.delta (by norm_num [Params.delta])
+          (by norm_num [Params.delta])) : Nat) <= Nat.log 2 (Params.t2 d))
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hp1 : 2 ^ M2_T d <= 2 * M2_hard_seed_copies d)
+    (hp2 : M2_hard_seed_copies d <= 2 ^ M2_T d)
+    (hxseed_le_one : M2_hard_seed_rowDensity d <= 1)
+    (hrow_threshold :
+      Nat.ceil ((2 : Real) ^ (Nat.log 2 (Params.r2 d) : Nat) *
+        M2_hard_seed_rowDensity d * (Fintype.card (C1 d) : Real))
+          <= Fintype.card (C1 d))
+    (hseed_bridge : M2_hard_seed_columnDensity d <=
+      Params.h2 d *
+        (2 : Real) ^ (-((M2_T d + D (M1T d) : Nat) : Real)) /
+          (1 + epsQT (Params.q2 d) (Params.t2 d)))
+    (hy_le_one : M1_stage2_terminal_density d <= 1)
+    (hrowTerm : 9 * Params.t1 d <=
+      16 * Nat.ceil ((Fintype.card (R1 d) : Real) *
+        M1_stage2_terminal_density d))
+    (hcolTerm : (2 : Real) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : Int))
+        * (Fintype.card (C1 d) : Real) <=
+      (Nat.ceil ((Fintype.card (C1 d) : Real) *
+        ((2 : Real) ^ (-(Params.b1 d : Int)))) : Real))
+    (hresidual_density : forall c, c <= M2_T d + D (M1T d) ->
+      1 / 2 + Params.delta <=
+          yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c /\
+        yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c <= 1)
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (sigma : Real) (hsigma0 : 0 < sigma) (hsigma1 : sigma <= 1)
+    (hsigma_dense : 1 - 8 * Params.h2 d <= sigma)
+    (hres_dense : IsColumnLossResilient (M1T d) (Params.b1 d : Real)
+      (epsQT (Params.q2 d) (Params.t2 d))
+      (Nat.log 2 (Params.q2 d)) (M2_T d) sigma)
+    (hxseed_le_inv_r : M2_hard_seed_rowDensity d <=
+      (2 : Real) ^ (-(Nat.log 2 (Params.r2 d) : Real)))
+    (hseed_bridge_dense : M2_hard_seed_columnDensity d <=
+      sigma *
+        (2 : Real) ^ (-((M2_T d + D (M1T d) : Nat) : Real)) /
+          (1 + epsQT (Params.q2 d) (Params.t2 d)))
+    (hdelta_sep : Params.delta <= 1 / Real.sqrt 2 - 1 / 2)
+    (hT1 : 1 <= M2_T d)
+    (hgap :
+      2 ^ M2DenseDepth d *
+        Nat.ceil ((2 : Real) ^ (1 - (Params.b1 d : Real)) *
+          (Fintype.card (C1 d) : Real)) < Fintype.card (C1 d))
+    (Sdense : Finset (C2 d))
+    (hSdense : sigma * (L2 d : Real) <= (Sdense.card : Real))
+    (P : Protocol (M2DenseRows d) (M2DenseCols d Sdense) Bool)
+    (hP : P.Computes (M2DenseGame d hqcast Sdense))
+    (hcost : P.cost <= D (M2 d)) :
+    Nonempty (M2SeparationTransposeDenseRowsCodeData d hqcast Sdense P) := by
+  classical
+  have hcore :=
+    M2_separation_transpose_dense_rows d hpow hlog256 hlarge hm0_le hr2pow
+      hp1 hp2 hxseed_le_one hrow_threshold hseed_bridge hy_le_one
+      hrowTerm hcolTerm hresidual_density hqcast sigma hsigma0 hsigma1
+      hsigma_dense hres_dense hxseed_le_inv_r hseed_bridge_dense
+      hdelta_sep hT1 hgap Sdense hSdense P hP hcost
+  rcases hcore with ⟨hfirst, hnw⟩
+  have hL2pos_nat : 0 < L2 d := L2_pos d hlarge.t2_le_q2 hlarge.one_le_q1
+  have hSdense_card_pos : 0 < Sdense.card := by
+    have hprod : 0 < sigma * (L2 d : Real) := by
+      exact mul_pos hsigma0 (by exact_mod_cast hL2pos_nat)
+    have hcard_real : 0 < (Sdense.card : Real) := lt_of_lt_of_le hprod hSdense
+    exact_mod_cast hcard_real
+  have hcols : (Finset.univ : Finset (M2DenseCols d Sdense)).Nonempty := by
+    obtain ⟨c, hc⟩ := Finset.card_pos.mp hSdense_card_pos
+    exact ⟨⟨c, hc⟩, Finset.mem_univ _⟩
+  have hlower_pos :
+      0 < Fintype.card (C1 d) -
+        (((Finset.univ : Finset (Fin (2 ^ M2DenseDepth d))).card - 1) *
+          M2DenseLoss d) := by
+    have hle :
+        (((Finset.univ : Finset (Fin (2 ^ M2DenseDepth d))).card - 1) *
+            M2DenseLoss d) <=
+          2 ^ M2DenseDepth d * M2DenseLoss d := by
+      have hcard :
+          (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d))).card =
+            2 ^ M2DenseDepth d := by simp
+      have hsub :
+          ((Finset.univ : Finset (Fin (2 ^ M2DenseDepth d))).card - 1) <=
+            2 ^ M2DenseDepth d := by
+        rw [hcard]
+        exact Nat.sub_le _ _
+      exact Nat.mul_le_mul_right _ hsub
+    exact Nat.sub_pos_of_lt (lt_of_le_of_lt hle (by simpa [M2DenseLoss] using hgap))
+  have hgap_loss :
+      2 ^ M2DenseDepth d * M2DenseLoss d < Fintype.card (C1 d) := by
+    simpa [M2DenseLoss] using hgap
+  have hrow_nonempty :
+      forall j : Fin (2 ^ M2DenseDepth d),
+        (Protocol.rowPrefixRows (M2DenseDepth d) P j).Nonempty := by
+    intro j
+    let alpha :=
+      Protocol.alphaOfCode
+        (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+        (M2DenseRin d) (M2DenseLabel d P) hnw (fun j => j) j
+    have hspec :=
+      Protocol.alphaOfCode_spec
+        (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+        (M2DenseRin d) (M2DenseLabel d P) hnw (fun j => j) j
+    have hcard_pos :
+        0 <
+          ((M2DenseRin d).filter
+            (fun p => M2DenseLabel d P p = j ∧ p.1 = alpha)).card :=
+      lt_of_lt_of_le hlower_pos hspec.2.1
+    obtain ⟨p, hp⟩ := Finset.card_pos.mp hcard_pos
+    rw [Finset.mem_filter] at hp
+    rcases hp with ⟨hpR, hlabel, _halpha⟩
+    refine ⟨⟨p, hpR⟩, ?_⟩
+    rw [Protocol.rowPrefixRows, Finset.mem_filter]
+    refine ⟨Finset.mem_univ _, ?_⟩
+    dsimp [M2DenseLabel, Protocol.prefixLabelFinQ] at hlabel
+    simpa [hpR] using hlabel
+  have hcolFirst :
+      Protocol.FirstKColBitsOn
+        (Finset.univ : Finset (M2DenseCols d Sdense))
+        (Finset.univ : Finset (M2DenseRows d))
+        (M2DenseDepth d) (Protocol.swap P) := by
+    simpa [Protocol.FirstKColBitsOn, Protocol.swap_swap] using hfirst
+  have hPswap :
+      (Protocol.swap P).Computes
+        (fun c a => M2DenseGame d hqcast Sdense a c) := by
+    intro c a
+    rw [Protocol.eval_swap]
+    exact hP a c
+  let brBob :
+      Fin (2 ^ M2DenseDepth d) ->
+        Protocol.BranchAt (Protocol.swap P)
+          (fun c a => M2DenseGame d hqcast Sdense a c)
+          (M2DenseDepth d) :=
+    fun j =>
+      Protocol.mkBranchAt_of_colPrefix (Protocol.swap P)
+        (fun c a => M2DenseGame d hqcast Sdense a c)
+        (M2DenseDepth d) j hcolFirst hPswap hcols
+        (by
+          simpa [Protocol.colPrefixCols, Protocol.swap_swap] using hrow_nonempty j)
+  refine ⟨
+    { first_row_bits := hfirst
+      noWaste := hnw
+      branch := brBob
+      branch_sideTrace := ?_
+      depth_eq_log_q2 := M2DenseDepth_eq_log_q2 d hqcast
+      depth_eq_clog_q2 := M2DenseDepth_eq_clog_q2 d hlarge hqcast
+      alphaOfCode := fun j =>
+        Protocol.alphaOfCode
+          (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+          (M2DenseRin d) (M2DenseLabel d P) hnw (fun j => j) j
+      alphaOfCode_eq := ?_
+      YofCode := fun j =>
+        Protocol.YofCode
+          (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+          (M2DenseRin d) (M2DenseLabel d P) hnw (fun j => j) j
+      YofCode_eq := ?_
+      YofCode_card_ge := ?_
+      YofCode_dense := ?_
+      S_rows_survive := ?_
+      diagonal_cols := ?_ }⟩
+  · intro j
+    simp [brBob, Protocol.mkBranchAt_of_colPrefix, Protocol.branchAt_of_swap,
+      Protocol.mkBranchAt_of_rowPrefix, Protocol.ActualBitSide.swap]
+  · intro j
+    rfl
+  · intro j
+    rfl
+  · intro j
+    exact
+      Protocol.YofCode_card_ge
+        (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+        (M2DenseRin d) (M2DenseLabel d P) hnw (fun j => j) j
+  · intro j
+    exact M2Dense_YofCode_dense d hlarge hqcast
+      hgap_loss Sdense P hnw j
+  · intro j c hc
+    simp [brBob, Protocol.mkBranchAt_of_colPrefix, Protocol.branchAt_of_swap,
+      Protocol.mkBranchAt_of_rowPrefix]
+  · intro j gamma hgamma
+    let alpha :=
+      Protocol.alphaOfCode
+        (Finset.univ : Finset (Fin (2 ^ M2DenseDepth d)))
+        (M2DenseRin d) (M2DenseLabel d P) hnw (fun j => j) j
+    change gamma ∈
+      ((Finset.univ : Finset (C1 d)).filter
+        (fun x => (alpha, x) ∈ M2DenseRin d ∧
+          M2DenseLabel d P (alpha, x) = j)) at hgamma
+    have hmem := Finset.mem_filter.mp hgamma
+    have hRin : (alpha, gamma) ∈ M2DenseRin d := hmem.2.1
+    have hlabel : M2DenseLabel d P (alpha, gamma) = j := hmem.2.2
+    change (⟨(alpha, gamma), hRin⟩ : M2DenseRows d) ∈
+      Protocol.colPrefixCols (M2DenseDepth d) (Protocol.swap P) j
+    change (⟨(alpha, gamma), hRin⟩ : M2DenseRows d) ∈
+      Protocol.rowPrefixRows (M2DenseDepth d) (Protocol.swap (Protocol.swap P)) j
+    rw [Protocol.swap_swap]
+    rw [Protocol.rowPrefixRows, Finset.mem_filter]
+    refine ⟨Finset.mem_univ _, ?_⟩
+    have hfiber :
+        (alpha, gamma) ∈
+          Protocol.prefixFiber (M2DenseRin d)
+            (Protocol.prefixLabelFinQ (M2DenseRin d) P) j := by
+      rw [Protocol.prefixFiber, Finset.mem_filter]
+      exact ⟨hRin, by simpa [M2DenseLabel] using hlabel⟩
+    have hprefix :=
+      (Protocol.prefixFiber_mem_iff (M2DenseRin d) P j (alpha, gamma)).mp
+        hfiber
+    rcases hprefix with ⟨ha, hcode⟩
+    have hsub :
+        (⟨(alpha, gamma), ha⟩ : M2DenseRows d) =
+          ⟨(alpha, gamma), hRin⟩ := Subtype.ext rfl
+    simpa [hsub] using hcode
+
+-- CLAIM-END aux:m2-dense-code-family

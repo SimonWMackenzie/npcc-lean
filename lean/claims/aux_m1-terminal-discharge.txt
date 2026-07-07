@@ -1,0 +1,395 @@
+-- CLAIM-BEGIN aux:m1-terminal-discharge
+private theorem m1_terminal_exponent_budget (d : ℕ) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 ≤ Nat.log 2 d) :
+    Params.b2 d + (Nat.log 2 (Params.q2 d) + D (M1 d)) + 1 ≤
+      (Nat.log 2 (Nat.log 2 d) - 6) * Params.t2 d := by
+  classical
+  let k := Nat.log 2 d
+  let ell := Nat.log 2 k
+  have hlog64 : 64 ≤ Nat.log 2 d := by
+    nlinarith
+  have hlog1 : 1 ≤ Nat.log 2 d := by omega
+  have hd : 2 ≤ d := by
+    obtain ⟨j, rfl⟩ := hpow
+    have hj : 2 ^ 18 ≤ j := by simpa [log_two_pow] using hlog
+    exact Nat.succ_le_of_lt (Nat.one_lt_two_pow (by omega : j ≠ 0))
+  have hD : D (M1 d) = Params.a d + 1 := M1_complexity d hpow hlog64
+  have hq2log : Nat.log 2 (Params.q2 d) = k := by
+    dsimp [k]
+    rw [Params.q2_eq_of_pow2 hpow]
+  have hell18 : 18 ≤ ell := by
+    dsimp [ell, k]
+    calc 18 = Nat.log 2 (2 ^ 18) := by rw [log_two_pow]
+      _ ≤ Nat.log 2 (Nat.log 2 d) := Nat.log_mono_right hlog
+  have hellpos : 0 < ell := by omega
+  have hpow_ell_le_k : 2 ^ ell ≤ k := by
+    dsimp [ell]
+    exact Nat.pow_log_le_self 2 (by omega : k ≠ 0)
+  have h6ell : 6 * ell ≤ 2 ^ ell := six_mul_le_two_pow (by omega)
+  have h5ell6 : 5 * ell + 6 ≤ k := by
+    calc 5 * ell + 6 ≤ 6 * ell := by omega
+      _ ≤ 2 ^ ell := h6ell
+      _ ≤ k := hpow_ell_le_k
+  have hqpow : Params.q1 d + 2 = 2 ^ Params.a d := Params.q1_add_two_pow hlog1
+  have hqle : Params.q1 d + 2 ≤ 4 * k ^ 2 := by
+    dsimp [k]
+    exact Params.q1_add_two_le (d := d) hlog1
+  have hk_lt_pow : k < 2 ^ (ell + 1) := by
+    dsimp [ell]
+    exact Nat.lt_pow_succ_log_self (by norm_num : 1 < 2) k
+  have hk_le_pow : k ≤ 2 ^ (ell + 1) := le_of_lt hk_lt_pow
+  have hk2_le : k ^ 2 ≤ (2 ^ (ell + 1)) ^ 2 :=
+    Nat.pow_le_pow_left hk_le_pow 2
+  have h4k2_le : 4 * k ^ 2 ≤ 2 ^ (2 * ell + 4) := by
+    calc 4 * k ^ 2 ≤ 4 * (2 ^ (ell + 1)) ^ 2 := Nat.mul_le_mul_left 4 hk2_le
+      _ = 2 ^ (2 * ell + 4) := by
+        calc 4 * (2 ^ (ell + 1)) ^ 2
+            = 2 ^ 2 * (2 ^ (ell + 1)) ^ 2 := by norm_num
+          _ = 2 ^ 2 * 2 ^ ((ell + 1) * 2) := by rw [pow_mul]
+          _ = 2 ^ (2 + ((ell + 1) * 2)) := by rw [← pow_add]
+          _ = 2 ^ (2 * ell + 4) := by ring_nf
+  have ha_le : Params.a d ≤ 2 * ell + 4 := by
+    have hpowle : 2 ^ Params.a d ≤ 2 ^ (2 * ell + 4) := by
+      rw [← hqpow]
+      exact le_trans hqle h4k2_le
+    exact (Nat.pow_le_pow_iff_right (by norm_num : 2 ≤ 2)).mp hpowle
+  let inner : ℕ :=
+    (3 * k + ell - 1) / ell
+  have hinner_le_t2 : inner ≤ Params.t2 d := by
+    dsimp [inner, k, ell]
+    unfold Params.t2
+    exact le_ceilPowTwo _
+  have hceil_mul : 3 * k ≤ inner * ell := by
+    dsimp [inner]
+    have hdivmod := Nat.div_add_mod' (3 * k + ell - 1) ell
+    have hmodlt : (3 * k + ell - 1) % ell < ell := Nat.mod_lt _ hellpos
+    omega
+  have hkey_mul : (k + 5 * ell + 6) * ell ≤ (3 * k * (ell - 6)) := by
+    have h18k : 18 * k ≤ ell * k := Nat.mul_le_mul_right k hell18
+    have h18k' : 18 * k ≤ k * ell := by simpa [Nat.mul_comm] using h18k
+    have hpart : (5 * ell + 6) * ell ≤ k * ell :=
+      Nat.mul_le_mul_right ell h5ell6
+    have hsub_expand :
+        ((3 * k * (ell - 6) : ℕ) : ℤ) =
+          (3 : ℤ) * k * ell - 18 * k := by
+      have hell6 : 6 ≤ ell := by omega
+      rw [Nat.cast_mul, Nat.cast_mul, Nat.cast_sub hell6]
+      ring
+    have hkeyZ :
+        (((k + 5 * ell + 6) * ell : ℕ) : ℤ) ≤
+          ((3 * k * (ell - 6) : ℕ) : ℤ) := by
+      rw [hsub_expand]
+      push_cast at h18k' hpart
+      push_cast
+      nlinarith
+    exact_mod_cast hkeyZ
+  have hbudget_small : k + 5 * ell + 6 ≤ (ell - 6) * inner := by
+    apply Nat.le_of_mul_le_mul_right
+    · calc
+        (k + 5 * ell + 6) * ell ≤ 3 * k * (ell - 6) := hkey_mul
+        _ ≤ (inner * ell) * (ell - 6) := by
+          exact Nat.mul_le_mul_right (ell - 6) hceil_mul
+        _ = ((ell - 6) * inner) * ell := by ring
+    · exact hellpos
+  have hbudget : k + 5 * ell + 6 ≤ (ell - 6) * Params.t2 d := by
+    exact le_trans hbudget_small (Nat.mul_le_mul_left (ell - 6) hinner_le_t2)
+  have hA :
+      Params.b2 d + (Nat.log 2 (Params.q2 d) + D (M1 d)) + 1 ≤
+        k + 5 * ell + 6 := by
+    unfold Params.b2
+    rw [hD, hq2log]
+    dsimp [ell, k]
+    nlinarith [ha_le]
+  exact le_trans hA hbudget
+
+private theorem m1_terminal_density_lower (d : ℕ) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 ≤ Nat.log 2 d) :
+    (2 : ℝ) ^ (-(Nat.log 2 (Nat.log 2 d) - 6 : ℝ)) ≤
+      M1_stage2_terminal_density d := by
+  classical
+  let c : ℕ := Nat.log 2 (Params.q2 d) + D (M1 d)
+  let A : ℕ := Params.b2 d + c + 1
+  let t : ℕ := Params.t2 d
+  let ε : ℝ := epsQT (Params.q2 d) (Params.t2 d)
+  let base : ℝ := (Params.h2 d * (2 : ℝ) ^ (-(c : ℝ))) / (1 + ε)
+  have htpos_nat : 0 < t := by dsimp [t]; exact Params.t2_pos d
+  have hεle : ε ≤ 1 / 2 := by
+    dsimp [ε]
+    exact epsQT_le_half (Params.q2_pos d) (Params.t2_pos d)
+  have hloglog6 : 6 ≤ Nat.log 2 (Nat.log 2 d) := by
+    have hloglog18 : 18 ≤ Nat.log 2 (Nat.log 2 d) := by
+      calc 18 = Nat.log 2 (2 ^ 18) := by rw [log_two_pow]
+        _ ≤ Nat.log 2 (Nat.log 2 d) := Nat.log_mono_right hlog
+    omega
+  have hdenpos : 0 < 1 + ε := by
+    have hεpos : 0 < ε := by
+      dsimp [ε]
+      exact epsQT_pos (Params.q2_pos d) (Params.t2_pos d)
+    linarith
+  have hnum_nonneg : 0 ≤ Params.h2 d * (2 : ℝ) ^ (-(c : ℝ)) := by
+    exact mul_nonneg (le_of_lt Params.h2_pos) (by positivity)
+  have hbase_ge_half :
+      Params.h2 d * (2 : ℝ) ^ (-(c : ℝ)) / 2 ≤ base := by
+    dsimp [base]
+    exact div_le_div_of_nonneg_left hnum_nonneg hdenpos (by linarith)
+  have hhalf_eq :
+      Params.h2 d * (2 : ℝ) ^ (-(c : ℝ)) / 2 =
+        (2 : ℝ) ^ (-(A : ℝ)) := by
+    have htwo_pos : (0 : ℝ) < 2 := by norm_num
+    have hcast_sum :
+        (((Params.b2 d + c + 1 : ℕ) : ℝ)) =
+          (Params.b2 d : ℝ) + (c : ℝ) + 1 := by
+      norm_num
+    dsimp [A]
+    unfold Params.h2
+    rw [← Real.rpow_intCast (2 : ℝ) (-(Params.b2 d : ℤ))]
+    calc
+      (2 : ℝ) ^ (((-(Params.b2 d : ℤ) : ℤ) : ℝ)) * (2 : ℝ) ^ (-(c : ℝ)) / 2
+          = (2 : ℝ) ^ (-(Params.b2 d : ℤ) : ℝ) *
+              (2 : ℝ) ^ (-(c : ℝ)) * (2 : ℝ) ^ (-1 : ℝ) := by
+                rw [Real.rpow_neg_one, Int.cast_neg, Int.cast_natCast]
+                ring_nf
+      _ = (2 : ℝ) ^
+            ((-(Params.b2 d : ℤ) : ℝ) + (-(c : ℝ)) + (-1 : ℝ)) := by
+              rw [← Real.rpow_add htwo_pos, ← Real.rpow_add htwo_pos]
+      _ = (2 : ℝ) ^ (-(((Params.b2 d + c + 1 : ℕ) : ℝ))) := by
+              rw [hcast_sum]
+              congr 1
+              rw [Int.cast_natCast]
+              ring_nf
+  have hpowA_le_base : (2 : ℝ) ^ (-(A : ℝ)) ≤ base := by
+    rw [← hhalf_eq]
+    exact hbase_ge_half
+  have hbudget : A ≤ (Nat.log 2 (Nat.log 2 d) - 6) * t := by
+    dsimp [A, c, t]
+    exact m1_terminal_exponent_budget d hpow hlog
+  have hpow_budget :
+      (2 : ℝ) ^ (-(((Nat.log 2 (Nat.log 2 d) - 6) * t : ℕ) : ℝ)) ≤
+        (2 : ℝ) ^ (-(A : ℝ)) := by
+    apply Real.rpow_le_rpow_of_exponent_le (by norm_num : (1 : ℝ) ≤ 2)
+    exact neg_le_neg (by exact_mod_cast hbudget)
+  have hbase0 :
+      0 ≤ (2 : ℝ) ^
+        (-(((Nat.log 2 (Nat.log 2 d) - 6) * t : ℕ) : ℝ)) := by positivity
+  have hroot_le :
+      ((2 : ℝ) ^
+        (-(((Nat.log 2 (Nat.log 2 d) - 6) * t : ℕ) : ℝ))) ^ (1 / (t : ℝ)) ≤
+        base ^ (1 / (t : ℝ)) := by
+    exact Real.rpow_le_rpow hbase0 (le_trans hpow_budget hpowA_le_base) (by positivity)
+  have hroot_eq :
+      ((2 : ℝ) ^
+        (-(((Nat.log 2 (Nat.log 2 d) - 6) * t : ℕ) : ℝ))) ^ (1 / (t : ℝ)) =
+        (2 : ℝ) ^ (-(Nat.log 2 (Nat.log 2 d) - 6 : ℝ)) := by
+    have hcastmul :
+        (((Nat.log 2 (Nat.log 2 d) - 6) * t : ℕ) : ℝ) =
+          (Nat.log 2 (Nat.log 2 d) - 6 : ℝ) * (t : ℝ) := by
+      rw [Nat.cast_mul, Nat.cast_sub hloglog6]
+      norm_num
+    rw [hcastmul]
+    rw [← Real.rpow_mul (by norm_num : (0 : ℝ) ≤ 2)]
+    have htne : (t : ℝ) ≠ 0 := by exact_mod_cast ne_of_gt htpos_nat
+    congr 1
+    field_simp [htne]
+  unfold M1_stage2_terminal_density yLoss
+  dsimp [base, ε, c, t] at hroot_le hroot_eq
+  rw [← hroot_eq]
+  exact hroot_le
+
+/-- The terminal one-copy row density is at most one. -/
+theorem M1_terminal_density_le_one (d : ℕ) :
+    M1_stage2_terminal_density d ≤ 1 := by
+  unfold M1_stage2_terminal_density
+  apply yLoss_le_one
+  · have hεnonneg : 0 ≤ epsQT (Params.q2 d) (Params.t2 d) := by
+      exact le_of_lt (epsQT_pos (Params.q2_pos d) (Params.t2_pos d))
+    have hdenpos : 0 < 1 + epsQT (Params.q2 d) (Params.t2 d) := by
+      linarith
+    have hh2nonneg : 0 ≤ Params.h2 d := le_of_lt Params.h2_pos
+    have hpow_nonneg :
+        0 ≤ (2 : ℝ) ^
+          (-((Nat.log 2 (Params.q2 d) + D (M1 d) : ℕ) : ℝ)) := by
+      positivity
+    exact div_nonneg (mul_nonneg hh2nonneg hpow_nonneg) (le_of_lt hdenpos)
+  · have hh2le : Params.h2 d ≤ 1 := by
+      unfold Params.h2
+      let A : ℤ := (Params.b2 d : ℕ)
+      change (2 : ℝ) ^ (-A) ≤ 1
+      rw [zpow_neg]
+      apply inv_le_one_of_one_le₀
+      apply one_le_zpow₀
+      · norm_num
+      · dsimp [A]
+        exact_mod_cast Nat.zero_le (Params.b2 d)
+    have hpowle :
+        (2 : ℝ) ^
+          (-((Nat.log 2 (Params.q2 d) + D (M1 d) : ℕ) : ℝ)) ≤ 1 := by
+      have hexp :
+          -((Nat.log 2 (Params.q2 d) + D (M1 d) : ℕ) : ℝ) ≤ (0 : ℝ) := by
+        exact neg_nonpos.mpr (by positivity)
+      calc
+        (2 : ℝ) ^
+            (-((Nat.log 2 (Params.q2 d) + D (M1 d) : ℕ) : ℝ))
+            ≤ (2 : ℝ) ^ (0 : ℝ) :=
+              Real.rpow_le_rpow_of_exponent_le (by norm_num) hexp
+        _ = 1 := by norm_num
+    have hnum :
+        Params.h2 d *
+          (2 : ℝ) ^
+            (-((Nat.log 2 (Params.q2 d) + D (M1 d) : ℕ) : ℝ)) ≤ 1 := by
+      calc
+        Params.h2 d *
+          (2 : ℝ) ^
+            (-((Nat.log 2 (Params.q2 d) + D (M1 d) : ℕ) : ℝ))
+            ≤ 1 * 1 := by
+              exact mul_le_mul hh2le hpowle (by positivity) (by positivity)
+        _ = 1 := by norm_num
+    have hεnonneg : 0 ≤ epsQT (Params.q2 d) (Params.t2 d) := by
+      exact le_of_lt (epsQT_pos (Params.q2_pos d) (Params.t2_pos d))
+    have hdenpos : 0 < 1 + epsQT (Params.q2 d) (Params.t2 d) := by
+      linarith
+    have hdenge : 1 ≤ 1 + epsQT (Params.q2 d) (Params.t2 d) := by
+      linarith
+    rw [div_le_iff₀ hdenpos]
+    calc
+      Params.h2 d *
+          (2 : ℝ) ^
+            (-((Nat.log 2 (Params.q2 d) + D (M1 d) : ℕ) : ℝ))
+          ≤ 1 := hnum
+      _ ≤ 1 * (1 + epsQT (Params.q2 d) (Params.t2 d)) := by nlinarith
+
+/-- The terminal one-copy row density leaves enough `M1` rows for the
+`r' = 1` residual Stage-1 slice. -/
+theorem M1_terminal_row_estimate (d : ℕ) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 ≤ Nat.log 2 d) :
+    9 * Params.t1 d ≤
+      16 * ⌈(Fintype.card (R1 d) : ℝ) * M1_stage2_terminal_density d⌉₊ := by
+  classical
+  let k := Nat.log 2 d
+  let ell := Nat.log 2 k
+  have hlog1 : 1 ≤ Nat.log 2 d := by nlinarith
+  have hkpos_nat : 0 < k := by dsimp [k]; omega
+  have hkpos : (0 : ℝ) < (k : ℝ) := by exact_mod_cast hkpos_nat
+  have hell6 : 6 ≤ ell := by
+    dsimp [ell, k]
+    have h18 : 18 ≤ Nat.log 2 (Nat.log 2 d) := by
+      calc 18 = Nat.log 2 (2 ^ 18) := by rw [log_two_pow]
+        _ ≤ Nat.log 2 (Nat.log 2 d) := Nat.log_mono_right hlog
+    omega
+  have hpow_ell_le_k : (2 : ℝ) ^ ell ≤ (k : ℝ) := by
+    have hnat : 2 ^ ell ≤ k := by
+      dsimp [ell]
+      exact Nat.pow_log_le_self 2 (by omega : k ≠ 0)
+    exact_mod_cast hnat
+  have hpow_eq :
+      (64 : ℝ) / ((2 : ℝ) ^ ell) =
+        (2 : ℝ) ^ (-(ell - 6 : ℝ)) := by
+    have hsplit : ell = (ell - 6) + 6 := by omega
+    calc
+      (64 : ℝ) / ((2 : ℝ) ^ ell)
+          = (2 : ℝ) ^ 6 / ((2 : ℝ) ^ ((ell - 6) + 6)) := by
+              rw [hsplit]; norm_num
+      _ = (2 : ℝ) ^ 6 / ((2 : ℝ) ^ (ell - 6) * (2 : ℝ) ^ 6) := by
+              rw [pow_add]
+      _ = ((2 : ℝ) ^ (ell - 6))⁻¹ := by
+              field_simp [(pow_ne_zero _ (by norm_num : (2 : ℝ) ≠ 0))]
+      _ = (2 : ℝ) ^ (-(ell - 6 : ℝ)) := by
+              rw [Real.rpow_neg (by norm_num : (0 : ℝ) ≤ 2)]
+              have hsubcast : ((ell - 6 : ℕ) : ℝ) = (ell : ℝ) - 6 := by
+                rw [Nat.cast_sub hell6]
+                norm_num
+              rw [← hsubcast]
+              rw [Real.rpow_natCast]
+  have h64_over_k :
+      (64 : ℝ) / (k : ℝ) ≤ (2 : ℝ) ^ (-(ell - 6 : ℝ)) := by
+    calc
+      (64 : ℝ) / (k : ℝ) ≤ (64 : ℝ) / ((2 : ℝ) ^ ell) := by
+        exact div_le_div_of_nonneg_left (by norm_num) (by positivity) hpow_ell_le_k
+      _ = (2 : ℝ) ^ (-(ell - 6 : ℝ)) := hpow_eq
+  have hydens :
+      (64 : ℝ) / (k : ℝ) ≤ M1_stage2_terminal_density d := by
+    exact le_trans h64_over_k (by
+      dsimp [ell, k]
+      exact m1_terminal_density_lower d hpow hlog)
+  have hcardR : (Fintype.card (R1 d) : ℝ) = (Params.q1 d : ℝ) := by
+    simp [R1, Fintype.card_prod, Fintype.card_fin]
+  have hq_lowerR : (2 : ℝ) * (k : ℝ) ^ 2 - 2 ≤ (Params.q1 d : ℝ) := by
+    have hq := Params.le_q1_add_two (d := d) hlog1
+    dsimp [k]
+    have hqR : ((2 * Nat.log 2 d ^ 2 : ℕ) : ℝ) ≤ (Params.q1 d : ℝ) + 2 := by
+      exact_mod_cast hq
+    push_cast at hqR
+    nlinarith
+  have ht_upperR : (Params.t1 d : ℝ) ≤ 128 * (k : ℝ) := by
+    have ht := (Params.t1_bracket (d := d) hlog1).2
+    dsimp [k]
+    exact_mod_cast ht
+  have hk_two : (2 : ℝ) ≤ (k : ℝ) := by
+    dsimp [k]
+    exact_mod_cast (by nlinarith : 2 ≤ Nat.log 2 d)
+  have hmain : 9 * (Params.t1 d : ℝ) * (k : ℝ) ≤
+      1024 * (Params.q1 d : ℝ) := by
+    nlinarith
+  have hreal_row :
+      ((9 * Params.t1 d : ℕ) : ℝ) / 16 ≤
+        (Params.q1 d : ℝ) * ((64 : ℝ) / (k : ℝ)) := by
+    field_simp [hkpos.ne']
+    push_cast
+    ring_nf
+    nlinarith [hmain]
+  have hreal :
+      ((9 * Params.t1 d : ℕ) : ℝ) / 16 ≤
+        (Fintype.card (R1 d) : ℝ) * M1_stage2_terminal_density d := by
+    calc
+      ((9 * Params.t1 d : ℕ) : ℝ) / 16
+          ≤ (Params.q1 d : ℝ) * ((64 : ℝ) / (k : ℝ)) := hreal_row
+      _ ≤ (Params.q1 d : ℝ) * M1_stage2_terminal_density d := by
+          exact mul_le_mul_of_nonneg_left hydens (by positivity)
+      _ = (Fintype.card (R1 d) : ℝ) * M1_stage2_terminal_density d := by
+          rw [hcardR]
+  have hceil :
+      ((9 * Params.t1 d : ℕ) : ℝ) / 16 ≤
+        (⌈(Fintype.card (R1 d) : ℝ) * M1_stage2_terminal_density d⌉₊ : ℝ) :=
+    le_trans hreal (Nat.le_ceil _)
+  have htargetR :
+      ((9 * Params.t1 d : ℕ) : ℝ) ≤
+        ((16 * ⌈(Fintype.card (R1 d) : ℝ) *
+          M1_stage2_terminal_density d⌉₊ : ℕ) : ℝ) := by
+    have hmul := mul_le_mul_of_nonneg_left hceil (by norm_num : (0 : ℝ) ≤ 16)
+    norm_num at hmul ⊢
+    linarith
+  exact_mod_cast htargetR
+
+/-- The terminal Stage-2 column threshold is below the rounded one-copy
+threshold used by `M1_terminal_stage2`. -/
+theorem M1_terminal_col_estimate (d : ℕ) :
+    (2 : ℝ) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : ℤ))
+        * (Fintype.card (C1 d) : ℝ) ≤
+      (⌈(Fintype.card (C1 d) : ℝ) *
+        ((2 : ℝ) ^ (-(Params.b1 d : ℤ)))⌉₊ : ℝ) := by
+  have hdown_le :
+      (2 : ℝ) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : ℤ)) ≤
+        (2 : ℝ) ^ (-(Params.b1 d : ℤ)) := by
+    apply zpow_le_zpow_right₀ (by norm_num : (1 : ℝ) ≤ 2)
+    omega
+  calc
+    (2 : ℝ) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : ℤ))
+        * (Fintype.card (C1 d) : ℝ)
+        ≤ (2 : ℝ) ^ (-(Params.b1 d : ℤ)) * (Fintype.card (C1 d) : ℝ) := by
+          exact mul_le_mul_of_nonneg_right hdown_le (by positivity)
+    _ = (Fintype.card (C1 d) : ℝ) * ((2 : ℝ) ^ (-(Params.b1 d : ℤ))) := by ring
+    _ ≤ (⌈(Fintype.card (C1 d) : ℝ) *
+        ((2 : ℝ) ^ (-(Params.b1 d : ℤ)))⌉₊ : ℝ) := Nat.le_ceil _
+
+/-- Composability wrapper for `M1_terminal_stage2` with the terminal numeric
+gates discharged under the explicit large-`d` logarithmic gate above. -/
+theorem M1_terminal_stage2' (d : ℕ) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 ≤ Nat.log 2 d) :
+    (D (M1 d) : ℤ) - (Nat.log 2 (Params.r1 d) : ℤ) ≤
+      (Dfamily (interlaceFun (M1 d) 1)
+        (bracketGE (R1 d) (C1 d) 1 (M1_stage2_terminal_density d)
+          ((2 : ℝ) ^ (-(Params.b1 d : ℤ)))) : ℤ) := by
+  exact M1_terminal_stage2 d hpow (by nlinarith : 64 ≤ Nat.log 2 d)
+    (M1_terminal_density_le_one d)
+    (M1_terminal_row_estimate d hpow hlog)
+    (M1_terminal_col_estimate d)
+-- CLAIM-END aux:m1-terminal-discharge

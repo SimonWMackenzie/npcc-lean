@@ -1,0 +1,4 @@
+.lake/
+*.log
+Workspace/MonoTest.lean
+pipeline/tmp/

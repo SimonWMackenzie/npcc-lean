@@ -1,0 +1,77 @@
+-- CLAIM-BEGIN def:scaffold-params
+/-! Paper `sec:scaffold`, the audited parameter regime as functions of the
+(normalised, power-of-two) ambient dimension `d` — every discrete parameter
+is an EXACT ℕ-def (`Nat.log 2` for the paper's `log`, `ceilPowTwo` for
+`ceilpowtwo`, ceiling division rendered as `(x + y − 1) / y`), and the real
+densities are derived from the ℕ exponents. Divisibility/power-of-two facts
+(`q₁+2 = r₁t₁`, `q₂ = r₂t₂`, `q₂ = d`, …) are NOT baked into the defs: they
+hold for large powers of two `d` and are delivered by `lem:large-d-checklist`
+as gated accessor lemmas. Nat truncation notes: `q1` truncates at small `d`
+(`ceilPowTwo … − 2`), `t2`'s inner division truncates when
+`Nat.log 2 (Nat.log 2 d) = 0` (i.e. `d < 4`) — both junk regions sit far
+below `d_star` and are never consumed. -/
+namespace Params
+
+/-- Global density margin `δ := 0.1`. -/
+noncomputable def delta : ℝ := 0.1
+
+/-- Global surplus-copy parameter `j := 5` (paper `\deltaDep`), fed to the
+Stage-2 application of the hard-seed lemma. -/
+def jSurplus : ℕ := 5
+
+/-- `q₁ := ceilpowtwo(2 log² d) − 2` (Stage-1 outer-coordinate count). -/
+def q1 (d : ℕ) : ℕ := ceilPowTwo (2 * Nat.log 2 d ^ 2) - 2
+
+/-- The Stage-1 threshold exponent `a`, defined structurally so that
+`2 ^ a = ceilpowtwo(2 log² d) = q₁ + 2` (companion `two_pow_a`, gated on
+`2 ≤ d` against the ℕ-truncation of `q1`). -/
+def a (d : ℕ) : ℕ := Nat.clog 2 (2 * Nat.log 2 d ^ 2)
+
+/-- Stage-1 independence `t₁ := ceilpowtwo(64 log d)` (paper `\Independence_1`). -/
+def t1 (d : ℕ) : ℕ := ceilPowTwo (64 * Nat.log 2 d)
+
+/-- Stage-1 fiber count `r₁ := (q₁+2)/t₁` (exact division for `d ≥ d_star`). -/
+def r1 (d : ℕ) : ℕ := (q1 d + 2) / t1 d
+
+/-- Base Stage-1 robustness margin `b₀ := 64 log(64 log d)` (paper
+`\Robustness_0`), used to initialise the passage `M₀ → M₁`. -/
+def b0 (d : ℕ) : ℕ := 64 * Nat.log 2 (64 * Nat.log 2 d)
+
+/-- Stage-1 core robustness `b′₁ := 3 log d` (paper `\CoreRobustness_1`). -/
+def b1' (d : ℕ) : ℕ := 3 * Nat.log 2 d
+
+/-- Stage-1 robustness `b₁ := 2 log d` (paper `\Robustness_1`). -/
+def b1 (d : ℕ) : ℕ := 2 * Nat.log 2 d
+
+/-- `q₂ := ceilpowtwo(d)` (`= d` once `d` is a power of two — gated
+companion `q2_eq_self`). -/
+def q2 (d : ℕ) : ℕ := ceilPowTwo d
+
+/-- Stage-2 independence `t₂ := ceilpowtwo(3 log d / loglog d)` (paper
+`\Independence_2`); the inner real division enters through its ℕ ceiling
+`(3 log d + loglog d − 1) / loglog d`, which agrees with the real form since
+a power-of-two threshold only sees the integer ceiling. -/
+def t2 (d : ℕ) : ℕ :=
+  ceilPowTwo
+    ((3 * Nat.log 2 d + Nat.log 2 (Nat.log 2 d) - 1) /
+      Nat.log 2 (Nat.log 2 d))
+
+/-- Stage-2 fiber count `r₂ := q₂/t₂` (exact division for `d ≥ d_star`). -/
+def r2 (d : ℕ) : ℕ := q2 d / t2 d
+
+/-- Stage-2 core robustness `b′₂ := 8 loglog d` (paper `\CoreRobustness_2`). -/
+def b2' (d : ℕ) : ℕ := 8 * Nat.log 2 (Nat.log 2 d)
+
+/-- Stage-2 robustness `b₂ := 3 loglog d` (paper `\Robustness_2`). -/
+def b2 (d : ℕ) : ℕ := 3 * Nat.log 2 (Nat.log 2 d)
+
+/-- Stage-2 density `h₂ := 2^{−b₂}` (`= (log d)^{−3}` for powers of two),
+derived from the ℕ exponent. -/
+noncomputable def h2 (d : ℕ) : ℝ := (2 : ℝ) ^ (-(b2 d : ℤ))
+
+/-- Stage-2 core density `h′₂ := 2^{−b′₂}` (`= (log d)^{−8}`), derived from
+the ℕ exponent. -/
+noncomputable def h2' (d : ℕ) : ℝ := (2 : ℝ) ^ (-(b2' d : ℤ))
+
+end Params
+-- CLAIM-END def:scaffold-params

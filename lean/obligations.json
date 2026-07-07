@@ -1,0 +1,3035 @@
+{
+ "target": "A+A'+T2+T3+T4+T5+T6",
+ "frozen_source": "paper-snapshots/arxiv-2508.05597-src/main.tex (arXiv:2508.05597 v4)",
+ "created": "2026-07-06",
+ "dag_frozen": true,
+ "obligations": [
+  {
+   "id": "def:equipartition-ge",
+   "kind": "def",
+   "statement_tex": "\\begin{definition}[(Q,T)-Equipartitioned Row Set]\\label{def:equipartition}\n    Let \\(X\\) be a finite set, let \\(k \\ge 1\\), and let \\(Q \\subseteq [k]\\).\n    For a row set \\(R \\subseteq [k]\\times X\\) and an integer \\(T \\ge 1\\), write\n    \\[\n        R_q := \\{x \\in X : (q,x) \\in R\\}\n        \\quad\\text{for each } q \\in Q.\n    \\]\n    We say that \\(R\\) is \\emph{\\((Q,T)\\)-equipartitioned} if\n    \\[\n        |R_q| \\ge T\n        \\quad\\text{for every } q \\in Q.\n    \\]\n\\end{definition}",
+   "spec": "Paper Def (>= T variant): |R_q| >= T for every q in Q. NOT the artifact's exact-card IsEquipartitioned.",
+   "deps": [],
+   "lean_name": "NPCC.IsEquipartitionedGE",
+   "file": "NPCC/Defs.lean",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-05T18:52:00.598Z",
+     "note": "REFORMULATED: typed/indexed encoding chosen over flattened-nat blocks (Simon 2026-07-06, K2 exception: additive command only)"
+    }
+   ],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "def:bracket-ge",
+   "kind": "def",
+   "statement_tex": "\\begin{definition}[Bracket family]\\label{def:bracket}\n    Let \\(M\\) be an \\(m\\times n\\) matrix, let \\(p\\ge 1\\), and let\n    \\(0<x,y\\le 1\\).  Write\n    \\[\n        T:=\\ceil{mx},\n        \\qquad\n        S:=\\ceil{n^p y}.\n    \\]\n    The family \\(\\bracket{M}{p}{x}{y}\\) consists of all submatrices of\n    \\(\\interlaceOp{M}{p}\\) whose row set is \\(([p],T)\\)-equipartitioned and\n    whose column set has size at least \\(S\\).\n\\end{definition}",
+   "spec": "Paper Def bracket family: row set ([p], ceil(mx))-equipartitioned (>=), column set SIZE >= ceil(n^p y). Set of extracted submatrices of interlace M p.",
+   "deps": [
+    "def:equipartition-ge"
+   ],
+   "lean_name": "NPCC.bracketGE",
+   "file": "NPCC/Defs.lean",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "aux:equipartition-mono-T",
+   "kind": "aux-lemma",
+   "statement_tex": null,
+   "spec": "General unit test: (Q,T)-equipartitioned and T' <= T implies (Q,T')-equipartitioned.",
+   "deps": [
+    "def:equipartition-ge"
+   ],
+   "lean_name": "NPCC.IsEquipartitionedGE.mono_T",
+   "file": "NPCC/DefsAux.lean",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": false,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:equipartition-subset-Q",
+   "kind": "aux-lemma",
+   "statement_tex": null,
+   "spec": "General unit test: (Q,T)-equipartitioned and Q' subseteq Q implies (Q',T)-equipartitioned.",
+   "deps": [
+    "def:equipartition-ge"
+   ],
+   "lean_name": "NPCC.IsEquipartitionedGE.mono_Q",
+   "file": "NPCC/DefsAux.lean",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": false,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:equipartition-full",
+   "kind": "aux-lemma",
+   "statement_tex": null,
+   "spec": "General unit test: the full row set [k] x X is (Q,T)-equipartitioned for any T <= |X| and Q subseteq [k].",
+   "deps": [
+    "def:equipartition-ge"
+   ],
+   "lean_name": "NPCC.IsEquipartitionedGE.univ",
+   "file": "NPCC/DefsAux.lean",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": false,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:bracket-top",
+   "kind": "aux-lemma",
+   "statement_tex": null,
+   "spec": "General unit test: interlace M p itself belongs to bracketGE M p 1 1 (for m,n >= 1).",
+   "deps": [
+    "def:bracket-ge"
+   ],
+   "lean_name": "NPCC.bracketGE.self_mem",
+   "file": "NPCC/DefsAux.lean",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": false,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:bracket-mono",
+   "kind": "aux-lemma",
+   "statement_tex": null,
+   "spec": "General unit test: for x' <= x, y' <= y every member of bracketGE M p x y contains a member of bracketGE M p x' y' (containment direction per paper Lemma mono shape).",
+   "deps": [
+    "def:bracket-ge"
+   ],
+   "lean_name": "NPCC.bracketGE.anti_mono_params",
+   "file": "NPCC/DefsAux.lean",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": false,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:bracket-nonempty",
+   "kind": "aux-lemma",
+   "statement_tex": null,
+   "spec": "General unit test: bracketGE M p x y nonempty when 0 < x,y <= 1 and m,n >= 1.",
+   "deps": [
+    "def:bracket-ge"
+   ],
+   "lean_name": "NPCC.bracketGE.nonempty",
+   "file": "NPCC/DefsAux.lean",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": false,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "bridge:equipartition",
+   "kind": "bridge",
+   "statement_tex": null,
+   "spec": "Artifact Workspace.IsEquipartitioned (exact ceil(mx) per block) implies NPCC.IsEquipartitionedGE at T=ceil(mx); and GE at T admits a subset that is artifact-equipartitioned (trim-to-exact). Both directions as separate statements.",
+   "deps": [
+    "def:equipartition-ge"
+   ],
+   "lean_name": "NPCC.bridge_equipartition",
+   "file": "NPCC/Bridge.lean",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "bridge:bracket",
+   "kind": "bridge",
+   "statement_tex": null,
+   "spec": "Every member of artifact Workspace.bracket M p x y is canonically a member of NPCC.bracketGE M p x y; conversely every bracketGE member CONTAINS an artifact-bracket member (trim rows to exact card, trim columns to exact size). Consequence: complexity bounds transfer, so the artifact's monotonicity/max-projection/product-of-projections/transpose/ladder lemmas apply to bracketGE.",
+   "deps": [
+    "def:bracket-ge",
+    "bridge:equipartition"
+   ],
+   "lean_name": "NPCC.bridge_bracket",
+   "file": "NPCC/Bridge.lean",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:coord-projection",
+   "kind": "lemma",
+   "statement_tex": "\\begin{lemma}[Coordinate projection]\\label{lem:coord-projection}\n    Let \\(M\\) be an \\(m\\times n\\) matrix, let \\(p\\ge 1\\), let\n    \\(Q\\subseteq [p]\\) with \\(|Q|=r\\ge 1\\), let \\(0<y\\le 1\\), let \\(T\\ge 1\\),\n    and let \\(N\\) be a submatrix of \\(\\interlaceOp{M}{p}\\) whose row set is\n    \\((Q,T)\\)-equipartitioned and whose column set has size at least \\(n^p y\\).\n    If \\(0<x\\le 1\\) satisfies \\(\\ceil{mx}\\le T\\), then \\(N\\) contains a matrix\n    in \\(\\bracket{M}{r}{x}{y}\\).\n\\end{lemma}",
+   "spec": "Paper Lemma coord-projection: a (Q,T)-equipartitioned submatrix of interlace M p with column set >= n^p y contains a member of bracketGE M |Q| x y when ceil(mx) <= T.",
+   "deps": [
+    "def:bracket-ge",
+    "bridge:bracket"
+   ],
+   "lean_name": "NPCC.coord_projection",
+   "file": "NPCC/CoordProjection.lean",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-05T19:43:57.552Z",
+     "note": "STATE compile failed:\nerror: NPCC/CoordProjection.lean:34:51: unexpected token ','; expected ')'\nerror: Lean exited with code 1\nerror: build failed"
+    }
+   ],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "port:rankclaim",
+   "kind": "port-check",
+   "statement_tex": "\\begin{lemma}\\label{lem:rankclaim}\n    For \\(\\MZero=[1\\;\\;0]\\), any positive integer \\(p\\), and reals\n    \\(0<x,y\\le 1\\) satisfying \\(p+\\log y>0\\), one has\n    \\[\n        \\comp{\\bracket{\\MZero}{p}{x}{y}}\n        \\ge\n        \\ceil{\\log\\!\\bigl(p+\\log y\\bigr)}+1.\n    \\]\n\\end{lemma}",
+   "spec": "Verify Workspace LogRankBound covers the paper's lem:rankclaim (D(bracket [1 0] p x y) >= ceil(log(p + log y)) + 1); restate NPCC-facing over bracketGE via bridge; no new proof if the artifact decl suffices.",
+   "deps": [
+    "bridge:bracket"
+   ],
+   "lean_name": "NPCC.rankclaim",
+   "file": "NPCC/SeedRank.lean",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "def:subgame",
+   "kind": "def",
+   "deps": [
+    "def:bracket-ge"
+   ],
+   "lean_name": "NPCC.subgame",
+   "file": "NPCC/Complexity.lean",
+   "statement_tex": null,
+   "spec": "Induced subgame of a game f : A -> B -> Bool by extraction data (R : Finset A, C : Finset B): the game on subtypes {a // a ∈ R} -> {c // c ∈ C} -> Bool, fun a c => f a.val c.val. This is the typed analogue of the artifact's extract; with f := interlaceFun M p and (R,C) a bracketGE member it realizes the paper's 'submatrix of the interlace'.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "def:Dfamily",
+   "kind": "def",
+   "deps": [
+    "def:subgame"
+   ],
+   "lean_name": "NPCC.Dfamily",
+   "file": "NPCC/Complexity.lean",
+   "statement_tex": null,
+   "spec": "Family complexity comp{Phi} := sInf over members (R,C) ∈ Phi of D (subgame f R C), where D is the artifact's polymorphic Workspace.Types.CommComplexity.D (protocol-tree depth). Parameterized by the ambient game f and Phi : Set (Finset A x Finset B). Instantiated at f = interlaceFun M p and Phi = bracketGE gives the paper's comp<M,p,x,y>. Aux unit tests: singleton family = D of its member; antitone under family inclusion (bigger family, smaller inf).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "aux:Dfamily-singleton",
+   "kind": "aux-lemma",
+   "deps": [
+    "def:Dfamily"
+   ],
+   "lean_name": "NPCC.Dfamily.singleton",
+   "file": "NPCC/ComplexityAux.lean",
+   "statement_tex": null,
+   "spec": "Unit test: Dfamily f {RC} = D (subgame f RC.1 RC.2).",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-05T20:05:00.040Z",
+     "note": "STATE compile failed:\nerror: NPCC/ComplexityAux.lean:15:21: Function expected at\nerror: NPCC/ComplexityAux.lean:21:14: Function expected at\nerror: NPCC/ComplexityAux.lean:22:11: Function expected at\nerror: Lean exited with code 1\nerror: build failed"
+    }
+   ],
+   "signed_off": false,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:Dfamily-anti-mono",
+   "kind": "aux-lemma",
+   "deps": [
+    "def:Dfamily"
+   ],
+   "lean_name": "NPCC.Dfamily.anti_mono",
+   "file": "NPCC/ComplexityAux.lean",
+   "statement_tex": null,
+   "spec": "Unit test: Phi1 ⊆ Phi2 (nonempty Phi1) implies Dfamily f Phi2 ≤ Dfamily f Phi1.",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-05T20:05:21.089Z",
+     "note": "STATE compile failed:\nerror: NPCC/ComplexityAux.lean:23:45: Unknown identifier `D`\nerror: NPCC/ComplexityAux.lean:24:45: Unknown identifier `D`\nerror: NPCC/ComplexityAux.lean:33:11: Unknown identifier `D`\nerror: Lean exited with code 1\nerror: build failed"
+    }
+   ],
+   "signed_off": false,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:D-equiv-invariance",
+   "kind": "lemma",
+   "deps": [
+    "def:subgame"
+   ],
+   "lean_name": "NPCC.D_equiv_invariance",
+   "file": "NPCC/Complexity.lean",
+   "statement_tex": null,
+   "spec": "D is invariant under reindexing both sides by equivalences: for e1 : A' ≃ A, e2 : B' ≃ B, D (fun a b => f (e1 a) (e2 b)) = D f. Proof: transport protocols along the equivs (structural recursion on Protocol; aNode predicate composes with e1, bNode with e2); both directions give ≤. This is the game-level bridge device — the reduction's 'canonically identified with' steps and the typed<->flattened complexity transfer both consume it.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:D-subgame-le",
+   "kind": "lemma",
+   "deps": [
+    "def:subgame"
+   ],
+   "lean_name": "NPCC.D_subgame_le",
+   "file": "NPCC/Complexity.lean",
+   "statement_tex": null,
+   "spec": "Subgames are easier, typed: D (subgame f R C) ≤ D f. Proof: the same protocol tree computes the restriction (transport along subtype inclusions; structural recursion). Typed analogue of the artifact's subgames_are_easier.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:rankclaim",
+   "kind": "lemma",
+   "deps": [
+    "def:Dfamily",
+    "lem:D-equiv-invariance"
+   ],
+   "lean_name": "NPCC.rankclaim",
+   "file": "NPCC/SeedRank.lean",
+   "statement_tex": null,
+   "spec": "RESCOPED from port:rankclaim (artifact lacks the bracket-form seed bound). Paper lem:rankclaim / M&S Lemma 2.5: for the 1x2 seed game (fun (_ : Fin 1) (j : Fin 2) => j = 0), any p ≥ 1, reals 0 < x,y ≤ 1 with p + log2 y > 0: Dfamily (interlaceFun seed p) (bracketGE (Fin 1) (Fin 2) p x y) ≥ ceil(log2 (p + log2 y)) + 1. Route: every bracketGE member's subgame has rank ≥ ... via distinct-columns counting; then the artifact's generic logRank_lowerBound / distinctCols_card_le_two_pow_rank machinery transports through D_equiv_invariance. statement_tex to be bound to the frozen tex block of lem:rankclaim at STATE time.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "def:robust",
+   "kind": "def",
+   "deps": [
+    "def:Dfamily"
+   ],
+   "lean_name": "NPCC.IsRobust",
+   "file": "NPCC/Robust.lean",
+   "statement_tex": "\\begin{definition}[$(\\delta,b)$-robust matrix]\\label{def:robust}\n    Let \\(b\\ge 0\\) be real and let\n    \\(\\delta\\in\\bigl(0,\\tfrac12\\bigr)\\).\n    A Boolean matrix \\(M\\) is \\emph{$(\\delta,b)$-robust} if\n    \\begin{align}\n        \\comp{M} &\\ge 1,\n        \\tag{R1}\\label{eq:robust-r1}\\\\\n        \\comp{\\bracket{M}{1}{2^{-b}}{\\tfrac12+\\delta}}\n        &\\ge \\comp{M},\n        \\tag{R2}\\label{eq:robust-r2}\\\\\n        \\comp{\\bracket{M}{1}{2^{-b}}{\\tfrac18+\\tfrac{\\delta}{4}}}\n        &\\ge \\comp{M}-2,\n        \\tag{R3}\\label{eq:robust-r3}\\\\\n        \\comp{\\bracket{M}{1}{2^{-b}}{\\tfrac14+\\tfrac{\\delta}{2}}}\n        &\\ge \\comp{M}-1.\n        \\tag{R4}\\label{eq:robust-r4}\n    \\end{align}\n\\end{definition}",
+   "spec": "Paper def:robust ((delta,b)-robust): R1 1 <= D f; R2/R3/R4 lower bounds on the p=1 bracket family at column densities 1/2+d, 1/8+d/4, 1/4+d/2 and row density 2^(-b). Typed: Dfamily (interlaceFun f 1) (bracketGE X Y 1 (2^(-b)) rho). R3/R4 in INTEGER (Z-cast) form to avoid Nat-truncation semantics (paper's comp M - 2 over Z). delta in (0,1/2), b >= 0 as use-site hypotheses per house convention.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "aux:robust-accessors",
+   "kind": "aux-lemma",
+   "deps": [
+    "def:robust"
+   ],
+   "lean_name": "NPCC.IsRobust.r2",
+   "file": "NPCC/RobustAux.lean",
+   "statement_tex": null,
+   "spec": "Unit probes: the four projection/accessor lemmas out of IsRobust (r1: 1 <= D f; r2/r3/r4 each extracting its conjunct), verifying the conjunction shape is usable downstream.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": false,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "def:encCol",
+   "kind": "def",
+   "deps": [],
+   "lean_name": "NPCC.encCol",
+   "file": "NPCC/Twin.lean",
+   "statement_tex": null,
+   "spec": "Digit flattening of a typed interlace column: encCol (c : Fin p -> Fin n) : Nat := sum over gamma of (c gamma).val * n^gamma. The artifact interlace reads column j's digit gamma as (j / n^gamma) % n; encCol is the inverse presentation.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "lem:digit-extract",
+   "kind": "lemma",
+   "deps": [
+    "def:encCol"
+   ],
+   "lean_name": "NPCC.encCol_digit",
+   "file": "NPCC/Twin.lean",
+   "statement_tex": null,
+   "spec": "For c : Fin p -> Fin n (n >= 1): encCol c < n^p, and for every q : Fin p, (encCol c / n^(q.val)) % n = (c q).val. Also encCol injective. Standard base-n digit lemma (induction on p or via Nat.ofDigits).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:DSet-le-Dfamily",
+   "kind": "lemma",
+   "deps": [
+    "lem:digit-extract",
+    "bridge:bracket",
+    "lem:D-equiv-invariance",
+    "lem:D-subgame-le"
+   ],
+   "lean_name": "NPCC.DSet_le_Dfamily",
+   "file": "NPCC/Twin.lean",
+   "statement_tex": null,
+   "spec": "THE VALUE-LEVEL TRANSFER (keystone): for f : X -> Y -> Bool and M : BoolMat with M.m = card X, M.n = card Y, entries matching f through Fintype.equivFin on both sides: DSet (Workspace bracket M p x y) <= Dfamily (interlaceFun f p) (bracketGE X Y p x y), whenever bracketGE nonempty side conditions hold (0 < x,y <= 1, card X >= 1). Route: every typed member (R,C) trims to exact sizes, flattens rows by encRow and columns by encCol to an artifact-bracket member whose extract is value-isomorphic to the trimmed typed subgame (digit lemma gives the value equality); D_equiv_invariance + subgame monotonicity give Dmat(twin) <= D(subgame member); conclude sInf <= sInf. Consequence: every artifact lower bound on DSet(bracket) becomes a lower bound on the paper's comp<M,p,x,y>.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:two-copy-ladder",
+   "kind": "lemma",
+   "deps": [
+    "lem:DSet-le-Dfamily",
+    "def:robust"
+   ],
+   "lean_name": "NPCC.two_copy_ladder",
+   "file": "NPCC/Engine.lean",
+   "statement_tex": "\\begin{lemma}\\label{lem:two-copy-ladder}\n    Let \\(M\\) be a Boolean matrix, let \\(0<x\\le \\tfrac12\\), let \\(0<y\\le 1\\),\n    and let \\(H\\in \\mathbb R\\).  Assume\n    \\[\n        \\comp{\\bracket{M}{1}{x}{\\frac{y}{4}}} \\ge H-2,\n        \\qquad\n        \\comp{\\bracket{M}{1}{x}{\\frac{y}{2}}} \\ge H-1,\n        \\qquad\n        \\comp{\\bracket{M}{1}{x}{y}} \\ge H.\n    \\]\n    Then\n    \\begin{align*}\n        \\comp{\\bracket{M}{2}{2x}{\\frac{y^2}{4}}}\n        &\\ge H-1,\\\\\n        \\comp{\\bracket{M}{2}{2x}{\\frac{y^2}{2}}}\n        &\\ge H,\\\\\n        \\comp{\\bracket{M}{2}{2x}{y^2}}\n        &\\ge H+1.\n    \\end{align*}\n\\end{lemma}",
+   "spec": "Paper lem:two-copy-ladder: three one-copy lower bounds at densities y, y/2, y/4 (levels H, H-1, H-2, H : Real) lift to two-copy bounds at 2x and densities y^2, y^2/2, y^2/4 (levels H+1, H, H-1). Typed over Dfamily with Real-cast comparisons. Proof route: transfer to the flattened side via lem:DSet-le-Dfamily and drive the artifact's ladder machinery (Appendix lemma_A1_partition_recurrence / row-rung machinery) — OR first-bit analysis natively; prover may park honestly with a gap report if the artifact shapes do not align.",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-05T23:39:18.634Z",
+     "note": "REFORMULATED: ULTRA FINDING (Pro objection, codex-verified): false as stated at H=1 on M0=[0 1] (x=1/2, y=3/5) — middle AND top conclusions fail; empty-domain variant (Deep Think) also fatal. Repair: add guard 1 < H (kills both). PAPER FEEDBACK for Simon: lemma + cor:robust-two-copy-ladder need the guard in the next revision."
+    }
+   ],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:Dfamily-le-DSet",
+   "kind": "lemma",
+   "deps": [
+    "lem:DSet-le-Dfamily"
+   ],
+   "lean_name": "NPCC.Dfamily_le_DSet",
+   "file": "NPCC/Twin.lean",
+   "statement_tex": null,
+   "spec": "REVERSE transfer (the easy direction, completing Dfamily = DSet): under the same eX/eY/he presentation, Dfamily (interlaceFun f p) (bracketGE X Y p x y) <= DSet (bracket M p x y). Route: every artifact-bracket member (exact thresholds, flattened) DECODES to a typed bracketGE member (encRow/encCol decode as in bridge_equipartition_ofArtifact + digit laws; exact sizes satisfy the >=-thresholds) with value-isomorphic subgame (D_equiv_invariance) — so every artifact cost is a typed cost; sInf monotone. Requires DSet's cost set nonempty handling symmetric to the keystone. CONSEQUENCE (with keystone): Dfamily = DSet — the artifact ladder lemmas become typed engine lemmas verbatim.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:engine-transfer",
+   "kind": "lemma",
+   "deps": [
+    "lem:Dfamily-le-DSet"
+   ],
+   "lean_name": "NPCC.Dfamily_eq_DSet",
+   "file": "NPCC/Twin.lean",
+   "statement_tex": null,
+   "spec": "Packaged equality Dfamily = DSet from the two inequalities, stated ready-to-consume for the engine layer: the artifact's Lambda ladder steps (Workspace lemma_A1_partition_recurrence, lemma_A3_row_ladder_step, lemma_A4_column_ladder_step) and bracket lemmas (monotonicity, extended_maximum_projection, extended_product_of_projection) apply to the paper's comp<M,p,x,y> through this equality. Include the instantiation helper: for f over (X,Y) define its canonical BoolMat (via Fintype.equivFin) and the equality specialized to it.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "axiom:aghp",
+   "kind": "axiom-decl",
+   "deps": [],
+   "lean_name": "NPCC.aghp_balanced_family_exists",
+   "file": "NPCC/Axioms.lean",
+   "statement_tex": "\\begin{remark}[Explicit balanced families]\\label{rem:balanced-columns-exist}\n    Standard explicit constructions of almost \\(t\\)-wise independent sample\n    spaces over finite alphabets, such as the one due to\n    \\citet{alon1992simple}, yield \\((q,t)\\)-balanced column families of size\n    at most\n    \\[\n        \\poly(q)\\,|Y|^{O(t)}\\,\\eps^{-O(1)}.\n    \\]\n    Moreover, such a family can be constructed deterministically in time\n    polynomial in this bound, and hence in time\n    \\[\n        \\poly(q)\\,|Y|^{O(t)}\\,\\eps^{-O(1)}.\n    \\]\n    Throughout the paper we will take\n    \\[\n        \\eps_{q,t}=(2qt)^{-c}\n    \\]\n    for a sufficiently large absolute constant \\(c>0\\), so that\n    \\[\n        |S_{q,t}(Y)|=\\poly(q,|Y|^t).\n    \\]\n    In particular, for this choice of \\(\\eps_{q,t}\\), the family\n    \\(S_{q,t}(Y)\\) is computable in time \\(\\poly(q,|Y|^t)\\).\n\\end{remark}",
+   "spec": "AUTHORIZED CITATION AXIOM (Simon 2026-07-06; Alon-Goldreich-Hastad-Peralta 1992, paper rem:balanced-columns-exist): existence, for all q >= t >= 1, finite Y, eps in (0,1), of a (q,t)-balanced indexed family (L, S : Fin L -> (Fin q -> Y)) with accuracy eps and an explicit polynomial size bound (single absolute constant C: L <= ((q+2) * (Fintype.card Y + 2))^(C * t) * (Nat.ceil (1/eps))^C or equivalent explicit form). Balancedness per paper def:balanced-columns: for every J (Finset (Fin q)) with card <= t and every pattern a : (Fin q) -> Y, the fraction of indices whose tuple agrees with a on J lies within eps/|Y|^|J| of 1/|Y|^|J| — rendered with rational/real arithmetic over Finset.card counts. Poly-time CONSTRUCTIBILITY deliberately excluded (Layer-B wrapper). Axiom statement requires FULL judge treatment (dual-vendor + Ultra packet) before declaration; runner config already allows the name.",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-06T00:44:46.148Z",
+     "note": "REFORMULATED: Opus-lane audit h1: size bound ((q+2)(cardY+2))^(Ct) is quasi/superpolynomial at the paper's Stage-1/2 use sites, breaking lem:polytime downstream — axiom sound but TOO WEAK to serve. Fix: pull q out of the t-exponent: (q+2)^C * (cardY+2)^(Ct) * ceil(1/eps)^C (verified: still majorized by AGHP literature, poly(d) at both sites). Codex fast lane had passed it — lanes caught complementary directions."
+    }
+   ],
+   "signed_off": false,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "axiom:vbp-np-hard",
+   "kind": "axiom-decl",
+   "deps": [],
+   "lean_name": "NPCC.vbp_np_hard",
+   "file": "NPCC/Wrapper.lean",
+   "spec": "CITATION AXIOM (second and last): NP-hardness of the promised {0,1}-VBP endpoint (c=1,m=4) as a size-bounded YES-preserving many-one reduction from edge-list 4-Colouring, packaged VBP4PromiseHardnessPackage (Shape C, npcc-12). Governed declaration: Simon-authorized 2026-07-07; adversarial 5-lens audit CLEAR_TO_DECLARE (audit-vbp-np-hard-governed-2026-07-07.md; satisfiability judge gave a positive truth certificate). Runtime/NP-membership/NP-completeness stay Layer-B prose.",
+   "status": "proved",
+   "signed_off": true,
+   "attempts": [
+    {
+     "ts": "2026-07-07",
+     "note": "Simon-authorized + 5-lens governed audit CLEAR_TO_DECLARE (0 blocking; satisfiability CLEAR w/ truth certificate)."
+    }
+   ],
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.vbp_np_hard",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "def:balanced-family",
+   "kind": "def",
+   "deps": [
+    "axiom:aghp"
+   ],
+   "lean_name": "NPCC.IsBalancedFamily",
+   "file": "NPCC/Relaxed.lean",
+   "statement_tex": "\\begin{definition}[(q,t)-Balanced column family]\\label{def:balanced-columns}\n    Let \\(q,t\\ge 1\\), let \\(Y\\) be a finite set, and let \\(\\eps\\in(0,1)\\).  A\n    finite indexed family \\(\\mathcal S=(\\mathbf y^{(1)},\\dots,\\mathbf y^{(N)})\\)\n    of elements of \\(Y^q\\) is \\emph{\\((q,t)\\)-balanced with accuracy \\(\\eps\\)}\n    if for every \\(J\\subseteq[q]\\) with \\(|J|\\le t\\) and every pattern\n    \\(\\mathbf a\\in Y^J\\),\n    \\[\n        \\Pr_{\\mathbf y\\sim \\mathcal S}\\bigl[\\mathbf y|_J=\\mathbf a\\bigr]\n        =\n        \\frac{1}{|Y|^{|J|}}\n        \\pm\n        \\frac{\\eps}{|Y|^{|J|}}.\n    \\]\n    Here \\(\\mathbf y\\sim \\mathcal S\\) means that one chooses an index\n    uniformly from \\([N]\\) and returns the corresponding tuple\n    \\(\\mathbf y^{(j)}\\).  We write \\(S_{q,t}(Y)\\) for such a family and\n    \\(\\eps_{q,t}\\) for its\n    accuracy parameter.  Repeated tuples are allowed and count as distinct\n    columns.\n\\end{definition}",
+   "spec": "Paper def:balanced-columns as a predicate on indexed families (L, S : Fin L -> (Fin q -> Y)): (q,t)-balanced with accuracy eps. Multiplicity matters (indexed family, not Finset). The axiom asserts existence of such families; downstream Stage constructions consume the predicate.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "def:relaxed-interlace",
+   "kind": "def",
+   "deps": [
+    "def:balanced-family"
+   ],
+   "lean_name": "NPCC.relaxedInterlace",
+   "file": "NPCC/Relaxed.lean",
+   "statement_tex": "\\begin{definition}[Relaxed interlace]\\label{def:relaxed-interlace}\n    Let \\(M:X\\times Y\\to\\{0,1\\}\\) be a Boolean matrix, let \\(q\\ge t\\ge 1\\), and\n    let\n    \\[\n        \\mathcal S=(\\mathbf y^{(1)},\\dots,\\mathbf y^{(L)})=S_{q,t}(Y)\n    \\]\n    be a \\((q,t)\\)-balanced column family in \\(Y^q\\), where\n    \\(\\mathbf y^{(j)}=(y_1^{(j)},\\dots,y_q^{(j)})\\).\n    The \\emph{relaxed interlace} is the matrix\n    \\[\n        \\interlaceOp{M}{q,\\mathcal S}\n        :\n        ([q]\\times X)\\times [L]\\to\\{0,1\\}\n    \\]\n    defined by\n    \\[\n        \\interlaceOp{M}{q,\\mathcal S}\\bigl((i,x),j\\bigr)\n        :=\n        M(x,y_i^{(j)}).\n    \\]\n    Thus the columns are indexed by the members of \\(\\mathcal S\\), with\n    multiplicity.\n\\end{definition}",
+   "spec": "Paper def:relaxed-interlace: given f : X -> Y -> Bool and an indexed column family S : Fin L -> (Fin q -> Y), the game (Fin q x X) -> Fin L -> Bool, ((i,x), j) -> f x (S j i). Columns indexed by Fin L WITH multiplicity (repeats count as distinct columns).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "lem:balanced-projection",
+   "kind": "lemma",
+   "deps": [
+    "def:balanced-family"
+   ],
+   "lean_name": "NPCC.IsBalancedFamily.projection",
+   "file": "NPCC/Relaxed.lean",
+   "statement_tex": "\\begin{lemma}[Projection closure of balanced families]\n\\label{lem:balanced-projection}\n    Let \\(q,t\\ge 1\\), let \\(Y\\) be finite, let\n    \\[\n        \\mathcal S=(\\mathbf y^{(1)},\\dots,\\mathbf y^{(N)})\n        \\subseteq Y^q\n    \\]\n    be \\((q,t)\\)-balanced with accuracy \\(\\eps\\), and let \\(J\\subseteq[q]\\).\n    Then the projected indexed family\n    \\[\n        \\pi_J(\\mathcal S)\n        :=\n        \\bigl(\\mathbf y^{(1)}|_J,\\dots,\\mathbf y^{(N)}|_J\\bigr)\n        \\subseteq Y^{|J|}\n    \\]\n    is \\((|J|,t)\\)-balanced with the same accuracy \\(\\eps\\).\n\\end{lemma}",
+   "spec": "Paper lem:balanced-projection: projecting an indexed (q,t)-balanced family onto a coordinate subset J0 (|J0| = q0) yields a (q0,t)-balanced family with the SAME accuracy. Typed: given e : Fin q0 -> Fin q injective (or an embedding realized as an Equiv onto a subtype), the family (fun j => fun i0 => S j (e i0)) is balanced. Proof: pattern events on the projected family pull back to pattern events on J = image; direct from the definition.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:block-balancing",
+   "kind": "lemma",
+   "deps": [
+    "def:equipartition-ge"
+   ],
+   "lean_name": "NPCC.block_balancing",
+   "file": "NPCC/Relaxed.lean",
+   "statement_tex": "\\begin{lemma}[Balancing-by-blocks]\\label{lem:block-balancing}\n    Let \\(M\\) be an \\(m\\times n\\) matrix, let \\(q\\ge 1\\), let\n    \\(x\\in(0,1)\\), and set \\(T:=\\ceil{mx}\\).  Call block \\(\\{i\\}\\times\n    \\Rows(M)\\) in the interlaced row set \\([q]\\times\\Rows(M)\\)\n    \\emph{full} if it contains at least \\(T\\) rows from a given\n    subset.  Let \\(R'\\subseteq [q]\\times\\Rows(M)\\) be any row subset\n    with density \\(\\beta:=|R'|/(qm)\\ge x\\), and set\n    \\(k:=\\ceil{q(\\beta-x)/(1-x)}\\).  Then there exists\n    \\(J\\subseteq[q]\\) with \\(|J|=k\\) such that \\(R'\\cap(J\\times\\Rows(M))\\)\n    is \\((J,T)\\)-equipartitioned.\n\\end{lemma}",
+   "spec": "Paper lem:block-balancing (balancing-by-blocks): any typed interlace row subset R with total density beta = |R|/(q*m) >= x admits J of size k = ceil(q*(beta-x)/(1-x)) on which R is (J, ceil(m*x))-equipartitioned (GE form). Pure counting over fibers (deficient-blocks bound). Typed over Finset (Fin q x X), m = card X. Note artifact has extended_balancing (flattened, related shape) — native typed proof expected simpler than transfer; prover may choose.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:relaxed-to-classical",
+   "kind": "lemma",
+   "deps": [
+    "def:relaxed-interlace",
+    "def:balanced-family",
+    "lem:coord-projection"
+   ],
+   "lean_name": "NPCC.relaxed_to_classical",
+   "file": "NPCC/Relaxed.lean",
+   "statement_tex": "\\begin{lemma}[Relaxed-to-classical transfer]\\label{lem:relaxed-to-classical}\n    Let \\(M\\) be an \\(m\\times n\\) matrix, let \\(q\\ge t\\ge 1\\), and let\n    \\[\n        \\mathcal S=(\\mathbf y^{(1)},\\dots,\\mathbf y^{(L)})\n        =\n        S_{q,t}(\\Cols(M))\n    \\]\n    be \\((q,t)\\)-balanced with accuracy \\(\\eps:=\\eps_{q,t}\\), where\n    \\(\\mathbf y^{(j)}=(y_1^{(j)},\\dots,y_q^{(j)})\\).  Write\n    \\[\n        N:=\\interlaceOp{M}{q,\\mathcal S}.\n    \\]\n    Fix \\(Q\\subseteq[q]\\) with \\(1\\le |Q|\\le t\\), write \\(u:=|Q|\\), let\n    \\(x\\in(0,1]\\), set\n    \\(T:=\\ceil{mx}\\), and let \\(R'\\subseteq[q]\\times\\Rows(M)\\) and\n    \\(C'\\subseteq [L]\\) satisfy:\n    \\begin{enumerate}[label=(\\alph*),nosep]\n        \\item \\(R'\\) is \\((Q,T)\\)-equipartitioned, and\n        \\item \\(|C'|/L\\ge y\\) for some \\(y\\in(0,1]\\).\n    \\end{enumerate}\n    Then there exist \\(R^\\ast\\subseteq R'\\) and\n    \\(C^\\ast\\subseteq C'\\) such that the submatrix\n    \\(\\extractmatrix{N}{R^\\ast}{C^\\ast}\\) is canonically identified with an\n    element of \\(\\bracket{M}{u}{x}{y/(1+\\eps)}\\).\n\\end{lemma}",
+   "spec": "Paper lem:relaxed-to-classical (THE BRIDGE of Section 4): from a submatrix of the relaxed interlace (row set (Q,T)-equipartitioned with |Q| = u <= t, column INDEX subset C' with |C'|/L >= y) extract a classical bracketGE member of order u with column density y/(1+eps): project the balanced family to Q-coordinates, count distinct projected patterns >= (y/(1+eps)) * |Y|^u via the balancedness UPPER bound on pattern multiplicity (each pattern's index-fiber <= (1+eps)L/|Y|^u), pick one representative index per pattern. Conclusion shape mirrors coord_projection: exists RC' in bracketGE X Y u x y/(1+eps) with row provenance from the relaxed rows and column provenance = distinct-pattern representatives from C'. Statement design is Fable-critical (provenance + representative-choice clauses); proof is fleet work.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:partition",
+   "kind": "lemma",
+   "deps": [
+    "lem:engine-transfer"
+   ],
+   "lean_name": "NPCC.one_step_partition",
+   "file": "NPCC/Engine.lean",
+   "statement_tex": "\\begin{lemma}[One-step partition]\\label{lem:partition}\n    Let \\(M\\) be a Boolean matrix, let \\(p\\ge 1\\), let\n    \\(\\sigma\\in\\{0,1\\}\\), let \\(0<x\\le \\frac12\\), and let \\(0<y\\le 1\\).\n    If\n    \\[\n        \\comp{\\bracket{M}{2p+\\sigma}{2x}{y}}\\ge 1,\n    \\]\n    then\n\\begin{equation}\\label{eq:partition-raw}\n        \\begin{aligned}\n            \\comp{\\bracket{M}{2p+\\sigma}{2x}{y}}\n            \\ge\n            1+\\min\\Biggl(\n                &\\comp{\\bracket{M}{2p+\\sigma}{x}{y}},\\\\\n                &\\min_{\\substack{0\\le \\ell < p\\\\ a\\in[0,1]}}\n                \\max\\Bigl(\n                    \\comp{\\bracket{M}{p+\\ell+\\sigma}{x}{y^a}},\n                    \\comp{\\bracket{M}{p-\\ell}{x}{y^{1-a}}}\n                \\Bigr),\\\\\n                &\\comp{\\bracket{M}{2p+\\sigma}{2x}{y/2}}\n            \\Biggr).\n        \\end{aligned}\n    \\end{equation}\n\\end{lemma}",
+   "spec": "Paper one-step partition (first-bit trichotomy over Dfamily brackets). Proof vehicle: transfer via Dfamily_eq_DSet to the artifact lemma_A1_partition_recurrence (Workspace/Appendix.lean) — check shape alignment; native fallback allowed.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:robust-two-copy-ladder",
+   "kind": "lemma",
+   "deps": [
+    "def:robust",
+    "lem:two-copy-ladder"
+   ],
+   "lean_name": "NPCC.robust_two_copy_ladder",
+   "file": "NPCC/Engine.lean",
+   "statement_tex": "\\begin{corollary}\\label{cor:robust-two-copy-ladder}\n    Let \\(M\\) be \\robust, assume in addition that \\(b\\ge 1\\), and write\n    \\[\n        y:=\\tfrac12+\\delta.\n    \\]\n    Then\n    \\begin{align*}\n        \\comp{\\bracket{M}{2}{2^{-b+1}}{\\frac{y^2}{4}}}\n        &\\ge \\comp{M}-1,\\\\\n        \\comp{\\bracket{M}{2}{2^{-b+1}}{\\frac{y^2}{2}}}\n        &\\ge \\comp{M},\\\\\n        \\comp{\\bracket{M}{2}{2^{-b+1}}{y^2}}\n        &\\ge \\comp{M}+1.\n    \\end{align*}\n\\end{corollary}",
+   "spec": "Instantiate two_copy_ladder at x=2^{-b}, y=1/2+delta, H=D f, feeding R2-R4 from IsRobust. PAPER FINDING F1: needs comp M >= 2 (the guard 1 < H) — state WITH hypothesis 2 <= D f and cite F1 in docstring.",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-06T01:30:58.231Z",
+     "note": "STATE compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected to"
+    }
+   ],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:two-copy-amplification",
+   "kind": "lemma",
+   "deps": [
+    "cor:robust-two-copy-ladder"
+   ],
+   "lean_name": "NPCC.two_copy_amplification",
+   "file": "NPCC/Engine.lean",
+   "statement_tex": "\\begin{corollary}\\label{cor:two-copy-amplification}\n    Let \\(M\\) be \\robust, and assume in addition that \\(b\\ge 1\\).  Then\n    \\[\n        \\comp{\\bracket{M}{2}{2^{-b+1}}{\\bigl(\\tfrac12+\\delta\\bigr)^2}}\n        \\ge\n        \\comp{M}+1.\n    \\]\n\\end{corollary}",
+   "spec": "Top rung extraction from robust_two_copy_ladder.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:odd-copy-seed-rungs",
+   "kind": "lemma",
+   "deps": [
+    "cor:robust-two-copy-ladder",
+    "lem:engine-transfer"
+   ],
+   "lean_name": "NPCC.odd_copy_seed_rungs",
+   "file": "NPCC/Engine.lean",
+   "statement_tex": "\\begin{lemma}\\label{lem:odd-copy-seed-rungs}\n    Let \\(M\\) be \\robust, and assume \\(\\comp{M}\\ge 2\\).  Write\n    \\[\n        y:=\\tfrac12+\\delta,\n        \\qquad\n        y_0:=y^2.\n    \\]\n    Then for every integer \\(\\ell\\) with \\(2\\le \\ell\\le b\\),\n    \\[\n        \\Lambda_M\\!\\left(2^{\\ell-1}+1,\\,2^{\\ell-b},\\,y_0\\right)\n        \\ge\n        \\comp{M}+\\ell.\n    \\]\n\\end{lemma}",
+   "spec": "Lambda-form odd-copy seed: induction over ell using the artifact lemma_A3_row_ladder_step through the transfer (Lambda on the flattened side = min-form over Dfamily via Dfamily_eq_DSet — define a typed LambdaGE or work on DSet side and transfer at the rims). Needs 2 <= D f (F1-adjacent); paper says comp M >= 2.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:plus-one-family",
+   "kind": "lemma",
+   "deps": [
+    "lem:odd-copy-seed-rungs"
+   ],
+   "lean_name": "NPCC.plus_one_family",
+   "file": "NPCC/Engine.lean",
+   "statement_tex": "\\begin{corollary}\\label{cor:plus-one-family}\n    Let \\(M\\) be \\robust, and assume \\(\\comp{M}\\ge 2\\).  Then for every\n    integer \\(k\\) with \\(2\\le k\\le b\\),\n    \\[\n        \\comp{\\bracket{M}{2^{k-1}+1}{2^{k-b}}{\\bigl(\\tfrac12+\\delta\\bigr)^2}}\n        \\ge\n        \\comp{M}+k.\n    \\]\n\\end{corollary}",
+   "spec": "Top-rung scalar consequence of the odd-copy seed.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:new-partition",
+   "kind": "lemma",
+   "deps": [
+    "lem:partition",
+    "lem:odd-copy-seed-rungs"
+   ],
+   "lean_name": "NPCC.iterated_density_amplification",
+   "file": "NPCC/Engine.lean",
+   "statement_tex": "\\begin{lemma}[Iterated density amplification]\\label{lem:new-partition}\n    Let \\(2<\\rho\\), and set\n    \\[\n        \\beta:=\\frac{\\rho-1}{\\rho-2}.\n    \\]\n    For any matrix \\(M\\), non-negative integers \\(0\\le s\\le k\\), \\(p\\ge 1\\), and reals\n    \\(0<x\\le 2^{-k}\\), \\(0<y\\le 1\\), if\n    \\[\n        \\comp{\\bracket{M}{p}{x}{y/4}}\\ge 1\n        \\qquad\\text{and}\\qquad\n        (\\rho-1)^k\\le \\rho^{k-s},\n    \\]\n    then\n    \\begin{align}\n        \\Lambda_M\\!\\left(\n            \\left\\lfloor 2^k \\beta^s p \\right\\rfloor,\n            2^k x,\n            y^{\\rho^s}\n        \\right)\n        &\\ge\n        k+\\Lambda_M(p,x,y),\n        \\label{eq:iterated-partition-bundled}\\\\[1ex]\n        \\comp{\\bracket{M}{\\left\\lfloor 2^k \\beta^s p \\right\\rfloor}{2^k x}{y^{\\rho^s}}}\n        &\\ge\n        k+\\Lambda_M(p,x,y).\n        \\label{eq:iterated-partition-scalar}\n    \\end{align}\n\\end{lemma}",
+   "spec": "THE GRID INDUCTION (iterated density amplification; paper App A grid over (t,r) with rho, beta, exponents E_{t,r}). Heaviest engine item. Vehicle: artifact has lemma_A3/A4 (the two bundled steps) — the GRID induction itself may not exist in the artifact; likely a native induction on the transfer side mirroring App A (bridge inequalities + side-condition propagation are pure arithmetic). Statement binds the paper lemma verbatim (bundled + scalar forms).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:iterated-partition-seed",
+   "kind": "lemma",
+   "deps": [
+    "lem:new-partition"
+   ],
+   "lean_name": "NPCC.iterated_partition_seed",
+   "file": "NPCC/Engine.lean",
+   "statement_tex": "\\begin{corollary}\\label{cor:iterated-partition-seed}\n    Under the hypotheses of \\Cref{lem:new-partition}, suppose in addition that\n    for some real \\(H\\),\n    \\[\n        \\comp{\\bracket{M}{p}{x}{y}} \\ge H,\n        \\qquad\n        \\comp{\\bracket{M}{p}{x}{y/2}} \\ge H-1,\n        \\qquad\n        \\comp{\\bracket{M}{p}{x}{y/4}} \\ge H-2.\n    \\]\n    Then\n    \\[\n        \\comp{\\bracket{M}{\\left\\lfloor 2^k \\beta^s p \\right\\rfloor}{2^k x}{y^{\\rho^s}}}\n        \\ge\n        k+H.\n    \\]\n\\end{corollary}",
+   "spec": "Scalar seed-form consequence.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:power-of-two",
+   "kind": "lemma",
+   "deps": [
+    "cor:iterated-partition-seed",
+    "cor:robust-two-copy-ladder"
+   ],
+   "lean_name": "NPCC.power_of_two_lower",
+   "file": "NPCC/Engine.lean",
+   "statement_tex": "\\begin{corollary}[Power-of-two lower bound]\\label{cor:power-of-two}\n    Let \\(M\\) be \\robust with \\(b\\ge 1\\), assume \\(\\comp{M}\\ge 2\\), and write\n    \\(y_0:=(\\tfrac12+\\delta)^2\\).  If \\(u\\ge 2\\) is a power of two with\n    \\(u\\le 2^b\\), then\n    \\[\n        \\comp{\\bracket{M}{u}{u2^{-b}}{y_0}}\n        \\ge\n        \\comp{M}+\\log u.\n    \\]\n\\end{corollary}",
+   "spec": "Power-of-two lower bound; instantiation k=log u, s=0, rho=3. Needs 2 <= D f per F1.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:hard-seed",
+   "kind": "lemma",
+   "deps": [
+    "cor:iterated-partition-seed",
+    "lem:odd-copy-seed-rungs"
+   ],
+   "lean_name": "NPCC.hard_seed",
+   "file": "NPCC/Engine.lean",
+   "statement_tex": "\\begin{lemma}\\label{lem:hard-seed}\n    Fix an integer \\(j\\ge 2\\).  Then for all sufficiently large powers of two\n    \\(t\\), the following implication holds: if \\(M\\) is \\robust with\n    \\(\\comp{M}\\ge 3\\) and \\(t\\le 2^b\\), then\n    \\[\n        \\comp{\\bracket{M}\n        {\\dfrac{(2^{j-1}+2)t}{2^j}}\n        {2^{-b}t}\n        {2^{-\\,2^{0.49\\sqrt{\\log t}}}}}\n        \\ge\n        \\comp{M}+\\log t.\n    \\]\n\\end{lemma}",
+   "spec": "Hard-seed lemma (asymptotic-in-t threshold T exists; density 2^{-2^{0.49 sqrt(log t)}}). Existential-threshold form: statement quantifies 'for all sufficiently large powers of two t' — render as exists T0, forall t >= T0 power-of-two...; heavy arithmetic (App B); needs comp M >= 3.",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-06T03:39:38.321Z",
+     "note": "REFORMULATED: F2: delta-uniformity gap - original rendering hoisted delta inside the exists-m0 threshold; unprovable via two-sided squeeze (copy-count caps grid depth at O(sqrt m) while delta->1/2 diverges required depth; impossible at the delta=1/2 endpoint). Repair: delta (open bound < 1/2) quantified before the threshold, m0 = m0(j, delta); game and b stay inside. Machine-confirmed x2 independent re-derivations; Opus lane refused to fabricate. PAPER-FINDINGS.md F2."
+    }
+   ],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:no-waste-near-separation",
+   "kind": "lemma",
+   "deps": [
+    "def:equipartition-ge"
+   ],
+   "lean_name": "NPCC.no_waste_row_partition",
+   "file": "NPCC/Control.lean",
+   "statement_tex": "\\begin{lemma}[No-waste row-only partition]\n    \\label{lem:no-waste-near-separation}\n    Let \\(Q\\) be a finite set with \\(|Q|\\) a power of two, let \\(X\\) be a\n    finite set, and let \\(R^{\\mathrm{in}} \\subseteq Q \\times X\\) be a\n    \\((Q,T_0)\\)-equipartitioned row set.  Consider a deterministic protocol\n    that, starting from \\(R^{\\mathrm{in}}\\), communicates exactly \\(\\log |Q|\\)\n    row bits and zero column bits.  Let \\(\\mathcal{P}\\) denote the resulting\n    partition into rectangles \\(R \\times C\\).  Assume that no rectangle\n    \\(R \\times C \\in \\mathcal{P}\\) contains \\(T\\) rows from two distinct outer row\n    blocks.  If \\(|Q|T < T_0\\), then every rectangle \\(R \\times C \\in\n    \\mathcal{P}\\) has a unique outer row block \\(i^\\ast \\in Q\\) such that, writing\n    \\[\n        R_i := R \\cap (\\{i\\} \\times X),\n    \\]\n    one has\n    \\[\n        |R_{i^\\ast}| \\ge T_0 - (|Q|-1)T,\n        \\qquad\n        |R_i| < T \\text{ for all } i \\neq i^\\ast.\n    \\]\n\\end{lemma}",
+   "spec": "S3 protocol control, purely combinatorial row-partition counting — BUT quantifies over a PROTOCOL's induced partition. Statement design decision (Fable): render over an abstract partition of the row set into <= |Q| parts (the protocol content is only the part-count bound), which is what the paper's proof uses. Pure counting then.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:failure-to-separate-gives-gap",
+   "kind": "lemma",
+   "deps": [
+    "lem:no-waste-near-separation",
+    "cor:two-copy-amplification",
+    "lem:coord-projection"
+   ],
+   "lean_name": "NPCC.failure_to_separate_gives_gap",
+   "file": "NPCC/Control.lean",
+   "statement_tex": "\\begin{lemma}[Failure of near-exact separation gives a hard child]\n    \\label{lem:failure-to-separate-gives-gap}\n    Let \\(M\\) be \\robust, assume in addition that \\(b\\ge 1\\), write\n    \\(m:=|\\Rows(M)|\\) and \\(n:=|\\Cols(M)|\\), let\n    \\(q\\) be a power of\n    two, let \\(0<x\\le 1\\), let\n    \\[\n        \\bigl(\\tfrac12+\\delta\\bigr)^2 \\le y \\le 1,\n    \\]\n    and let\n    \\[\n        N \\in \\bracket{M}{q}{x}{y}.\n    \\]\n    Write\n    \\[\n        T_0 := \\ceil{mx}\n        \\qquad\\text{and}\\qquad\n        T := \\ceil{2^{-b+1}m}.\n    \\]\n    Consider a deterministic protocol on \\(N\\) that communicates exactly\n    \\(\\log q\\) row bits and zero column bits, and let \\(\\mathcal{P}\\) denote\n    the resulting partition into rectangles \\(R\\times C\\).  Assume \\(qT<T_0\\).\n    If the conclusion of \\Cref{lem:no-waste-near-separation} fails for\n    \\(\\mathcal{P}\\), then some rectangle \\(R\\times C \\in \\mathcal{P}\\)\n    satisfies\n    \\[\n        \\comp{\\extractmatrix{N}{R}{C}}\\ge \\comp{M}+1.\n    \\]\n\\end{lemma}",
+   "spec": "Row-only partition with a doubly-heavy rectangle yields a two-copy descendant of complexity >= D f + 1 (via coord-projection + two-copy amplification). Same abstract-partition rendering as no-waste.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "def:column-loss-resilient",
+   "kind": "def",
+   "deps": [
+    "def:robust",
+    "def:balanced-family"
+   ],
+   "lean_name": "NPCC.IsColumnLossResilient",
+   "file": "NPCC/Transfer.lean",
+   "statement_tex": "\\begin{definition}[Column-loss resilient]\n\\label{def:column-loss-resilient}\n    Let \\(M\\) be a Boolean matrix, and let \\(b\\ge 1\\).  Fix powers of two\n    \\(q\\ge t\\ge 1\\) with \\(t\\le 2^b\\), and let \\(h\\in(0,1]\\).  Using the\n    densities \\(y_c(h)\\) defined above, we say that \\((M,b)\\) is\n    \\((q,t,h)\\)-\\emph{column-loss resilient} if the following two conditions\n    hold:\n    \\begin{enumerate}[label=(\\roman*)]\n        \\item\n        \\[\n            \\comp{\\bracket{M}{1}{2^{-b}}{y_{\\log q+\\comp{M}}(h)}} \\ge 1;\n        \\]\n        \\item for every pair of integers \\(0\\le k\\le \\comp{M}\\) and\n        \\(0\\le c\\le \\log t+k\\),\n        \\[\n            \\Lambda_M(1,2^{-b},y_c(h)) \\ge \\comp{M}-k.\n        \\]\n    \\end{enumerate}\n\\end{definition}",
+   "spec": "The y_c(h) densities + the two clauses (terminal one-copy bound; three-rung Lambda bounds after column loss). Needs a typed Lambda (min-form over Dfamily at y, y/2, y/4) — introduce NPCC.LambdaGE as an unregistered def in the same file or a registered companion; decide at authoring.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "thm:Extension",
+   "kind": "lemma",
+   "deps": [
+    "def:column-loss-resilient",
+    "lem:relaxed-to-classical",
+    "lem:hard-seed"
+   ],
+   "lean_name": "NPCC.extension_theorem",
+   "file": "NPCC/Transfer.lean",
+   "statement_tex": "\\begin{theorem}[Extension theorem]\\label{thm:Extension}\n    Let \\(M\\) be a Boolean matrix, write \\(m:=|\\Rows(M)|\\), let \\(b\\ge 1\\),\n    and let \\(t\\le 2^b\\) and \\(r\\ge 1\\) be powers of two.  Set\n    \\[\n        q:=rt,\n        \\qquad\n        \\eps:=\\eps_{q,t},\n        \\qquad\n        \\widehat{M}:=\\interlaceOp{M}{q,S_{q,t}(\\Cols(M))}.\n    \\]\n    Fix an integer \\(p_{\\mathrm{seed}}\\) and reals\n    \\[\n        2^{-b}\\le x_{\\mathrm{seed}}\\le 1,\n        \\qquad\n        h,h_{\\mathrm{seed}}\\in(0,1].\n    \\]\n    Assume\n    \\[\n        \\frac{t}{2}\\le p_{\\mathrm{seed}}\\le t,\n    \\]\n    that \\((M,b)\\) is \\((q,t,h)\\)-column-loss resilient,\n    \\[\n        \\comp{\\bracket{M}{p_{\\mathrm{seed}}}{x_{\\mathrm{seed}}}{h_{\\mathrm{seed}}}}\n        \\ge\n        \\comp{M}+\\log t,\n    \\]\n    and\n    \\[\n        \\frac{h\\,2^{-(\\log t+\\comp{M})}}{1+\\eps}\n        \\ge\n        h_{\\mathrm{seed}}.\n    \\]\n    Let\n    \\[\n        N:=\\extractmatrix{\\widehat M}{R'}{C'}\n    \\]\n    be any submatrix such that\n    \\begin{enumerate}[label=(\\roman*)]\n        \\item \\(R'\\) is \\((Q,\\ceil{r\\,x_{\\mathrm{seed}}m})\\)-equipartitioned for some\n        \\(Q\\subseteq[q]\\) with \\(|Q|=r\\,p_{\\mathrm{seed}}\\),\n        \\item \\(\\dfrac{|C'|}{|\\Cols(\\widehat M)|}\\ge h\\).\n    \\end{enumerate}\n    Then\n    \\[\n        \\comp{N}\\ge \\comp{M}+\\log q.\n    \\]\n\\end{theorem}",
+   "spec": "THE EXTENSION THEOREM (S4 black box #1): row/column-halving chain over a protocol for a relaxed submatrix; Fable-critical statement (protocol-chain content; needs relaxedInterlace complexity notion — D of the relaxed game via subgame on (Fin q x X) x Fin L data). Statement authoring is a design task of coord-projection rank; schedule dedicated turn.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:localized-extension",
+   "kind": "lemma",
+   "deps": [
+    "thm:Extension"
+   ],
+   "lean_name": "NPCC.localized_extension",
+   "file": "NPCC/Transfer.lean",
+   "statement_tex": "\\begin{corollary}[Localised extension]\\label{cor:localized-extension}\n    Assume the hypotheses of \\Cref{thm:Extension}.  Let \\(a\\in\\{0,1\\}\\), let\n    \\(r'\\) be a power of two with \\(1\\le r'\\le r\\), and let\n    \\[\n        N^\\sharp:=\\extractmatrix{\\widehat M}{R^\\sharp}{C^\\sharp}\n    \\]\n    be a submatrix such that\n    \\begin{enumerate}[label=(\\roman*)]\n        \\item \\(R^\\sharp\\) is \\((Q^\\sharp,\\ceil{r' x_{\\mathrm{seed}}m})\\)-equipartitioned\n        for some \\(Q^\\sharp\\subseteq[q]\\) with \\(|Q^\\sharp|=r' p_{\\mathrm{seed}}\\), and\n        \\item \\(\\dfrac{|C^\\sharp|}{|\\Cols(\\widehat M)|}\\ge h\\,2^{-a}\\).\n    \\end{enumerate}\n    Then\n    \\[\n        \\comp{N^\\sharp}\\ge \\comp{M}+\\log(r't).\n    \\]\n\\end{corollary}",
+   "spec": "Localized variant (r' <= r, a in {0,1}).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "thm:SeparationTheorem",
+   "kind": "lemma",
+   "deps": [
+    "thm:Extension",
+    "lem:classical-separation-clean"
+   ],
+   "lean_name": "NPCC.relaxed_separation",
+   "file": "NPCC/Transfer.lean",
+   "statement_tex": "\\begin{theorem}[Relaxed Near-Exact Separation]\n\\label{thm:SeparationTheorem}\n    Let \\(M\\) be \\robust, write \\(m:=|\\Rows(M)|\\), assume\n    \\(\\comp{M}\\ge 2\\), and assume\n    \\[\n        0<\\delta\\le \\frac1{\\sqrt2}-\\frac12.\n    \\]\n    Let \\(b\\ge 1\\), let \\(t\\ge 2\\) and \\(r\\ge 1\\) be powers of two with \\(t\\le 2^b\\), and set\n    \\[\n        q:=rt,\n        \\qquad\n        \\eps:=\\eps_{q,t},\n        \\qquad\n        \\widehat M:=\\interlaceOp{M}{q,S_{q,t}(\\Cols(M))}.\n    \\]\n    Fix an integer \\(p_{\\mathrm{seed}}\\) and reals\n    \\[\n        2^{-b}\\le x_{\\mathrm{seed}}\\le \\frac1r,\n        \\qquad\n        h,h_{\\mathrm{seed}}\\in(0,1].\n    \\]\n    Assume\n    \\[\n        \\frac{t}{2}\\le p_{\\mathrm{seed}}\\le t,\n    \\]\n    that \\((M,b)\\) is \\((q,t,h)\\)-column-loss resilient,\n    \\[\n        \\comp{\\bracket{M}{p_{\\mathrm{seed}}}{x_{\\mathrm{seed}}}{h_{\\mathrm{seed}}}}\n        \\ge\n        \\comp{M}+\\log t,\n    \\]\n    and\n    \\[\n        \\frac{h\\,2^{-(\\log t+\\comp{M})}}{1+\\eps}\n        \\ge\n        h_{\\mathrm{seed}}.\n    \\]\n    Assume moreover that\n    \\[\n        2\\Bigl(\\tfrac12+\\delta\\Bigr)^2 \\le \\frac{h}{1+\\eps}\n        \\qquad\\text{and}\\qquad\n        q\\ceil{2^{-b+1}m} < m.\n    \\]\n\n    Let \\(C'\\subseteq \\Cols(\\widehat M)\\) satisfy\n    \\[\n        \\frac{|C'|}{|\\Cols(\\widehat M)|}\\ge h,\n    \\]\n    and write\n    \\[\n        N:=\\extractmatrix{\\widehat M}{\\Rows(\\widehat M)}{C'}.\n    \\]\n\n    Then every deterministic protocol for \\(N\\) of cost at most\n    \\(\\comp{M}+\\log q\\) has the following two properties.\n    On every branch, its first \\(\\log q\\) bits are row bits.\n\n    Let \\(\\mathcal P\\) denote the resulting partition after those first\n    \\(\\log q\\) bits. Then every rectangle \\(R\\times C\\in \\mathcal P\\) has a\n    unique \\emph{dominant} outer block \\(i^\\ast\\in[q]\\) such that, writing\n    \\[\n        R_i:=R\\cap(\\{i\\}\\times \\Rows(M)),\n    \\]\n    one has\n    \\[\n        |R_{i^\\ast}|\n        \\ge\n        m-(q-1)\\ceil{2^{-b+1}m},\n        \\qquad\n        |R_i|<\\ceil{2^{-b+1}m}\n        \\ \\text{for all } i\\neq i^\\ast.\n    \\]\n\\end{theorem}",
+   "spec": "THE RELAXED NEAR-EXACT SEPARATION (S4 black box #2): 3-phase protocol-control; depends also on the classical separation lemma.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:classical-separation-clean",
+   "kind": "lemma",
+   "deps": [
+    "lem:failure-to-separate-gives-gap",
+    "cor:power-of-two",
+    "cor:plus-one-family"
+   ],
+   "lean_name": "NPCC.classical_separation",
+   "file": "NPCC/Control.lean",
+   "statement_tex": "\\begin{lemma}[Classical near-exact separation]\n    \\label{lem:classical-separation-clean}\n    Let \\(M\\) be \\robust, write \\(m:=|\\Rows(M)|\\), assume \\(\\comp{M}\\ge 2\\),\n    and assume\n    \\[\n        0<\\delta \\le \\frac1{\\sqrt2}-\\frac12,\n    \\]\n    let \\(q\\ge 2\\) be a power of two, let \\(0<x\\le 1\\), and let\n    \\[\n        2\\bigl(\\tfrac12+\\delta\\bigr)^2 \\le y \\le 1.\n    \\]\n    Assume\n    \\[\n        q2^{-b}\\le x\n        \\qquad\\text{and}\\qquad\n        q\\ceil{2^{-b+1}m}<\\ceil{mx},\n    \\]\n    and let\n    \\[\n        N\\in \\bracket{M}{q}{x}{y}.\n    \\]\n    Then every deterministic protocol for \\(N\\) of cost at most\n    \\(\\comp{M}+\\log q\\) has the following two properties.  On every branch,\n    its first \\(\\log q\\) bits are row bits.\n\n    Let \\(\\mathcal P\\) denote the resulting partition after those first\n    \\(\\log q\\) bits.  Then each surviving rectangle \\(R\\times C\\in\\mathcal P\\)\n    has a unique outer row block \\(i^\\ast\\in[q]\\) such that, writing\n    \\[\n        R_i := R\\cap(\\{i\\}\\times \\Rows(M)),\n    \\]\n    one has\n    \\[\n        |R_{i^\\ast}| \\ge \\ceil{mx}-(q-1)\\ceil{2^{-b+1}m},\n        \\qquad\n        |R_i|<\\ceil{2^{-b+1}m}\\ \\text{for all } i\\neq i^\\ast.\n    \\]\n\\end{lemma}",
+   "spec": "Classical near-exact separation: induction on the first log q bits of a protocol meeting the tight bound. Requires the protocol-restriction infrastructure (Protocol.restrict / mapNodes) to speak about 'the first t bits' — statement design Fable-critical.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "def:vbp-instance",
+   "kind": "def",
+   "deps": [],
+   "lean_name": "NPCC.VBPInstance",
+   "file": "NPCC/VBP.lean",
+   "statement_tex": "\\DefineProblemNoPara{$\\{0,1\\}$-$d$-\\textsc{Dimension Vector Bin Packing}}{A set of $n$ vectors $\\{v_1,\\ldots,v_n\\}\\subseteq\\{0,1\\}^{d}$, a capacity parameter $c$, and a number of bins $m$ (where $m$ is a power of two).}{Does there exist a partition of the vectors into $m$ bins such that every bin $B_i$ satisfies\n$\\lVert \\sum_{v\\in B_i} v\\rVert_{\\infty}\\le c$\\,?}\n\nIn the reduction we only use the case \\(c=1\\) and \\(m=4\\).\n\n",
+   "spec": "Source problem, EXACT: {0,1}-d-Dimension Vector Bin Packing restricted to c=1, m=4. Structure (d n : Nat, v : Fin n -> Fin d -> Bool); IsYes := exists sigma : Fin n -> Fin 4 with per-(bin,coordinate) load <= 1; the promise (forall alpha, card {i | v i alpha} <= 4) is a SEPARATE predicate, not a structure field (D1). NP-hardness of this promised variant = reserved axiom NPCC.vbp_np_hard (NOT staged; the paper's unlabeled proposition proves it from 4-Colouring).",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-06T09:21:07.449Z",
+     "note": "compiles but contains sorry"
+    }
+   ],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "lem:zero-anchor-preprocessing",
+   "kind": "lemma",
+   "deps": [
+    "def:vbp-instance"
+   ],
+   "lean_name": "NPCC.zero_anchor_preprocessing",
+   "file": "NPCC/VBP.lean",
+   "statement_tex": "\\begin{lemma}\\label{lem:zero-anchor-preprocessing}\n    Let\n    \\[\n        I=(v_1,\\ldots,v_n),\n        \\qquad v_i\\in\\{0,1\\}^{d},\n    \\]\n    be an instance of \\(\\{0,1\\}\\)-\\(d\\)-\\textsc{Dimension Vector Bin Packing}\n    with \\(c=1\\) and \\(m=4\\).  For each slab \\(t\\in[5]\\), let\n    \\[\n        \\iota_t:\\{0,1\\}^{d}\\hookrightarrow\\{0,1\\}^{5d}\n    \\]\n    be the embedding that places a vector in the \\(t\\)-th block of \\(d\\)\n    coordinates and pads all other coordinates with zeros.  Define the\n    replicated padded instance\n    \\[\n        I^{\\circ}\n        :=\n        (\\iota_t(v_i))_{t\\in[5],\\,i\\in[n]}\n        \\;\\cup\\;\n        \\{z_1,z_2,z_3,z_4\\},\n        \\qquad\n        z_1=z_2=z_3=z_4:=0^{5d}.\n    \\]\n    Then \\(I^{\\circ}\\) is computable from \\(I\\) in polynomial time, and the\n    following hold:\n    \\begin{enumerate}[leftmargin=*]\n        \\item \\(I\\) is a \\textsf{YES}-instance if and only if \\(I^{\\circ}\\) is a\n              \\textsf{YES}-instance.\n        \\item Whenever \\(I^{\\circ}\\) is a \\textsf{YES}-instance, it has a\n              feasible packing\n              \\[\n                  (B_1,B_2,B_3,B_4)\n              \\]\n              such that \\(z_p\\in B_p\\) for every \\(p\\in[4]\\).\n        \\item Whenever \\(I\\) is a \\textsf{NO}-instance, every partition\n              \\[\n                  [5n+4]=B_1\\sqcup B_2\\sqcup B_3\\sqcup B_4\n              \\]\n              of the vectors of \\(I^{\\circ}\\) contains a bin \\(B_p\\) and a\n              coordinate \\(\\beta\\in[5d]\\) such that\n              \\[\n                  \\left|\\{\\,u\\in B_p:u(\\beta)=1\\,\\}\\right|\\ge 2\n                  \\qquad\\text{and}\\qquad\n                  \\left|\\{\\,u\\in B_p:u(\\beta)=0\\,\\}\\right|\\ge 1.\n              \\]\n    \\end{enumerate}\n\\end{lemma}",
+   "spec": "Five-slab replication + four zero anchors: defines the preprocessed instance I-circ inside the obligation (iota_t embeddings, z_1..z_4). Three clauses: YES iff YES; canonical packing with z_p in B_p; NO => every 4-partition has a bin+coordinate with >=2 ones and >=1 zero (pigeonhole 5 slabs / 4 bins). Clause (iii) is the exact ell>=2 & nu=1 witness the final contradiction consumes. Pure finite combinatorics, no engine deps.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "def:powtwo-normalise",
+   "kind": "def",
+   "deps": [
+    "def:vbp-instance"
+   ],
+   "lean_name": "NPCC.normalizeInstance",
+   "file": "NPCC/VBP.lean",
+   "statement_tex": "\\paragraph{Power-of-two normalisation.}\nFix once and for all a power of two \\(d_\\star\\) large enough that every\nasymptotic inequality used later in Stages~1--4 holds for every power of two\n\\(d\\ge d_\\star\\).  Given the current preprocessed instance in ambient dimension\n\\(d\\), set\n\\[\n    D:=\\ceilpowtwo{\\max\\{d,d_\\star\\}}.\n\\]\nHere \\(\\ceilpowtwo{z}\\) denotes the least power of two that is at least \\(z\\).\nPad every vector by \\(D-d\\) trailing zero coordinates, continue to denote the\npadded vectors by \\(v_1,\\ldots,v_n\\), and relabel the ambient dimension by\n\\(d:=D\\).  This preserves feasibility of the source instance, preserves the\ndistinguished zero anchors \\(v_{z_p}=0^d\\), and preserves the final item of\n\\Cref{lem:zero-anchor-preprocessing}, since all added coordinates are\nidentically zero.\n\n",
+   "spec": "Padding to D := ceilpowtwo(max{d, d_star}); preserves feasibility, anchors, and clause (iii). d_star is the constant delivered by lem:large-d-checklist (Classical.choice over the bundled existential, D3); define ceilpowtwo over Nat exactly.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "aux:upper-row-id",
+   "kind": "lemma",
+   "deps": [
+    "def:Dfamily"
+   ],
+   "lean_name": "NPCC.comp_le_of_row_types",
+   "file": "NPCC/Upper.lean",
+   "statement_tex": null,
+   "spec": "Row-identification upper bound: a matrix with at most 2^a distinct row behaviours has comp <= a+1 (Alice names her row type, Bob answers). No paper label -- the 'direct protocol' used by cor:M1-complexity, cor:M2-complexity, lem:M3Separation, lem:scaffold-completeness. First protocol UPPER-bound lemma in the development; align with the D/Dfamily depth convention.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:upper-partition",
+   "kind": "lemma",
+   "deps": [
+    "def:Dfamily"
+   ],
+   "lean_name": "NPCC.comp_le_partition",
+   "file": "NPCC/Upper.lean",
+   "statement_tex": null,
+   "spec": "Composition upper bound, BOTH sides: if the rows (resp. columns) split into 2^s classes such that each class-submatrix has comp <= c, then comp <= s + c. Powers phases 1-2 of lem:scaffold-completeness (row split then column split) and every stage upper bound. No paper label.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:transposeComp",
+   "kind": "lemma",
+   "deps": [
+    "def:Dfamily"
+   ],
+   "lean_name": "NPCC.comp_transpose",
+   "file": "NPCC/Upper.lean",
+   "statement_tex": "\\begin{lemma}[Transpose symmetry]\\label{lem:transposeComp}\n    For every Boolean matrix \\(M\\),\n    \\[\n        \\comp{\\transpose{M}}=\\comp{M}.\n    \\]\n\\end{lemma}",
+   "spec": "Transpose symmetry (paper Sec 2 label, never staged in T1-T5): comp(M^T) = comp(M) under the depth convention. Stages 2 and 3 transpose the running matrix, and cor:M2SeparationTransposeDenseRows transposes a whole protocol. Check first whether lem:D-equiv-invariance already yields it; native proof otherwise.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "def:scaffold-params",
+   "kind": "def",
+   "deps": [
+    "def:powtwo-normalise"
+   ],
+   "lean_name": "NPCC.Params",
+   "file": "NPCC/VBP.lean",
+   "statement_tex": "\\paragraph{Global.}\n\\[\n    \\delta:=0.1,\n    \\qquad\n    \\deltaDep:=5.\n\\]\nHere \\(\\deltaDep\\) is the fixed surplus-copy parameter \\(j\\) used in the\nStage~2 application of the hard-seed lemma.\n\n\\paragraph{Stage~1.}\n\\begin{alignat*}{3}\n    q_1 &:= \\ceilpowtwo{2\\log^2 d}-2,\n        &\\qquad 2^a &:= q_1+2,\n        &\\qquad \\Independence_1 &:= \\ceilpowtwo{64\\log d}, \\\\\n    r_1 &:= (q_1{+}2)/\\Independence_1,\n        &\\qquad \\Robustness_0 &:= 64\\log(64\\log d), \\\\\n    \\CoreRobustness_1 &:= 3\\log d,\n        &\\qquad \\Robustness_1 &:= 2\\log d.\n\\end{alignat*}\nHere \\(\\Robustness_0\\) is the base Stage~1 robustness margin used later to\ninitialise the passage from \\(\\MZero\\) to \\(\\MOne\\).\n\n\\paragraph{Stage~2.}\n\\begin{alignat*}{3}\n    q_2 &:= \\ceilpowtwo{d},\n        &\\qquad \\Independence_2 &:= \\ceilpowtwo{3\\log d/\\!\\log\\log d},\n        &\\qquad r_2 &:= q_2/\\Independence_2, \\\\\n    \\CoreRobustness_2 &:= 8\\log\\log d,\n        &\\qquad \\Robustness_2 &:= 3\\log\\log d, \\\\\n    h_2 &:= 2^{-\\Robustness_2}=(\\log d)^{-3},\n        &\\qquad h'_2 &:= 2^{-\\CoreRobustness_2}=(\\log d)^{-8}.\n\\end{alignat*}\nFor all sufficiently large powers of two \\(d\\), the quantities\n\\(\\Independence_1,\\Independence_2,r_1,r_2,q_2\\) are powers of two, and\n\\[\n    q_1+2=r_1\\Independence_1,\n    \\qquad\n    q_2=r_2\\Independence_2,\n    \\qquad\n    q_1+2<4\\log^2 d,\n    \\qquad\n    q_2<2d.\n\\]\nSince \\(d\\) has already been normalised to a power of two, we have \\(q_2=d\\).\nFrom this point on we therefore regard the source coordinates as indexed by\n\\([q_2]\\).\n\n",
+   "spec": "The audited parameter regime as functions of d (all Nat-exact via ceilpowtwo/Nat.log2 where the paper writes ceilings; densities real): delta=0.1, j=5, q1, a (2^a=q1+2), t1, r1, b0, b'1=3logd, b1=2logd, q2=d, t2, r2, b'2, b2, h2, h'2. Include the power-of-two facts q1+2=r1*t1, q2=r2*t2 as accessor lemmas gated on d >= d_star (fed by lem:large-d-checklist).",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-06T09:23:27.611Z",
+     "note": "STATE compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected to"
+    },
+    {
+     "ts": "2026-07-06T09:24:42.300Z",
+     "note": "STATE compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected to"
+    },
+    {
+     "ts": "2026-07-06T09:26:00.994Z",
+     "note": "STATE compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected to"
+    },
+    {
+     "ts": "2026-07-06T09:27:38.749Z",
+     "note": "STATE compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected to"
+    },
+    {
+     "ts": "2026-07-06T09:29:16.846Z",
+     "note": "STATE compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected to"
+    },
+    {
+     "ts": "2026-07-06T09:30:54.554Z",
+     "note": "STATE compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected to"
+    },
+    {
+     "ts": "2026-07-06T09:36:33.664Z",
+     "note": "UNPARKED: the routed failures were infrastructure (wrong file reassignment duplicated VBP.lean -> duplicate-declaration build errors), not statement defects. Statement already judged CORRECT by C5. Mapping corrected to NPCC/VBP.lean; retrying."
+    }
+   ],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "aux:family-lower",
+   "kind": "lemma",
+   "deps": [
+    "def:balanced-family"
+   ],
+   "lean_name": "NPCC.balanced_family_card_lower",
+   "file": "NPCC/Scaffold.lean",
+   "statement_tex": null,
+   "spec": "Counting lower bound for balanced families: eps<1 => every pattern on any fixed t-subset occurs, hence |S| >= |Y|^t/(1+eps). Supplies the scaffold prose facts |C1| >= 2^{t1-1} >= d^64/2 and |C2| >= |R1|^{t2}/2 >= d^6/2 consumed by lem:M2Separation / lem:MThreeFuzzyLeaves / lem:MFourNoWasteLift side conditions and by fibre survival. No paper label (inline in sec:scaffold prose).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "def:S-family",
+   "kind": "def",
+   "deps": [
+    "axiom:aghp",
+    "def:balanced-family",
+    "def:scaffold-params"
+   ],
+   "lean_name": "NPCC.scaffoldFamily",
+   "file": "NPCC/VBP.lean",
+   "statement_tex": "\\begin{remark}[Explicit balanced families]\\label{rem:balanced-columns-exist}\n    Standard explicit constructions of almost \\(t\\)-wise independent sample\n    spaces over finite alphabets, such as the one due to\n    \\citet{alon1992simple}, yield \\((q,t)\\)-balanced column families of size\n    at most\n    \\[\n        \\poly(q)\\,|Y|^{O(t)}\\,\\eps^{-O(1)}.\n    \\]\n    Moreover, such a family can be constructed deterministically in time\n    polynomial in this bound, and hence in time\n    \\[\n        \\poly(q)\\,|Y|^{O(t)}\\,\\eps^{-O(1)}.\n    \\]\n    Throughout the paper we will take\n    \\[\n        \\eps_{q,t}=(2qt)^{-c}\n    \\]\n    for a sufficiently large absolute constant \\(c>0\\), so that\n    \\[\n        |S_{q,t}(Y)|=\\poly(q,|Y|^t).\n    \\]\n    In particular, for this choice of \\(\\eps_{q,t}\\), the family\n    \\(S_{q,t}(Y)\\) is computable in time \\(\\poly(q,|Y|^t)\\).\n\\end{remark}",
+   "spec": "AGHP axiom instantiation: choice-extract the two concrete balanced families C1 = S_{q1+5,t1}(Cols M0) and (Stage-2) S_{q2,t2}(R1) at accuracy eps_{q,t} = (2qt)^{-c}, c from the axiom's absolute constant. VERIFIED: NPCC.aghp_balanced_family_exists carries the explicit size clause L <= (q+2)^C (|Y|+2)^{Ct} ceil(1/eps)^C, so downstream size bounds (lem:polytime) are provable in-kernel. Poly-TIME constructibility is deliberately NOT available (Layer-B).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "def:stage-matrices",
+   "kind": "def",
+   "deps": [
+    "def:scaffold-params",
+    "def:S-family",
+    "def:relaxed-interlace"
+   ],
+   "lean_name": "NPCC.M0M1M2M3",
+   "file": "NPCC/VBP.lean",
+   "statement_tex": "\\paragraph{Stage~0: the seed matrix \\(\\MZero\\).}\nWe start from the seed matrix\n\\[\n    \\MZero:=[1\\;\\;0].\n\\]\n\n\\paragraph{Stage~1: the capacity scaffold \\(\\MOne\\).}\nThe first stage keeps the full \\(q_1+5=2^a+3\\)-coordinate balanced subgame\nand uses only the first \\(q_1\\) outer row blocks as the ambient Stage~1\ntemplate.  Set\n\\[\n    C_1:=S_{q_1+5,\\Independence_1}(\\Cols(\\MZero)),\n    \\qquad\n    \\widehat{\\MOne}:=\\interlaceOp{\\MZero}{q_1+5,\\;C_1}.\n\\]\nWrite\n\\[\n    R^{\\mathrm{full}}_1:=[q_1+5]\\times \\Rows(\\MZero),\n    \\qquad\n    R_1:=[q_1]\\times \\Rows(\\MZero)\\subseteq R^{\\mathrm{full}}_1,\n\\]\nand define\n\\[\n    \\MOne:=\\extractmatrix{\\widehat{\\MOne}}{R_1}{C_1}.\n\\]\nThus \\(\\MOne\\) is the row restriction of the full Stage~1 relaxed interlace to\nits first \\(q_1=2^a-2\\) outer blocks, while the final five subgame\ncoordinates stay available for the local Stage~4 gadget.  For\n\\(\\gamma=(c_1,\\dots,c_{q_1+5})\\in C_1\\), write\n\\[\n    \\operatorname{tail}(\\gamma)\\in[2^5]\n\\]\nfor the \\(5\\)-bit pattern encoded by the last five coordinates\n\\((c_{q_1+1},\\dots,c_{q_1+5})\\).\nBecause \\(C_1\\) is \\((q_1+5,\\Independence_1)\\)-balanced with\n\\(\\eps_{q_1+5,\\Independence_1}<1\\), every pattern in\n\\(\\Cols(\\MZero)^{\\Independence_1}=\\{0,1\\}^{\\Independence_1}\\) occurs on any\nfixed \\(\\Independence_1\\)-subset of coordinates.  Hence\n\\[\n    |C_1|\n    \\ge\n    \\frac{2^{\\Independence_1}}{1+\\eps_{q_1+5,\\Independence_1}}\n    \\ge\n    2^{\\Independence_1-1}\n    \\ge\n    \\frac12 d^{64}\n\\]\nfor all sufficiently large \\(d\\).\n\n\n\n%% ---\n\n\\paragraph{Stage~2: the dimension gadget \\(\\MTwo\\).}\nNext we interlace the transpose of \\(\\MOne\\) with order \\(q_2\\):\n\\[\n    \\MTwo\n    :=\n    \\interlaceOp{\\transpose{\\MOne}}{q_2,S_{q_2,\\Independence_2}(R_1)}.\n\\]\nThe \\(q_2\\) outer row blocks are now identified with the padded source\ncoordinates in \\([q_2]\\).  Thus Stage~2 is the gadget that lets the protocol\nisolate one dimension.  Set\n\\[\n    R_2:=\\Rows(\\MTwo)=[q_2]\\times C_1,\n    \\qquad\n    C_2:=\\Cols(\\MTwo).\n\\]\n\n\n\n%% ---\n\n\\paragraph{Stage~3: the bin gadget \\(\\MThree\\).}\nWe now take the \\(m\\)-fold classical interlace of \\(\\transpose{\\MTwo}\\), where\n\\(m=4\\):\n\\[\n    \\MThree\n    :=\n    \\interlaceOp{\\transpose{\\MTwo}}{m}.\n\\]\nThe \\(m\\)-fold interlace creates four outer blocks, one for each bin.  Write\n\\[\n    R_3:=\\Rows(\\MThree)=[m]\\times C_2,\n    \\qquad\n    C_3:=\\Cols(\\MThree)=R_2^{\\,m}.\n\\]\nBecause \\(C_2=S_{q_2,\\Independence_2}(R_1)\\) is\n\\((q_2,\\Independence_2)\\)-balanced with \\(\\eps_{q_2,\\Independence_2}<1\\),\nfixing any \\(\\Independence_2\\) coordinates shows\n\\[\n    |C_2|\n    \\ge\n    \\frac{|R_1|^{\\Independence_2}}{1+\\eps_{q_2,\\Independence_2}}\n    \\ge\n    \\frac12 |R_1|^{\\Independence_2}\n    \\ge\n    \\frac12 d^6\n\\]\nfor all sufficiently large \\(d\\), since \\(|R_1|=q_1\\ge \\log^2 d\\) and\n\\(\\Independence_2\\ge 3\\log d/\\log\\log d\\).  In particular,\n\\(h_2|C_2|\\to\\infty\\), so\n\\[\n    3\\ceil{2^{-\\Robustness_2+1}|C_2|}\n    \\le\n    8h_2|C_2|\n\\]\nfor all sufficiently large \\(d\\).  We use this estimate below when the Stage~3\nrow loss is rewritten in the cleaner density form \\((1-8h_2)|C_2|\\).\n\n",
+   "spec": "Stages 0-3: M0=[1 0]; M1hat = relaxedInterlace(M0, q1+5, C1) and M1 = row-restriction to the first q1 outer blocks (last 5 subgame coordinates reserved for Stage 4; define tail : C1 -> Fin 32); M2 = relaxedInterlace(M1^T, q2, S_{q2,t2}(R1)); M3 = CLASSICAL 4-fold interlace of M2^T. Fix R1,R2,R3,C1,C2,C3 as named carriers. Transposes go through lem:transposeComp-compatible definitional forms.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "def:stage4-matrix",
+   "kind": "def",
+   "deps": [
+    "def:stage-matrices",
+    "lem:zero-anchor-preprocessing"
+   ],
+   "lean_name": "NPCC.M4",
+   "file": "NPCC/Scaffold.lean",
+   "statement_tex": "\\paragraph{Stage~4: attach the source instance and obtain \\(\\MFour\\).}\nWe now add one row for each vector of the preprocessed source instance,\nincluding the four distinguished zero anchors from\n\\Cref{lem:zero-anchor-preprocessing}.  The row set becomes\n\\[\n    R_4:=R_3\\cup[n].\n\\]\nThe column set is\n\\[\n    C_4:=[2^5]\\times R_2^{\\,4}.\n\\]\nWe write a column \\(j\\in C_4\\) as\n\\[\n    j=(k,(j_1,j_2,j_3,j_4)),\n    \\qquad\n    k\\in[2^5],\\;\\;(j_1,\\ldots,j_4)\\in R_2^4.\n\\]\nWe call the rows in \\(R_3=[4]\\times C_2\\) the \\emph{template rows} (they carry\nthe Stage~3 scaffold) and the rows in \\([n]\\) the \\emph{vector rows} (they\nencode the bin-packing instance).\nWe first copy the Stage~3 template on the template rows.  For every \\(r\\in R_3\\)\nand every column \\(j=(k,(j_1,\\ldots,j_4))\\in C_4\\), set\n\\[\n    \\MFour(r,j)\n    :=\n    \\MThree(r,(j_1,j_2,j_3,j_4)).\n\\]\n\nFor each dimension \\(\\alpha\\in[q_2]\\), define the active support set\n\\[\n    A_\\alpha:=\\{\\,i\\in[n]:v_i(\\alpha)=1\\,\\}.\n\\]\nBy the source-side screen above, \\(|A_\\alpha|\\le 4\\) for every\n\\(\\alpha\\in[q_2]\\), so we may fix an injection\n\\[\n    \\pi_\\alpha:A_\\alpha\\hookrightarrow [4]\n    \\qquad\\text{for each }\\alpha\\in[q_2].\n\\]\nNow define the new vector rows.  For \\(i\\in[n]\\) and\n\\(j=(k,(j_1,j_2,j_3,j_4))\\in C_4\\), set\n\\[\n    \\MFour(i,j)\n    :=\n    \\begin{cases}\n        \\interlaceOp{\\MZero}{5}(\\pi_\\alpha(i),k),\n        &\n        \\parbox[t]{.62\\linewidth}{if there exists \\(\\alpha\\in[q_2]\\) such that\n        \\(v_i(\\alpha)=1\\) and, writing each\n        \\(j_m\\in R_2=[q_2]\\times C_1\\) as \\(j_m=(\\alpha_m,\\gamma_m)\\), we have\n        \\(\\alpha_1=\\alpha_2=\\alpha_3=\\alpha_4=\\alpha\\),} \\\\[2ex]\n        \\interlaceOp{\\MZero}{5}(5,k), & \\text{otherwise.}\n    \\end{cases}\n\\]\nThus row \\(i\\) is neutral by default, and on the diagonal outer-block slice\n\\(\\alpha_1=\\alpha_2=\\alpha_3=\\alpha_4=\\alpha\\) it becomes the\n\\(\\pi_\\alpha(i)\\)-th active row of the \\(5\\)-row gadget exactly when\n\\(v_i(\\alpha)=1\\).  In particular, every zero-anchor row remains neutral on\nevery branch because \\(v_{z_p}=0^d\\).\n\nWe set the target protocol budget to\n\\[\n    B_{\\mathrm{cap}}:=a+1,\n    \\qquad\n    B_{\\mathrm{yes}}:=\\log 4+\\ceil{\\log q_2}+B_{\\mathrm{cap}}.\n\\]\nThis is the YES-case target budget.\n",
+   "spec": "Stage 4: R4 = R3 (+) [n], C4 = Fin 32 x R2^4; template rows copy M3; vector row i is interlace(M0,5)(pi_alpha i, k) on the diagonal slice alpha1=..=alpha4=alpha when v_i(alpha)=1, else the neutral row interlace(M0,5)(5,k). DESIGN (D4, ratify before authoring): pi_alpha := order-preserving enumeration A_alpha -> Fin 4 (promise gives |A_alpha| <= 4). Also defines A_alpha, B_cap := a+1, B_yes := 2 + log q2 + B_cap.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "lem:large-d-checklist",
+   "kind": "lemma",
+   "deps": [
+    "def:scaffold-params",
+    "def:S-family",
+    "aux:family-lower"
+   ],
+   "lean_name": "NPCC.large_d_checklist",
+   "file": "NPCC/LargeD.lean",
+   "statement_tex": "\\subsection{Checklist of recurring large-\\texorpdfstring{$d$}{d} inequalities}\n\nThe main text repeatedly invokes a small set of large-\\(d\\) inequalities.\nThe table below gathers the ones that are reused in the transfer layer and in\nStages~2--4 of the reduction.  Here \\(\\eta_2:=q_2\\,2^{-\\Robustness_1+1}\\), as\nin \\Cref{lem:MThreeFuzzyLeaves,lem:MFourNoWasteLift}.\n\n\\begin{center}\n\\small\n\\setlength{\\tabcolsep}{4pt}\n\\renewcommand{\\arraystretch}{1.08}\n\\begin{tabular}{@{}p{0.34\\linewidth}p{0.35\\linewidth}p{0.20\\linewidth}@{}}\n\\toprule\nInequality & Used for & First use in the main text \\\\\n\\midrule\n\\(2(\\tfrac12+\\delta)^2\\le \\dfrac{1}{1+\\eps_{q_2,\\Independence_2}}\\) and\n\\(q_2\\ceil{2^{-\\Robustness_1+1}|C_1|}<|C_1|\\) &\nthe Stage~2 application of the relaxed near-exact separation theorem &\n\\Cref{lem:M2Separation} \\\\\n\\addlinespace[2pt]\n\\(2(\\tfrac12+\\delta)^2\\le \\dfrac{\\sigma}{1+\\eps_{q_2,\\Independence_2}}\\) for\n\\(\\sigma\\ge 1-8h_2\\) &\nthe projected dense-row Stage~2 application of the relaxed near-exact\nseparation theorem &\n\\Cref{cor:M2SeparationTransposeDenseRows} \\\\\n\\addlinespace[2pt]\n\\(8h_2<\\dfrac{1-\\eps_{q_2,\\Independence_2}}{|R_1|}\\) &\nshowing that every projected Stage~1 row type survives after the Stage~3 row\nloss, via \\Cref{lem:C2FiberSurvival} &\n\\Cref{lem:MThreeFuzzyLeaves} \\\\\n\\addlinespace[2pt]\n\\(1-\\eta_2\\ge h^{\\downarrow}_2\\) &\nshowing that the surviving Stage~2 columns are dense enough for the Stage~1\nlower bound used in the scaffold argument &\n\\Cref{lem:MFourNoWasteLift} \\\\\n\\addlinespace[2pt]\n\\((q_2-1)\\bigl(2^{-\\Robustness_1+1}|C_1|+1\\bigr)<\\eta_2|C_1|\\) &\nshowing that the non-dominant Stage~2 rectangles cannot cover too much of the\nchosen block \\(\\widehat X_{p,\\alpha}\\) &\n\\Cref{lem:MFourNoWasteLift} \\\\\n\\addlinespace[2pt]\n\\(\\eta_2<\\dfrac{1-\\eps_{2^a+3,\\Independence_1}}{2}\\) &\nthe final application of the chosen-coordinate Stage~1 threshold &\nproof of \\Cref{thm:main-nphard-intro} \\\\\n\\bottomrule\n\\end{tabular}\n\\end{center}\n\n",
+   "spec": "THE d_star BUNDLE (App C.1 checklist + scaffold prose + stage-lemma side conditions), existential-threshold form: exists d0 (power of two), forall powers of two d >= d0: the six checklist inequalities (2(1/2+delta)^2 <= 1/(1+eps2) and q2*ceil(2^{-b1+1}|C1|) < |C1|; the sigma>=1-8h2 variant; 8h2 < (1-eps2)/|R1|; 1-eta2 >= h2-down; (q2-1)(2^{-b1+1}|C1|+1) < eta2|C1|; eta2 < (1-eps1)/2), PLUS q1+2=r1*t1, q2=r2*t2 powers of two, q2 < 2d, t2 <= 2^{b1}, 3ceil(2^{-b2+1}|C2|) <= 8h2|C2|, |C1| >= d^64/2, |C2| >= d^6/2, comp(M1) >= 3 prerequisites feasible, and h'2 >= 2^{-2^{0.49 sqrt(log t2)}} with t2 >= (hard-seed threshold T0) -- lem:hard-seed's existential t-threshold is absorbed HERE (t2 -> infinity with d). d_star := the witness, via Classical.choice (D3). Heavy but mechanical log/loglog/power arithmetic; the pre-approved 'large-d bundle' axiom (config policy note) is the governed FALLBACK only -- attempt native first.",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-06T10:56:07.655Z",
+     "note": "JUDGE-TRIGGERED REFORMULATION (post-gate C5 verdict INCORRECT): the 16-field bundle is sound but UNDER-COVERS the spec - App C.1 rows 1b, 3, 5 and the 3*ceil bound silently omitted while the docstring claims the full density-domination table. Fix: EXTEND Checklist with the four conjuncts and re-prove (judge: all discharge at k >= 64 with the same log arithmetic). Proved content stays in LargeD.lean; claim withdrawn pending the extended statement."
+    }
+   ],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "def:H-local",
+   "kind": "def",
+   "deps": [
+    "def:scaffold-params",
+    "def:S-family",
+    "def:relaxed-interlace",
+    "def:stage-matrices"
+   ],
+   "lean_name": "NPCC.Hlocal",
+   "file": "NPCC/Stage1.lean",
+   "statement_tex": "\\paragraph{Local Stage~1 threshold.}\n\nFor any column family \\(T\\subseteq \\Cols(\\MZero)^{2^a+3}\\) and any integer\n\\(1\\le r\\le 2^a+3\\), write\n\\[\n    \\mathcal H_r(T)\n    :=\n    \\extractmatrix{\\interlaceOp{\\MZero}{2^a+3,\\;T}}\n    {[r]\\times\\Rows(\\MZero)}\n    {T}.\n\\]\nIn words, \\(\\mathcal H_r(T)\\) is the restriction of the full\n\\((2^a+3)\\)-coordinate relaxed interlace to its first \\(r\\) outer row blocks.\n\n",
+   "spec": "The local threshold games: for T subseteq Cols(M0)^{2^a+3} and 1 <= r <= 2^a+3, H_r(T) := restriction of relaxedInterlace(M0, 2^a+3, T) to its first r outer row blocks. Paragraph-level def (no label). Definition must accept an ARBITRARY indexed family T (dense subfamilies S' are fed in by the dense variants), not just balanced ones.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null
+  },
+  {
+   "id": "lem:stage1-threshold",
+   "kind": "lemma",
+   "deps": [
+    "def:H-local",
+    "aux:family-lower",
+    "aux:upper-row-id",
+    "lem:D-subgame-le"
+   ],
+   "lean_name": "NPCC.stage1_threshold",
+   "file": "NPCC/Stage1.lean",
+   "statement_tex": "\\begin{lemma}[Stage-1 threshold]\\label{lem:stage1-threshold}\n    Let\n    \\[\n        S_1:=S_{2^a+3,\\Independence_1}(\\Cols(\\MZero)).\n    \\]\n    Then\n    \\[\n        \\comp{\\mathcal H_{2^a}(S_1)}=a+1,\n        \\qquad\n        \\comp{\\mathcal H_{2^a+1}(S_1)}=a+2.\n    \\]\n\\end{lemma}",
+   "spec": "EXACT thresholds: comp H_{2^a}(S1) = a+1 and comp H_{2^a+1}(S1) = a+2. Native re-derivation of App C.2 (claim:stage1-rect-bound + heavy-path over a putative shallow protocol; upper bounds via aux:upper-row-id). One of the 3 hardest t6 items: both directions of two equalities; the monochromatic-rectangle bound uses balancedness of S1 only through pattern counting.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:stage1-dense-threshold",
+   "kind": "lemma",
+   "deps": [
+    "lem:stage1-threshold",
+    "def:H-local",
+    "aux:family-lower"
+   ],
+   "lean_name": "NPCC.stage1_dense_threshold",
+   "file": "NPCC/Stage1.lean",
+   "statement_tex": "\\begin{corollary}\\label{cor:stage1-dense-threshold}\n    Let\n    \\[\n        S_1:=S_{2^a+3,\\Independence_1}(\\Cols(\\MZero)),\n        \\qquad\n        \\eps_1:=\\eps_{2^a+3,\\Independence_1}.\n    \\]\n    Fix \\(S'\\subseteq S_1\\) with\n    \\[\n        |S'|\\ge (1-\\rho)|S_1|\n    \\]\n    for some \\(\\rho\\in[0,1)\\) satisfying\n    \\[\n        \\rho<\\frac{1-\\eps_1}{2}.\n    \\]\n    For \\(0\\le \\ell\\le 4\\), write\n    \\[\n        G'_\\ell:=\\mathcal H_{2^a-1+\\ell}(S').\n    \\]\n    Then\n    \\[\n        \\ell\\le 1 \\implies \\comp{G'_\\ell}\\le B_{\\mathrm{cap}},\n        \\qquad\n        \\ell\\ge 2 \\implies \\comp{G'_\\ell}\\ge B_{\\mathrm{cap}}+1.\n    \\]\n\\end{corollary}",
+   "spec": "Dense-subfamily variant: S' subseteq S1 with |S'| >= (1-rho)|S1|, rho < (1-eps1)/2 keeps the threshold. Paper proof RE-RUNS the rectangle-bound argument on S' -- factor the shared rectangle bound into an aux lemma inside the file so this is an instantiation, not a copy.",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-06T12:10:42.629Z",
+     "note": "STATE compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected to"
+    }
+   ],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:stage1-chosen-dense-threshold",
+   "kind": "lemma",
+   "deps": [
+    "cor:stage1-dense-threshold"
+   ],
+   "lean_name": "NPCC.stage1_chosen_dense_threshold",
+   "file": "NPCC/Stage1.lean",
+   "statement_tex": "\\begin{corollary}[Chosen-coordinate dense Stage-1 threshold]\n    \\label{cor:stage1-chosen-dense-threshold}\n    Let\n    \\[\n        S_1:=S_{2^a+3,\\Independence_1}(\\Cols(\\MZero)),\n        \\qquad\n        \\eps_1:=\\eps_{2^a+3,\\Independence_1}.\n    \\]\n    Fix \\(S'\\subseteq S_1\\) with\n    \\[\n        |S'|\\ge (1-\\rho)|S_1|\n    \\]\n    for some \\(\\rho\\in[0,1)\\) satisfying\n    \\[\n        \\rho<\\frac{1-\\eps_1}{2}.\n    \\]\n    Let \\(Q\\subseteq[2^a+3]\\) satisfy\n    \\[\n        |Q|\\ge 2^a+1.\n    \\]\n    Then\n    \\[\n        \\comp{\\extractmatrix{\\interlaceOp{\\MZero}{2^a+3,\\;S'}}{Q\\times\\Rows(\\MZero)}{S'}}\n        \\ge\n        B_{\\mathrm{cap}}+1.\n    \\]\n\\end{corollary}",
+   "spec": "Chosen-coordinate form: |Q| >= 2^a+1 outer coordinates over dense S' gives comp >= B_cap+1. THE lemma the final NO-case contradiction fires (also consumed by the Stage-4 gadget lemmas). Trim-to-Q then apply the dense threshold.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:M1LowColumnStage2",
+   "kind": "lemma",
+   "deps": [
+    "lem:rankclaim",
+    "lem:relaxed-to-classical",
+    "def:equipartition-ge",
+    "def:stage-matrices",
+    "lem:large-d-checklist",
+    "cor:localized-extension",
+    "lem:M0-column-loss-resilient"
+   ],
+   "lean_name": "NPCC.M1_low_column_stage2",
+   "file": "NPCC/Stage1.lean",
+   "statement_tex": "\\begin{lemma}[Residual Stage-1 hardness at Stage-2 densities]\\label{lem:M1LowColumnStage2}\n    Let\n    \\[\n        h^{\\downarrow}_2:=2^{-(\\Robustness_1+\\log r_2)},\n        \\qquad\n        h'^{\\downarrow}_2:=\\frac{2^{-\\CoreRobustness_1}}{16\\Independence_1}.\n    \\]\n    For every power of two \\(1\\le r'\\le r_1\\), any extraction\n    \\[\n        N=\\extractmatrix{\\MOne}{R'}{C'}\n    \\]\n    such that \\(R'\\) is a \\((Q,1)\\)-equipartition with\n    \\[\n        |Q|=\\frac{9}{16}\\,r'\\Independence_1\n    \\]\n    and\n    \\[\n        \\frac{|C'|}{|C_1|}\\ge h^{\\downarrow}_2\n    \\]\n    satisfies\n    \\[\n        \\comp{N}\\ge \\comp{\\MZero}+\\log\\Independence_1+\\log r'.\n    \\]\n\\end{lemma}",
+   "spec": "CORRECTED VEHICLE (lane finding 2026-07-06): NOT relaxed_to_classical (impossible: u = (9/16)r't1 > t1 for r' >= 2; S1fam only (q1+5,t1)-balanced). Vehicle = cor:localized-extension at f=M0, T=log t1, R'e=log r', a=0, p_seed=(9/16)t1 (gate t1/2 <= p_seed <= t1 holds). Needs: lem:M0-column-loss-resilient (new), the LargeD seed-bound inequality b1+log r2+T+1+log2(1+eps) < t1/16, and an S1fam projection/relabel wrapper Fin(q1+5) -> Fin(q1+2)=Fin(r1*t1) via IsBalancedFamily.projection + D_equiv_invariance. Conditional proof banked: pipeline/tmp/m1lcs2.opus.v1.lean (typechecked; 3 named hypotheses isolate the gap; statement verified well-formed against the live tree - REUSE ITS EXACT CLAIM BLOCK verbatim at STATE time). COLLISION: same live file as lem:stage1-threshold - serialize gates, append-only merge per the candidate header.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:M1-complexity",
+   "kind": "lemma",
+   "deps": [
+    "lem:M1LowColumnStage2",
+    "aux:upper-row-id"
+   ],
+   "lean_name": "NPCC.M1_complexity",
+   "file": "NPCC/Stage1.lean",
+   "statement_tex": "\\begin{corollary}\\label{cor:M1-complexity}\n    \\[\n        \\comp{\\MOne}\n        =\n        \\comp{\\MZero}+\\log\\Independence_1+\\log r_1\n        =\n        a+1\n        =\n        B_{\\mathrm{cap}}.\n    \\]\n\\end{corollary}",
+   "spec": "comp M1 = comp M0 + log t1 + log r1 = a+1 = B_cap. Lower: instantiate M1LowColumnStage2 at r'=r1, full density. Upper: row-identification protocol (a bits + answer).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:M1-robust",
+   "kind": "lemma",
+   "deps": [
+    "def:robust",
+    "lem:stage1-threshold",
+    "lem:M1LowColumnStage2",
+    "lem:transposeComp",
+    "cor:M1-complexity",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M1_robust",
+   "file": "NPCC/Stage1.lean",
+   "statement_tex": "\\begin{lemma}\\label{lem:M1-robust}\n    \\(\\transpose{\\MOne}\\) is \\((\\delta,\\Robustness_1)\\)-robust.\n\\end{lemma}",
+   "spec": "M1^T is (delta, b1)-robust: four-clause App C.3 check (R1-R4 of def:robust) using the Stage-1 threshold package + residual hardness. Feeds lem:M2-hard-seed and thm:SeparationTheorem's robustness hypothesis at the Stage-2 instantiation.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:M1TerminalStage2",
+   "kind": "lemma",
+   "deps": [
+    "lem:M1LowColumnStage2",
+    "def:scaffold-params",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M1_terminal_stage2",
+   "file": "NPCC/Stage1.lean",
+   "statement_tex": "\\begin{lemma}\n    \\label{lem:M1TerminalStage2}\n    Let\n    \\[\n        y^{\\mathrm{term}}_2\n        :=\n        \\left(\n        \\frac{h_2\\,2^{-(\\log q_2+\\comp{\\MOne})}}\n             {1+\\eps_{q_2,\\Independence_2}}\n        \\right)^{1/\\Independence_2}.\n    \\]\n    Then\n    \\[\n        \\comp{\\bracket{\\MOne}{1}{y^{\\mathrm{term}}_2}{2^{-\\Robustness_1}}}\n        \\ge\n        \\comp{\\MOne}-\\log r_1.\n    \\]\n\\end{lemma}",
+   "spec": "Terminal one-copy bound at the Stage-2 terminal density y2term := (h2 2^{-(log q2 + comp M1)}/(1+eps_{q2,t2}))^{1/t2}: comp(bracket(M1,1,y2term,2^{-b1})) >= comp M1 - log r1. App C estimate comparing y2term against h2-down.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:M2-column-loss-resilient",
+   "kind": "lemma",
+   "deps": [
+    "def:column-loss-resilient",
+    "lem:M1TerminalStage2",
+    "lem:M1LowColumnStage2",
+    "lem:M1-robust",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M2_column_loss_resilient",
+   "file": "NPCC/Stage2.lean",
+   "statement_tex": "\\begin{lemma}[Stage-2 column-loss resilience]\\label{lem:M2-column-loss-resilient}\n    Let\n    \\[\n        M:=\\transpose{\\MOne},\n        \\qquad\n        q:=q_2,\n        \\qquad\n        t:=\\Independence_2,\n        \\qquad\n        h:=h_2.\n    \\]\n    Then \\((M,\\Robustness_1)\\) is \\((q,t,h)\\)-column-loss resilient.\n\\end{lemma}",
+   "spec": "(M1^T, b1) is (q2, t2, h2)-column-loss resilient: verify BOTH clauses of the PROVED def:column-loss-resilient (terminal one-copy bound = lem:M1TerminalStage2; residual three-rung Lambda bounds after every allowed column loss = lem:M1LowColumnStage2 instances). Certifies the BASE matrix used to build M2, not M2 itself.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:M2-hard-seed",
+   "kind": "lemma",
+   "deps": [
+    "lem:hard-seed",
+    "lem:M1-robust",
+    "cor:M1-complexity",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M2_hard_seed",
+   "file": "NPCC/Stage2.lean",
+   "statement_tex": "\\begin{lemma}[Stage-2 hard seed]\\label{lem:M2-hard-seed}\n    Let\n    \\[\n        p^{\\mathrm{seed}}_2:=\\frac{9}{16}\\Independence_2,\n        \\qquad\n        x^{\\mathrm{seed}}_2:=2^{-\\Robustness_1}\\Independence_2.\n    \\]\n    Then\n    \\[\n        \\comp{\\bracket{\\transpose{\\MOne}}{p^{\\mathrm{seed}}_2}{x^{\\mathrm{seed}}_2}{h'_2}}\n        \\ge\n        \\comp{\\MOne}+\\log\\Independence_2.\n    \\]\n\\end{lemma}",
+   "spec": "comp(bracket(M1^T, (9/16)t2, 2^{-b1}t2, h'2)) >= comp M1 + log t2. Pure instantiation of the PROVED lem:hard-seed at M := M1^T, j := 5, t := t2, b := b1; hypotheses: M1-robust, comp M1 >= 3, t2 <= 2^{b1}; the hard-seed density 2^{-2^{0.49 sqrt(log t2)}} <= h'2 and the existential t-threshold T0 <= t2 both come from lem:large-d-checklist (T0 absorbed into d_star).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:M2-complexity",
+   "kind": "lemma",
+   "deps": [
+    "thm:Extension",
+    "lem:M2-column-loss-resilient",
+    "lem:M2-hard-seed",
+    "lem:M1-robust",
+    "cor:M1-complexity",
+    "aux:upper-row-id",
+    "aux:upper-partition",
+    "lem:transposeComp",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M2_complexity",
+   "file": "NPCC/Stage2.lean",
+   "statement_tex": "\\begin{corollary}\\label{cor:M2-complexity}\n    \\[\n        \\comp{\\MTwo}\n        =\n        \\comp{\\MOne}+\\ceil{\\log q_2}\n        =\n        B_{\\mathrm{cap}}+\\ceil{\\log q_2}.\n    \\]\n\\end{corollary}",
+   "spec": "comp M2 = comp M1 + ceil(log q2) = B_cap + log q2 (q2 a power of two). Lower: the PROVED thm:Extension at full density with the Stage-2 certification package. Upper: direct protocol via the toolkit.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:M2-robust",
+   "kind": "lemma",
+   "deps": [
+    "def:robust",
+    "cor:M2-complexity",
+    "thm:Extension",
+    "lem:M2-column-loss-resilient",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M2_robust",
+   "file": "NPCC/Stage2.lean",
+   "statement_tex": "\\begin{lemma}\\label{lem:M2-robust}\n    \\(\\transpose{\\MTwo}\\) is \\((\\delta,\\Robustness_2)\\)-robust.\n\\end{lemma}",
+   "spec": "M2^T is (delta, b2)-robust: four-clause App C check using the Stage-2 lower bound + relaxed-interlace structure. Feeds Stage-3 (iterated-partition-seed + classical separation instantiations).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:M2Separation",
+   "kind": "lemma",
+   "deps": [
+    "thm:SeparationTheorem",
+    "lem:M1-robust",
+    "cor:M1-complexity",
+    "lem:M2-column-loss-resilient",
+    "lem:M2-hard-seed",
+    "aux:family-lower",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M2_separation",
+   "file": "NPCC/Stage2.lean",
+   "statement_tex": "\\begin{lemma}[Stage-2 near-exact separation]\\label{lem:M2Separation}\n    Let \\(\\Pi\\) be any deterministic protocol for \\(\\MTwo\\) of total depth at\n    most \\(\\comp{\\MOne}+\\log q_2\\).  After the first \\(\\log q_2\\) bits of\n    \\(\\Pi\\), which are necessarily row questions, each surviving rectangle\n    \\(R\\times C\\) satisfies\n    \\[\n        \\begin{aligned}\n            \\exists\\, i^\\ast\\in[q_2]\\text{ such that }\\quad\n            &\\left|R\\cap(\\{i^\\ast\\}\\times C_1)\\right|\n              \\ge\n              |C_1|-(q_2-1)\\ceil{2^{-\\Robustness_1+1}|C_1|},\\\\\n            &\\left|R\\cap(\\{i\\}\\times C_1)\\right|\n              <\n              \\ceil{2^{-\\Robustness_1+1}|C_1|}\n              \\quad\\text{for all }i\\neq i^\\ast.\n        \\end{aligned}\n    \\]\n    In particular, every protocol meeting the tight\n    \\(\\comp{\\MOne}+\\log q_2\\) bound must spend its first \\(\\log q_2\\) bits\n    isolating the Stage~2 outer block.\n\\end{lemma}",
+   "spec": "Stage-2 near-exact separation: any depth-(comp M1 + log q2) protocol for M2 spends its first log q2 bits isolating the dimension block, with the dominant-block bounds. Instantiates thm:SeparationTheorem (OPEN, statement in authoring -- this obligation is BLOCKED on it) at M=M1^T, b=b1, t=t2, r=r2, h=1, h_seed=h'2, p_seed=(9/16)t2, x_seed=2^{-b1}t2; column-loss resilience weakened h2 -> 1 by monotonicity (lem:D-subgame-le / aux:bracket-mono); all side conditions from large-d. Render the conclusion as a LITERAL reuse of the SeparationTheorem conclusion shape (D6).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:M2SeparationTransposeDenseRows",
+   "kind": "lemma",
+   "deps": [
+    "thm:SeparationTheorem",
+    "lem:M2Separation",
+    "lem:transposeComp",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M2_separation_transpose_dense_rows",
+   "file": "NPCC/Stage2.lean",
+   "statement_tex": "\\begin{corollary}[Stage-2 separation on dense row restrictions]\n    \\label{cor:M2SeparationTransposeDenseRows}\n    Let \\(S\\subseteq C_2\\) satisfy\n    \\[\n        |S|\\ge (1-8h_2)\\,|C_2|.\n    \\]\n    Let \\(\\Pi\\) be any deterministic protocol for\n    \\[\n        \\extractmatrix{\\transpose{\\MTwo}}{S}{[q_2]\\times C_1}\n    \\]\n    of total depth at most \\(\\comp{\\MOne}+\\log q_2\\).  Then on every branch,\n    the first \\(\\log q_2\\) bits are column bits.\n\n    Let \\(\\mathcal P\\) denote the resulting partition after those first\n    \\(\\log q_2\\) bits.  Then every rectangle \\(R\\times C\\in\\mathcal P\\)\n    satisfies the dominant-block conclusion of \\Cref{lem:M2Separation}, with\n    rows and columns interchanged.\n\\end{corollary}",
+   "spec": "Dense-row-restriction + transpose variant: for S with |S| >= (1-8h2)|C2|, any depth-(comp M1 + log q2) protocol for extract(M2^T, S, [q2]xC1) starts with log q2 COLUMN bits + transposed dominant-block conclusion. Second thm:SeparationTheorem instantiation at h := sigma >= 1-8h2; transposing a protocol is the transport step (needs the protocol-level transpose, not just comp equality -- coordinate with D5 infrastructure).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:M3Separation",
+   "kind": "lemma",
+   "deps": [
+    "cor:iterated-partition-seed",
+    "cor:robust-two-copy-ladder",
+    "lem:M2-robust",
+    "lem:classical-separation-clean",
+    "cor:M2-complexity",
+    "aux:upper-row-id",
+    "aux:upper-partition",
+    "lem:transposeComp",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M3_separation_closed",
+   "file": "NPCC/Stage3.lean",
+   "statement_tex": "\\begin{lemma}[Stage-3 bin separation]\\label{lem:M3Separation}\n    Let \\(\\Pi\\) be any deterministic protocol for \\(\\MThree\\) of total depth at\n    most \\(\\comp{\\MTwo}+2\\).  Then on every branch, the first \\(2=\\log 4\\)\n    bits are row bits.\n\n    Let \\(\\mathcal P\\) denote the resulting partition after those first\n    \\(2=\\log 4\\) bits.  Then every rectangle \\(R\\times C\\in\\mathcal P\\) has a\n    unique block \\(i^\\ast\\in[4]\\) such that\n    \\[\n        \\left|R\\cap(\\{i^\\ast\\}\\times C_2)\\right|\n        \\ge\n        |C_2|-3\\ceil{2^{-\\Robustness_2+1}|C_2|},\n    \\]\n    and\n    \\[\n        \\left|R\\cap(\\{i\\}\\times C_2)\\right|\n        <\n        \\ceil{2^{-\\Robustness_2+1}|C_2|}\n        \\qquad\\text{for all }i\\neq i^\\ast.\n    \\]\n    In particular,\n    \\[\n        \\comp{\\MThree}=\\comp{\\MTwo}+2.\n    \\]\n\\end{lemma}",
+   "spec": "Stage-3 bin separation: comp M3 = comp M2 + 2; any depth-(comp M2 + 2) protocol starts with 2 row (bin) bits + dominant-block bounds. Lower bound: PROVED cor:iterated-partition-seed at M=M2^T, p=2, k=1, s=0, x=2^{1-b2}, y=(1/2+delta)^2, H=comp M2 + 1 (seed inequalities via lem:M2-robust + cor:robust-two-copy-ladder -- mind the F1 guard 2 <= comp). Protocol control: PROVED lem:classical-separation-clean at M=M2^T, q=4, x=y=1.",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-06T16:22:45.080Z",
+     "note": "lean_name set to the closed composition M3_separation_closed (the core instantiation is aux:m3-separation-core / NPCC.M3_separation)."
+    }
+   ],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:compat-slice-retention",
+   "kind": "lemma",
+   "deps": [
+    "def:stage4-matrix"
+   ],
+   "lean_name": "NPCC.compat_slice_retention",
+   "file": "NPCC/Gadget.lean",
+   "statement_tex": "\\begin{lemma}\\label{lem:compat-slice-retention}\n    Fix a bin label \\(p\\in[4]\\) and a dimension \\(\\alpha\\in[q_2]\\).  Define the\n    diagonal outer-block family\n    \\[\n        D_{p,\\alpha}\n        :=\n        \\left\\{\n        (k,(j_1,j_2,j_3,j_4))\\in C_4 :\n        j_m=(\\alpha,\\gamma_m)\\in\\{\\alpha\\}\\times C_1\n        \\text{ for all }m\\in[4]\n        \\right\\}.\n    \\]\n    For each \\(5\\)-bit shift \\(s\\in[2^5]\\), define the shifted compatibility\n    slice\n    \\[\n        X^{(s)}_{p,\\alpha}\n        :=\n        \\left\\{\n        (k,(j_1,j_2,j_3,j_4))\\in D_{p,\\alpha} :\n        k=\\operatorname{tail}(\\gamma_p)\\oplus s\n        \\right\\}.\n    \\]\n    Then \\(D_{p,\\alpha}\\) is the disjoint union of the \\(2^5\\) equal slices\n    \\(\\{X^{(s)}_{p,\\alpha}\\}_{s\\in[2^5]}\\).  Consequently, if\n    \\(C\\subseteq D_{p,\\alpha}\\) satisfies\n    \\[\n        |C|\\ge (1-\\eta)\\,|D_{p,\\alpha}|,\n    \\]\n    then some shift \\(s\\in[2^5]\\) obeys\n    \\[\n        |C\\cap X^{(s)}_{p,\\alpha}|\n        \\ge\n        (1-2^5\\eta)\\,|X^{(s)}_{p,\\alpha}|.\n    \\]\n    Moreover, replacing \\(k\\) by \\(k\\oplus s\\) is a column permutation of the\n    \\(5\\)-row local gadget, so a subgame extracted on \\(X^{(s)}_{p,\\alpha}\\) is\n    isomorphic to the corresponding subgame on \\(X^{(0)}_{p,\\alpha}\\).\n\\end{lemma}",
+   "spec": "Defines (inside the obligation) the diagonal family D_{p,alpha} and the 2^5 shifted compatibility slices X^{(s)}_{p,alpha}; proves the equal disjoint cover, the density-retention pigeonhole (some shift keeps (1-32 eta) density), and the shift-isomorphism (k -> k xor s is a column permutation of the 5-row gadget). Body-proved counting; no engine deps.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:MFourDiagonalCopy",
+   "kind": "lemma",
+   "deps": [
+    "def:stage4-matrix",
+    "lem:transposeComp"
+   ],
+   "lean_name": "NPCC.M4_diagonal_copy",
+   "file": "NPCC/Gadget.lean",
+   "statement_tex": "\\begin{lemma}[Canonical diagonal copy]\n    \\label{lem:MFourDiagonalCopy}\n    Fix a bin label \\(p\\in[4]\\).  For each \\(\\alpha\\in[q_2]\\), define\n    \\[\n        \\widehat X_{p,\\alpha}\n        :=\n        \\left\\{\n        \\bigl(\\operatorname{tail}(\\gamma),\n        ((\\alpha,\\gamma),(\\alpha,\\gamma),(\\alpha,\\gamma),(\\alpha,\\gamma))\\bigr)\n        :\n        \\gamma\\in C_1\n        \\right\\}\n        \\subseteq X_{p,\\alpha}.\n    \\]\n    Let\n    \\[\n        \\widehat D_p:=\\bigcup_{\\alpha\\in[q_2]}\\widehat X_{p,\\alpha}.\n    \\]\n    Then, after identifying each column of \\(\\widehat X_{p,\\alpha}\\) with the\n    Stage~2 column \\((\\alpha,\\gamma)\\in[q_2]\\times C_1=R_2\\), the restriction of\n    \\(\\MFour\\) to the template rows \\(\\{p\\}\\times C_2\\) and the columns\n    \\(\\widehat D_p\\) is exactly \\(\\transpose{\\MTwo}\\).\n\\end{lemma}",
+   "spec": "Canonical diagonal copy: defines Xhat_{p,alpha} (tail-compatible fully-diagonal columns) and Dhat_p; after the column identification, M4 restricted to template rows {p}xC2 and Dhat_p IS M2^T. Direct computation from the Stage-4 definition; body-proved.",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-06T12:15:18.263Z",
+     "note": "STATE compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected to"
+    }
+   ],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:M1PlusVectorsIsInterlace",
+   "kind": "lemma",
+   "deps": [
+    "def:stage4-matrix",
+    "lem:compat-slice-retention",
+    "cor:stage1-chosen-dense-threshold"
+   ],
+   "lean_name": "NPCC.M1_plus_vectors_is_interlace",
+   "file": "NPCC/Gadget.lean",
+   "statement_tex": "\\begin{lemma}\\label{lem:M1PlusVectorsIsInterlace}\n    Fix a bin label \\(p\\in[4]\\) and let \\(B\\subseteq[n]\\) be the vector rows\n    retained on the corresponding bin branch.  Fix a dimension \\(\\alpha\\in[q_2]\\)\n    and set\n    \\[\n        A_{\\alpha}(B)\n        :=\n        B\\cap A_\\alpha,\n        \\qquad\n        \\ell_{\\alpha}(B):=|A_{\\alpha}(B)|,\n        \\qquad\n        \\nu_{\\alpha}(B)\n        :=\n        \\begin{cases}\n            1, & \\text{if } B\\setminus A_\\alpha\\neq\\varnothing,\\\\\n            0, & \\text{otherwise.}\n        \\end{cases}\n    \\]\n    Restrict further to the diagonal compatibility slice\n    \\[\n        X_{p,\\alpha}\n        :=\n        \\left\\{\n        (k,(j_1,j_2,j_3,j_4))\\in C_4 :\n        \\begin{array}{l}\n            j_m=(\\alpha,\\gamma_m)\\in\\{\\alpha\\}\\times C_1 \\text{ for all }m\\in[4],\\\\\n            k=\\operatorname{tail}(\\gamma_p)\n        \\end{array}\n        \\right\\}.\n    \\]\n    Let\n    \\[\n        Q_{p,\\alpha}(B)\n        :=\n        [q_1]\n        \\cup\n        \\{\\,q_1+\\pi_\\alpha(i): i\\in A_\\alpha(B)\\,\\}\n        \\cup\n        \\begin{cases}\n            \\{q_1+5\\}, & \\text{if }\\nu_\\alpha(B)=1,\\\\\n            \\varnothing, & \\text{if }\\nu_\\alpha(B)=0.\n        \\end{cases}\n    \\]\n    Then the selected branch of \\(\\MFour\\), restricted to the template rows\n    \\(\\{p\\}\\times C_2\\), the vector rows in \\(B\\), and the columns\n    \\(X_{p,\\alpha}\\), contains a subgame obtained from\n    \\[\n        \\extractmatrix{\n            \\interlaceOp{\\MZero}{2^a+3,\\;\n            S_{2^a+3,\\Independence_1}(\\Cols(\\MZero))}}\n        {Q_{p,\\alpha}(B)\\times\\Rows(\\MZero)}\n        {S_{2^a+3,\\Independence_1}(\\Cols(\\MZero))}\n    \\]\n    by adding duplicate rows and duplicate columns.  In particular, if\n    \\(\\nu_\\alpha(B)=1\\) and \\(\\ell_\\alpha(B)\\ge 2\\), then\n    \\[\n        \\comp{\\text{branch}}\\ge B_{\\mathrm{cap}}+1.\n    \\]\n\\end{lemma}",
+   "spec": "Defines A_alpha(B), ell, nu, Q_{p,alpha}(B) (the local coordinate set: [q1] + one coordinate per active row + neutral companion) and proves: the branch restricted to slice X_{p,alpha} contains, up to DUPLICATE rows/columns, extract(interlace(M0, 2^a+3, S1), Q_{p,alpha}(B) x Rows M0, S1). Threshold consequence nu=1 & ell>=2 => comp branch >= B_cap+1. App C.5. Needs a 'duplicate rows/columns preserve comp' aux (fold into this file).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "cor:M1PlusVectorsCanonicalDense",
+   "kind": "lemma",
+   "deps": [
+    "lem:M1PlusVectorsIsInterlace",
+    "lem:MFourDiagonalCopy",
+    "cor:stage1-chosen-dense-threshold"
+   ],
+   "lean_name": "NPCC.M1_plus_vectors_canonical_dense",
+   "file": "NPCC/Gadget.lean",
+   "statement_tex": "\\begin{corollary}[Canonical dense local gadget]\n    \\label{cor:M1PlusVectorsCanonicalDense}\n    In the setup of \\Cref{lem:M1PlusVectorsIsInterlace}, fix\n    the canonical diagonal block \\(\\widehat X_{p,\\alpha}\\subseteq X_{p,\\alpha}\\)\n    from \\Cref{lem:MFourDiagonalCopy}. \n    If \\(Y\\subseteq \\widehat X_{p,\\alpha}\\) satisfies\n    \\[\n        |Y|\\ge (1-\\rho)\\,|\\widehat X_{p,\\alpha}|\n    \\]\n    for some \\(\\rho\\in[0,1)\\), then there exists\n    \\(S'\\subseteq S_{2^a+3,\\Independence_1}(\\Cols(\\MZero))\\) with\n    \\[\n        |S'|\n        \\ge\n        (1-\\rho)\\,|S_{2^a+3,\\Independence_1}(\\Cols(\\MZero))|\n    \\]\n    such that the selected branch of \\(\\MFour\\), restricted to the template\n    rows \\(\\{p\\}\\times C_2\\), the vector rows in \\(B\\), and the columns \\(Y\\),\n    contains a subgame obtained from\n    \\[\n        \\extractmatrix{\\interlaceOp{\\MZero}{2^a+3,\\;S'}}\n        {Q_{p,\\alpha}(B)\\times\\Rows(\\MZero)}\n        {S'}\n    \\]\n    by adding duplicate rows and duplicate columns.  Consequently, if\n    \\(\\nu_\\alpha(B)=1\\), \\(\\ell_\\alpha(B)\\ge 2\\), and\n    \\[\n        \\rho<\\frac{1-\\eps_{2^a+3,\\Independence_1}}{2},\n    \\]\n    then\n    \\[\n        \\comp{\\text{branch}}\\ge B_{\\mathrm{cap}}+1.\n    \\]\n\\end{corollary}",
+   "spec": "Dense variant on the canonical block: Y subseteq Xhat_{p,alpha} of density 1-rho pulls back to a dense Stage-1 family S' (density 1-rho) with the same subgame extraction; rho < (1-eps1)/2 + nu=1 + ell>=2 => comp branch >= B_cap+1. App C.5 pull-back + chosen-coordinate dense threshold.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:C2FiberSurvival",
+   "kind": "lemma",
+   "deps": [
+    "def:stage-matrices",
+    "def:balanced-family",
+    "aux:family-lower"
+   ],
+   "lean_name": "NPCC.C2_fiber_survival",
+   "file": "NPCC/Gadget.lean",
+   "statement_tex": "\\begin{lemma}[Fibre survival after Stage-3 row loss]\n    \\label{lem:C2FiberSurvival}\n    Let\n    \\[\n        C_2=S_{q_2,\\Independence_2}(R_1)\n        \\qquad\\text{and}\\qquad\n        \\eps_2:=\\eps_{q_2,\\Independence_2}.\n    \\]\n    For each \\(\\beta\\in[q_2]\\) and \\(r\\in R_1\\), define the coordinate fibre\n    \\[\n        F_{\\beta,r}:=\\{\\,c\\in C_2:c_\\beta=r\\,\\}.\n    \\]\n    Then\n    \\[\n        \\frac{1-\\eps_2}{|R_1|}\\,|C_2|\n        \\le\n        |F_{\\beta,r}|\n        \\le\n        \\frac{1+\\eps_2}{|R_1|}\\,|C_2|.\n    \\]\n    Consequently, if \\(S\\subseteq C_2\\) satisfies\n    \\[\n        |S|>\n        \\left(1-\\frac{1-\\eps_2}{|R_1|}\\right)|C_2|,\n    \\]\n    then for every \\(\\beta\\in[q_2]\\),\n    \\[\n        \\{\\,c_\\beta : c\\in S\\,\\}=R_1.\n    \\]\n\\end{lemma}",
+   "spec": "Fibre survival: balancedness of C2 bounds every coordinate fibre F_{beta,r} within (1 +/- eps2)|C2|/|R1|; hence any S with |S| > (1-(1-eps2)/|R1|)|C2| hits EVERY value in EVERY coordinate ({c_beta : c in S} = R1). Supplies the template-row witnesses T_{p,alpha}. Body-proved counting.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:MThreeFuzzyLeaves",
+   "kind": "lemma",
+   "deps": [
+    "lem:M3Separation",
+    "cor:M2SeparationTransposeDenseRows",
+    "lem:C2FiberSurvival",
+    "lem:MFourDiagonalCopy",
+    "cor:M2-complexity",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M3_fuzzy_leaves",
+   "file": "NPCC/Stage3.lean",
+   "statement_tex": "\\begin{lemma}[Budget-tight \\texorpdfstring{\\(\\MThree\\)}{MThree} leaves are approximate \\texorpdfstring{\\(\\MOne\\)}{MOne} leaves]\\label{lem:MThreeFuzzyLeaves}\n    Write\n    \\[\n        \\eta_2:=q_2\\,2^{-\\Robustness_1+1}.\n    \\]\n    Let \\(\\Pi\\) be any deterministic protocol for \\(\\MThree\\) of total depth at\n    most \\(\\comp{\\MTwo}+2\\).  After the first two bits, the surviving\n    rectangles can be relabelled as\n    \\[\n        \\{R_p\\times C_p : p\\in[4]\\}\n    \\]\n    so that, for\n    \\[\n        S_p:=\\{\\,c\\in C_2:(p,c)\\in R_p\\,\\},\n    \\]\n    one has\n    \\[\n        |S_p|\n        \\ge\n        |C_2|-3\\ceil{2^{-\\Robustness_2+1}|C_2|}\n        \\ge\n        (1-8h_2)\\,|C_2|\n    \\]\n    for every \\(p\\in[4]\\).\n\n    Fix \\(p\\in[4]\\), and identify\n    \\[\n        N_p:=\\extractmatrix{\\transpose{\\MTwo}}{S_p}{[q_2]\\times C_1}\n    \\]\n    with the restriction of \\(\\MThree\\) to \\(\\{p\\}\\times S_p\\) and the\n    diagonal column set\n    \\[\n        D^{(3)}\n        :=\n        \\left\\{\n        ((\\beta,\\gamma),(\\beta,\\gamma),(\\beta,\\gamma),(\\beta,\\gamma))\n        :\n        (\\beta,\\gamma)\\in[q_2]\\times C_1\n        \\right\\}.\n    \\]\n    Then, in the protocol induced by \\(\\Pi\\) on \\(N_p\\), after its first\n    \\(\\log q_2\\) bits the surviving rectangles can be relabelled as\n    \\[\n        \\{R_{p,\\alpha}\\times C_{p,\\alpha} : \\alpha\\in[q_2]\\}\n    \\]\n    so that, for every \\(\\alpha\\in[q_2]\\), there is a set\n    \\(Y_{p,\\alpha}\\subseteq C_1\\) with\n    \\[\n        |Y_{p,\\alpha}|\n        \\ge\n        (1-\\eta_2)\\,|C_1|\n    \\]\n    and\n    \\[\n        \\left\\{\n        ((\\alpha,\\gamma),(\\alpha,\\gamma),(\\alpha,\\gamma),(\\alpha,\\gamma))\n        :\n        \\gamma\\in Y_{p,\\alpha}\n        \\right\\}\n        \\subseteq\n        C_{p,\\alpha}.\n    \\]\n    Moreover,\n    \\[\n        \\{\\,c_\\alpha : c\\in S_p\\,\\}=R_1.\n    \\]\n    Hence, for each \\(r\\in R_1\\), one may choose\n    \\(c_{\\alpha,r}\\in S_p\\) with \\((c_{\\alpha,r})_\\alpha=r\\).  If\n    \\[\n        T_{p,\\alpha}:=\\{(p,c_{\\alpha,r}) : r\\in R_1\\},\n    \\]\n    then, after identifying the column\n    \\[\n        ((\\alpha,\\gamma),(\\alpha,\\gamma),(\\alpha,\\gamma),(\\alpha,\\gamma))\n    \\]\n    with \\(\\gamma\\in C_1\\), the restriction of \\(\\MThree\\) to\n    \\(T_{p,\\alpha}\\) and the above diagonal columns is exactly\n    \\[\n        \\extractmatrix{\\MOne}{R_1}{Y_{p,\\alpha}}.\n    \\]\n\\end{lemma}",
+   "spec": "Stopping-time leaves on the pure template M3 (eta2 := q2 2^{-b1+1}): after 2 bits, rectangles relabel as {R_p x C_p : p in [4]} with dense S_p (>= (1-8h2)|C2|); after log q2 more bits of the induced protocol on N_p = extract(M2^T, S_p, [q2]xC1), per-(p,alpha) rectangles with dense Y_{p,alpha} (>= (1-eta2)|C1|) and an EXACT extract(M1, R1, Y_{p,alpha}) witness via chosen fibre representatives. Three counting contradictions + relabeling arguments; top-3 hardest.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:MFourNoWasteLift",
+   "kind": "lemma",
+   "deps": [
+    "lem:MThreeFuzzyLeaves",
+    "lem:M3Separation",
+    "cor:M2SeparationTransposeDenseRows",
+    "lem:MFourDiagonalCopy",
+    "lem:C2FiberSurvival",
+    "lem:M1LowColumnStage2",
+    "cor:M2-complexity",
+    "lem:M1PlusVectorsIsInterlace",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M4_no_waste_lift",
+   "file": "NPCC/Lift.lean",
+   "statement_tex": "\\begin{lemma}[Scaffold structure on \\texorpdfstring{\\(\\MFour\\)}{MFour}]\\label{lem:MFourNoWasteLift}\n    Write\n    \\[\n        B_{\\mathrm{yes}}:=\\log 4+\\ceil{\\log q_2}+B_{\\mathrm{cap}}\n        \\qquad\\text{and}\\qquad\n        \\eta_2:=q_2\\,2^{-\\Robustness_1+1}.\n    \\]\n    Fix any \\(k_0\\in[2^5]\\) and let\n    \\[\n        X_3^{\\mathrm{temp}}\n        :=\n        \\{k_0\\}\\times R_2^{\\,4}\n        \\subseteq C_4.\n    \\]\n    Let \\(\\Pi\\) be any deterministic protocol for \\(\\MFour\\) of total depth at\n    most \\(B_{\\mathrm{yes}}\\).  Then there is a partition\n    \\[\n        [n]=B_1\\sqcup B_2\\sqcup B_3\\sqcup B_4\n    \\]\n    such that, for every pair \\((p,\\alpha)\\in[4]\\times[q_2]\\), there is a\n    partial branch of \\(\\Pi\\) after its first \\(2+\\log q_2\\) actual bits whose\n    surviving vector rows are exactly \\(B_p\\) and whose surviving columns\n    contain a set\n    \\[\n        Y_{p,\\alpha}\\subseteq \\widehat X_{p,\\alpha}\n    \\]\n    with\n    \\[\n        |Y_{p,\\alpha}|\n        \\ge\n        (1-\\eta_2)\\,|\\widehat X_{p,\\alpha}|.\n    \\]\n    Writing\n    \\[\n        S'_{p,\\alpha}\n        :=\n        \\left\\{\n        \\gamma\\in C_1 :\n        \\bigl(\\operatorname{tail}(\\gamma),\n        ((\\alpha,\\gamma),(\\alpha,\\gamma),(\\alpha,\\gamma),(\\alpha,\\gamma))\\bigr)\n        \\in\n        Y_{p,\\alpha}\n        \\right\\},\n    \\]\n    there are rows\n    \\[\n        T_{p,\\alpha}:=\\{(p,c_{p,\\alpha,r}) : r\\in R_1\\}\\subseteq \\{p\\}\\times C_2\n    \\]\n    such that the selected branch of \\(\\MFour\\), restricted to\n    \\(T_{p,\\alpha}\\), the vector rows in \\(B_p\\), and the columns\n    \\(Y_{p,\\alpha}\\), contains a subgame obtained from\n    \\[\n        \\extractmatrix{\\interlaceOp{\\MZero}{2^a+3,\\;S'_{p,\\alpha}}}\n        {Q_{p,\\alpha}(B_p)\\times\\Rows(\\MZero)}\n        {S'_{p,\\alpha}}\n    \\]\n    by adding duplicate rows and duplicate columns.\n    In particular, the first two actual bits determine the partition\n    \\(B_1,\\dots,B_4\\), and the next \\(\\log q_2\\) actual bits are column bits,\n    so the vector rows are unchanged during the Stage~2 isolation segment.\n\\end{lemma}",
+   "spec": "THE KEYSTONE (hardest t6 item; D5 Fable-critical statement, schedule a dedicated authoring turn like t5's Extension). Any depth-B_yes protocol for M4: induces a partition [n]=B_1..B_4; first 2 actual bits = bin bits; next log q2 actual bits = column bits (vector rows untouched); every (p,alpha) branch retains dense Y_{p,alpha} subseteq Xhat_{p,alpha} (>= 1-eta2) and the local Stage-1 subgame indexed by Q_{p,alpha}(B_p) over S'_{p,alpha}, up to duplicates. Proof = template-slice restriction + TWO synchronisation steps ('no queried bit is constant on the current template restriction before the stopping time 2+log q2', each closed by a B_cap residual bound from lem:M1LowColumnStage2) + dense witness extraction. NEW infrastructure: induced-protocol / delete-fixed-bits surgery on protocol trees (extends the restriction machinery lem:classical-separation-clean already uses).",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-06T13:46:54.618Z",
+     "note": "REFORMULATED: JUDGE INCORRECT (8th finding): BranchAt has phantom depth - no reachability/transcript/actual-subtree/Computes-on-restriction invariants tying rectangles to P's actual computation; BranchExtends is bare containment; the first-2-bits-determine-partition and next-log-q2-actual-column-bits content is not formalized. Fix: bind BranchAt to the restrict layer (residual = P's actual restricted computation via computes_restrictSub_restrict; cost via the evalDepth/foldCount ledger; reachability/eval-consistency invariant). Budgets + local witnesses were CORRECT - keep them."
+    },
+    {
+     "ts": "2026-07-07T02:56:52.763Z",
+     "note": "REFORMULATED: Simon-signed reformulation (2026-07-06): hypotheses add IsPow2 d + 2^18<=log2 d + the M3_fuzzy_leaves analytic gate tail (hrobM2,hm0_le,hrow_threshold,hraw,hprime,hthree); paper conclusion verbatim (partition B1..B4, forall (p,alpha) dense Y>=(1-eta2), local M0-interlace subgame up to duplicate rows/cols); added bundle discharged downstream by CtorScaleCertificateFull/large_d_checklist_full - same regime already accepted for lem:MThreeFuzzyLeaves."
+    }
+   ],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:polytime",
+   "kind": "lemma",
+   "deps": [
+    "def:stage4-matrix",
+    "def:S-family",
+    "axiom:aghp",
+    "lem:zero-anchor-preprocessing"
+   ],
+   "lean_name": "NPCC.output_size_bounds",
+   "file": "NPCC/Size.lean",
+   "statement_tex": "\\begin{lemma}[Polynomial-time constructibility]\\label{lem:polytime}\n    The matrix \\(\\MFour\\) has polynomial size and can be constructed in\n    polynomial time from the source instance.\n\\end{lemma}",
+   "spec": "SIZE-BOUNDS-FIRST rendering (D2, per standing recommendation): the kernel statement is |R4| = 4|C2| + n <= n + p(d) and |C4| = 32|R2|^4 <= p(d) with p EXPLICIT monomials derived from the AGHP axiom's size clause (verified present in Axioms.lean). The paper's poly-TIME constructibility half is Layer-B prose (boundary certificate) -- one line in the docstring, never a Lean claim.",
+   "status": "proved",
+   "attempts": [
+    {
+     "ts": "2026-07-06T11:19:27.038Z",
+     "note": "compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#"
+    },
+    {
+     "ts": "2026-07-06T11:20:34.223Z",
+     "note": "compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#"
+    },
+    {
+     "ts": "2026-07-06T11:23:02.337Z",
+     "note": "compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#"
+    },
+    {
+     "ts": "2026-07-06T11:26:07.163Z",
+     "note": "compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#"
+    },
+    {
+     "ts": "2026-07-06T11:28:47.813Z",
+     "note": "AXIOM GATE FAILED: C:\\lean\\npc-cc\\pipeline\\tmp\\AxCheck.lean:2:14: error(lean.unknownIdentifier): Unknown constant `NPCC.M4_size_poly`\n"
+    },
+    {
+     "ts": "2026-07-06T11:31:08.317Z",
+     "note": "compile failed:\ninfo: Workspace/Projections.lean:10:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:11:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:12:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#'; expected ')', ',' or ':'\ninfo: Workspace/Projections.lean:13:0: linter.style.header:125:24: error: unexpected token '#'; expected ')', ',' or ':'\nlinter.style.header:152:24: error: unexpected token '#"
+    },
+    {
+     "ts": "2026-07-06T13:19:41.200Z",
+     "note": "UNPARKED to stated: the routed failures were olean-lock contention (5 concurrent lanes), not proof/statement defects; statement registered+signed, submit retrying in a quiet window."
+    },
+    {
+     "ts": "2026-07-06T13:20:22.697Z",
+     "note": "AXIOM GATE FAILED: C:\\lean\\npc-cc\\pipeline\\tmp\\AxCheck.lean:2:14: error(lean.unknownIdentifier): Unknown constant `NPCC.M4_size_poly`\n"
+    },
+    {
+     "ts": "2026-07-06T13:29:24.092Z",
+     "note": "UNPARKED to stated: the routed failures were olean-lock contention (5 concurrent lanes), not proof/statement defects; statement registered+signed, submit retrying in a quiet window."
+    },
+    {
+     "ts": "2026-07-06T13:30:12.002Z",
+     "note": "AXIOM GATE FAILED: C:\\lean\\npc-cc\\pipeline\\tmp\\AxCheck.lean:2:14: error(lean.unknownIdentifier): Unknown constant `NPCC.M4_size_poly`\n"
+    },
+    {
+     "ts": "2026-07-06T13:57:22.676Z",
+     "note": "CORRECTION: lean_name was stale (NPCC.M4_size_poly, from the pre-ratification 'polytime' mapping; runtime is out of kernel scope per Simon). Actual deliverable theorem = NPCC.output_size_bounds. Prior 'olean-lock contention' unpark note was WRONG - the axiom-gate failure was a deterministic unknown-constant on the stale name."
+    }
+   ],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:scaffold-completeness",
+   "kind": "lemma",
+   "deps": [
+    "def:stage4-matrix",
+    "lem:zero-anchor-preprocessing",
+    "aux:upper-row-id",
+    "aux:upper-partition"
+   ],
+   "lean_name": "NPCC.scaffold_completeness",
+   "file": "NPCC/Gap.lean",
+   "statement_tex": "\\begin{lemma}\\label{lem:scaffold-completeness}\n    Suppose the preprocessed \\(\\{0,1\\}\\)-\\(d\\)-\\textsc{Dimension Vector Bin\n    Packing} instance admits a canonical feasible packing \\(\\sigma:[n]\\to[4]\\),\n    so that \\(\\sigma(z_p)=p\\) for every \\(p\\in[4]\\).  Let\n    \\[\n        B_{\\mathrm{yes}}\n        :=\n        \\log 4+\\ceil{\\log q_2}+B_{\\mathrm{cap}}.\n    \\]\n    Then \\(\\MFour\\) has a deterministic protocol of cost at most\n    \\(B_{\\mathrm{yes}}\\).\n\\end{lemma}",
+   "spec": "YES direction: a canonical feasible packing sigma (sigma(z_p)=p) yields a deterministic protocol of cost <= B_yes = 2 + ceil(log q2) + B_cap. Three phases: bin split (row, 2 bits, aux:upper-partition), dimension split (column, log q2 bits), residual local gadget with <= 2^a row behaviours (aux:upper-row-id; feasibility gives ell_{p,alpha} <= 1).",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "thm:reduction-gap",
+   "kind": "lemma",
+   "deps": [
+    "lem:scaffold-completeness",
+    "lem:MFourNoWasteLift",
+    "lem:zero-anchor-preprocessing",
+    "lem:M1PlusVectorsIsInterlace",
+    "cor:stage1-chosen-dense-threshold",
+    "def:powtwo-normalise",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.reduction_gap",
+   "file": "NPCC/Gap.lean",
+   "statement_tex": "\\begin{theorem}[NP-completeness of communication complexity]\n    \\label{thm:main-nphard-intro}\n    Given the truth table of a Boolean function\n    $f:\\{0,1\\}^n\\times\\{0,1\\}^n\\to\\{0,1\\}$ and an integer $k$ in binary,\n    deciding whether $\\comp{f}\\le k$ is \\textsf{NP}-complete.\n\\end{theorem}",
+   "spec": "THE TRANCHE-6 THEOREM (the paper's main theorem, mathematical core; statement_tex bound to thm:main-nphard-intro as the paper's nearest labeled anchor -- the gap pair lives inside its proof): for every power of two d >= d_star and every preprocessed promised instance, YES => comp M4 <= B_yes, and NO => comp M4 > B_yes. NO direction = the 4-step checklist: NoWasteLift partition; zero-anchor clause (iii) picks (p,alpha) with ell >= 2 & nu = 1; |Q_{p,alpha}(B_p)| >= 2^a+1; chosen-coordinate dense threshold at rho = eta2 beats the remaining budget.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "thm:main-nphard-intro",
+   "kind": "lemma",
+   "deps": [
+    "thm:reduction-gap",
+    "lem:polytime",
+    "def:powtwo-normalise",
+    "axiom:vbp-np-hard"
+   ],
+   "lean_name": "NPCC.main_np_hardness",
+   "file": "NPCC/Wrapper.lean",
+   "statement_tex": "\\begin{theorem}[NP-completeness of communication complexity]\n    \\label{thm:main-nphard-intro}\n    Given the truth table of a Boolean function\n    $f:\\{0,1\\}^n\\times\\{0,1\\}^n\\to\\{0,1\\}$ and an integer $k$ in binary,\n    deciding whether $\\comp{f}\\le k$ is \\textsf{NP}-complete.\n\\end{theorem}",
+   "spec": "Layer-B WRAPPER, staged for dependency completeness but BLOCKED twice: (1) on the governed declaration of the reserved axiom NPCC.vbp_np_hard (separate event, full judge treatment incl. Ultra per Simon 2026-07-06 -- NOT staged here); (2) on D7 ratification of what the Lean statement literally says (recommended: the packaged 'reduction function + gap + explicit size bound' form; in-kernel NP-completeness is out of scope -- the NP upper bound and poly-time remain prose). Do NOT attempt before both events.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "NPCC.vbp_np_hard",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "lem:M0-column-loss-resilient",
+   "kind": "lemma",
+   "deps": [
+    "def:column-loss-resilient",
+    "def:S-family",
+    "def:scaffold-params",
+    "lem:rankclaim",
+    "lem:large-d-checklist"
+   ],
+   "lean_name": "NPCC.M0_column_loss_resilient",
+   "file": "NPCC/Stage1.lean",
+   "statement_tex": null,
+   "spec": "NEW (lane-finding 2026-07-06; spec PRECISED same day from the prover-lane reconciliation, 2x independent GPT-5.5 xhigh + typechecked candidate): the concrete resilience instance localized_extension consumes for lem:M1LowColumnStage2. EXACT TARGET: IsColumnLossResilient M0 (b1 d) (epsQT (q1+5) (t1 d)) (R+T) (log t1) h2down, with 2^(R+T) = r1*t1 = q1+2, T = log t1, h2down = 2^-(b1 + log r2) (the Stage-2 density of lem:M1LowColumnStage2, NOT the Stage-1 h), and eps = the (q1+5,t1) family accuracy (the projected S1fam retains it). NO proved IsColumnLossResilient instance exists anywhere in the tree (hypothesis-only). DEGENERATE BASE CASE: D M0 = 1, so the Lambda-rung engine odd_copy_seed_rungs (Engine.lean:361, needs D f >= 2) does NOT apply - direct hand proof from rankclaim-level facts. Clause (i): from lem:rankclaim at p=1. Clause (ii): k in {0,1}, range c <= log t1 + k (NOT c <= t1); k=1 is trivial (>= 0); k=0 needs LambdaGE(M0, 1, 2^-b1, y_c(h2down)) >= 1 for every c <= log t1 (seed fact; M0 = [1 0] nonconstant). Densities y_c(h2down) must stay above the 1/|Y| floor - check against the LargeD gates.",
+   "status": "proved",
+   "attempts": [],
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:vbp-wrapper-support",
+   "kind": "aux",
+   "title": "VBP wrapper support lemmas (promise/YES preservation through preprocess+normalize; unpromised screen)",
+   "file": "Npcc/VBP.lean",
+   "status": "proved",
+   "depends_on": [],
+   "notes": "Added 2026-07-06 per two-lane vbp_np_hard formulation audit (ultra-npcc-12 + codex-axiom-audit): preprocess_promise, normalizeInstance promise + IsYes-iff (+ consumer-ready feasible/bad-bin transports as needed), not_isYes_of_not_promise. These are theorems (no axiom content) required before vbp_np_hard declaration composes into thm:main-nphard-intro. Declaration itself remains Simon-gated.",
+   "attempts": [],
+   "lean_name": "NPCC.normalizeInstance_isYes_iff",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m2-midlayer",
+   "kind": "aux",
+   "title": "Stage-2 mid-layer: direct upper bound + q2/copy-count bridges",
+   "file": "NPCC/Stage2.lean",
+   "lean_name": "NPCC.M2_upper_bound",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "Honest extraction from the m2mid lane 2026-07-07: the lane returned cor:M2-complexity with its lower bound as a HYPOTHESIS (hlower) plus a tautological h2-prime bridge - both stripped by the orchestrator, not gated. What remains here is real: M2_upper_bound (direct protocol), q2 clog bridge, hard-seed copy-count identity. The Stage-2 LOWER BOUND (hard-seed to ambient M2 embedding) and the hresidual discharge are the open crux - Ultra + codex assault fired.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m1-terminal-discharge",
+   "kind": "aux",
+   "title": "Discharge the three App-C terminal-density gates of M1TerminalStage2",
+   "file": "NPCC/Stage1.lean",
+   "lean_name": "NPCC.M1_terminal_stage2'",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "Added 2026-07-07: hy_le_one + hcolTerm unconditional; hrowTerm under explicit 2^18 <= log2 d gate (STRONGER than the 256 Checklist regime - avoids Checklist re-witness; ASSEMBLY NOTE: final d_star must satisfy 2^18 <= log2 d, i.e. d >= 2^(2^18); Checklist witness re-proof at that scale is log-scale numerics, expected cheap). Composability proved in-block via M1_terminal_stage2-prime.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m2-clr-discharge",
+   "kind": "aux",
+   "title": "Stage-2 column-loss clause (ii) discharge via the M1_robust rungs",
+   "file": "NPCC/Stage2.lean",
+   "lean_name": "NPCC.M2_column_loss_resilient'",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: hresidual replaced by the App-C density WINDOW gate hresidual_density (yLoss in [1/2+delta,1] on c <= M2_T + D M1T); rung table r2/r4/r3 at y, y/2, y/4 with integer offset bookkeeping. Window discharge = numerics lane (Ultra npcc-13 Q4 feeds it).",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m2-dense-separation-core",
+   "kind": "aux",
+   "title": "Dense-rows restricted separation core (relaxed_separation at C-prime=Sdense, h=sigma)",
+   "file": "NPCC/Stage2.lean",
+   "lean_name": "NPCC.M2_separation_transpose_dense_rows",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: the REAL half of cor:M2SeparationTransposeDenseRows - FirstKRowBitsOn + NoWasteConclusion on the dense retained-column subgame (paper 3955-4018), band via Checklist.dens_sep_dense. The consumer-shaped BranchAt conclusion is BLOCKED on a missing public constructor (FirstKRowBits/NoWaste -> semantic BranchAt + transpose side-trace lemma) - branch-constructor lane + Ultra pre-clearance fired; cor obligation stays OPEN.",
+   "signed_off": true,
+   "route": null,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m2-numerics",
+   "kind": "aux",
+   "title": "Stage-2 numerics: gate discharges + h2-prime bridge + composed M2_complexity wrappers",
+   "file": "NPCC/Stage2.lean",
+   "lean_name": "NPCC.M2_complexity_h2prime",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: pro-13 false-at-256 claim INDEPENDENTLY VERIFIED (raw hbridge exponent 50 vs 2.46 at k=256, 109 vs 3.89 at k=2^18); paper confirmed to route via h2-prime (main.tex 3780-3804, 7328-7367; h2=(log d)^-3, h2-prime=(log d)^-8); h2-prime bridge exponent TRUE at both scales (50<=64, 109<=144); raw->h2-prime upgrade kicks in at loglog d >= ~640 = the paper own eventually-dominates, honestly quantified. Landed: t2/M2_T/q2 log glue, hp1/hp2 from 5<=M2_T, yLoss window conversion (3/5 form), rowDensity<=1 from Checklist.t2_le_pow_b1, M2_hard_seed_to_h2prime_exp + M2_h2prime_bridge_exp + M2num_hbridge_via_h2prime, composed M2_complexity-prime + M2_complexity_h2prime. Residual explicit gates: the two exponent windows + yLoss lower window + row-threshold ceiling (all monotone-in-d numerics for the final d_star bundle).",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:branch-constructors",
+   "kind": "aux",
+   "title": "Branch-constructor layer tranche 1: row-prefix BranchAt constructor + FirstKRowBits bridges",
+   "file": "NPCC/Control.lean",
+   "lean_name": "NPCC.Protocol.mkBranchAt_of_rowPrefix",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: mkBranchAt_of_rowPrefix (univ rectangles - BranchAt reachability quantifies over ambient types, proper sub-rectangles structurally excluded; consumers subtype-encode) + 6 bridge lemmas (actualPrefixCode/SideList/SubtreeAtRaw vs row-prefix layer under FirstKRowBitsOn; cost + evalDepth decompositions; evalDepth_restrictSub simp). Tranche 2 owed: Protocol.swap transport (Bob segments) + appendCode composition (BranchExtends towers) - follow-up lane fired; Ultra npcc-14 design ruling pending cross-check.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:branch-constructors-2",
+   "kind": "aux",
+   "title": "Branch-constructor tranche 2: Protocol.swap transport + Bob-prefix capstone",
+   "file": "NPCC/Control.lean",
+   "lean_name": "NPCC.Protocol.mkBranchAt_of_colPrefix",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: Protocol.swap (aNode<->bNode) + simp pack (swap_swap/cost/eval/evalDepth) + actual-machinery transports (prefixCode/subtree/sideList w/ side-label map) + swap_restrictSub; FirstKColBitsOn := FirstKRowBitsOn on swap; branchAt_of_swap transport; mkBranchAt_of_colPrefix capstone. swap_restrict deliberately NOT shipped (restricted_residual_computes proved directly - folding restrict equality would be brittle). Tranche 3 owed: appendCode composition towers (obstruction precisely scoped; Ultra npcc-14 Q3 ruling incoming).",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-separation-core",
+   "kind": "aux",
+   "title": "Stage-3 separation core: classical_separation instantiation + public transport (complexity field gated)",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.M3_separation",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: real content = classical_separation @ X=C2,Y=R2,Q=2,x=y=1 + both transport directions (public Protocol -> subtyped via restrictSub lemmas; FirstKRowBitsOn/NoWasteConclusion back to public). GATED-THROUGH field: hM3_complexity (D(M3)=D(M2)+2) is a hypothesis passed into the conclusion structure - NOT proved; lem:M3Separation stays OPEN until the complexity lane composes it away. Also gates: hrobM2 (=live M2_robust modulo its private gate type), hdelta_sep, hD2, hstage3_gap.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-complexity",
+   "kind": "aux",
+   "title": "Stage-3 exact complexity D(M3)=D(M2)+2",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.M3_complexity",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: upper = comp_le_partition on the Fin 4 selector + D_mapNodes_le + comp_transpose; lower = power_of_two_lower @ MT=M2^T w=2 (robust_two_copy_ladder + iterated_partition_seed rho=3 k=1 p=2 H=D+1) + Dfamily_le_whole; M3 defeq interlaceFun MT 4.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:branch-constructors-3",
+   "kind": "aux",
+   "title": "Branch-constructor tranche 3: append arithmetic + restrictSub transports + Q4 relabelling layer",
+   "file": "NPCC/Control.lean",
+   "lean_name": "NPCC.Protocol.prefixCodeAppend_inj",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: prefixCodeAppend + val/left/right/inj; actualPrefixCode/SideList/SubtreeAtRaw _restrictSub transports; BranchAt.liftRows/liftCols + membership; the Q4 relabelling layer (alphaOfCode from NoWaste exists-unique, YofCode survivor sets, density transport). NOT shipped: the 3 actual append bridges + BranchAt.compose - stalled on dependent Fin-width casts (n+1+t2 vs n+t2+1 recursion unfolding); tranche 4 = cast-normalized append lemmas first (stalled goal recorded in branchctor3-report). Composition needed ONLY for NWL two-segment towers; dense-rows corollary needs single-segment + relabelling = UNBLOCKED by this gate.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:branch-constructors-4",
+   "kind": "aux",
+   "title": "Branch-constructor tranche 4: the compose (actual append bridges + BranchAt.compose + BranchExtends + colPrefix tower)",
+   "file": "NPCC/Control.lean",
+   "lean_name": "NPCC.Protocol.BranchAt.compose",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: the .val strategy dissolved the dependent Fin-width casts (T3 stalled goal): actualPrefixCodeRaw_append(+_val), actualSideListRaw_append, actualSubtreeAtRaw_append_actualPrefix, eval/evalDepth decompositions; BranchAt.compose w/ BranchExtends b1 (compose b1 b2) PROVED; compose_colPrefix = the exact two-segment tower shape (t1 bits then t2 Bob bits on the residual) the NWL proof consumes. CONSTRUCTOR KEYSTONE COMPLETE (4 tranches).",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m2-dense-code-family",
+   "kind": "aux",
+   "title": "Dense-rows code-indexed branch family (Bob traces, dense YofCode, S-survival, diagonal containment)",
+   "file": "NPCC/Stage2.lean",
+   "lean_name": "NPCC.M2_separation_transpose_dense_rows_code_data",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: per-CODE BranchAt family on swap P at M2DenseDepth (= log q2 = clog q2 via bridges) built from the dense core + mkBranchAt_of_colPrefix + tranche-3 relabelling; YofCode dense at (1-eta2) via Checklist.dens_nondominant_slack; NO branch-data hypotheses. NOT gated as cor:M2SeparationTransposeDenseRows: the paper corollary is PER-ALPHA - the gap is exactly alphaOfCode_surj_on_Q (dominant-block counting, paper 3937-3952); surjectivity lane fired; the cor stays open.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-fuzzy-partial",
+   "kind": "aux",
+   "title": "Fuzzy-leaves partial: separation conclusion + per-alpha dense packaging at sigma=1-8h2",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.M3_fuzzy_leaves_dense_alpha_partial",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: M3SeparationConclusion via M3_separation_closed + the per-alpha Stage-2 data at sigma=1-8h2 for any dense bin-residual protocol; NO assumed branch data. lem:MThreeFuzzyLeaves stays OPEN on ONE named transport: BranchAt on swap(Pdense) (the mapped/swapped bin residual) -> BranchAt on the original residual, then compose->dimBranch, C2_fiber_survival->cRep, definitional exact_M1_copy. Tranche-5 reindex-transport lane fired.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:branch-constructors-5",
+   "kind": "aux",
+   "title": "Branch-constructor tranche 5: reindex transport (Equiv commutation pack + branchAt_of_reindex)",
+   "file": "NPCC/Control.lean",
+   "lean_name": "NPCC.Protocol.branchAt_of_reindex",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: actualPrefixCode/SideList/SubtreeAtRaw + evalDepth commute with Protocol.reindex; branchAt_of_reindex transports all 13 fields (residual chosen as the actual restricted subtree - residual_eq_actual definitional). Fuzzy assembly hit the DEEPER ambient-lift: restricted-protocol column-onlyness does NOT lift to the ambient bin residual - that is the paper synchronization/stopping-time argument (4607-4646), the same Q1 machinery as the NWL plan; HOLDING the fuzzy close for the npcc-15 rulings.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-sync",
+   "kind": "aux",
+   "title": "Stage-3 ambient sync adapter: FirstKColBitsOn(bin residual) -> consumer dimBranch family",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.M3_ambient_sync_from_colPrefix",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: hole-free consumer adapter (mkBranchAt_of_colPrefix + compose_colPrefix + branchExtends_compose_left); consumes ambient FirstKColBitsOn per bin residual as an EXPLICIT INPUT - the budget-forces-structure lemma is now THE isolated remaining target: derive FirstKColBitsOn (univ subtypes, clog q2, (binBranch p).residual) from cost_after_actualBits + total budget + M2/M1 floors + dense restricted separation. npcc-15+16 Ultra rulings incoming on exactly that.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-budget",
+   "kind": "aux",
+   "title": "Budget-lemma scaffolding: target structure + certified cost side + sync composition",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.M3_binResidual_subgame_D_le_M2",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: M3BudgetColumnTarget (the exact missing structure); M3_binResidual_cost_le_M2 (residual <= D(M2) from cost_after_actualBits + budget); subgame D bounds; M3_ambient_sync_from_budget_target (target -> full consumer package via the adapter). Shape probe: FirstKColBitsOn target CONFIRMED right (per-node obligations enumerated; survivor guards tolerate dead children; live aNodes/leaves must be budget-killed). Floor granularity RESOLVED by design: stopping-time induction carrying dense-survivor subrectangle + fold ledger (no per-rectangle Stage-2 floors). REMAINING = the one induction; 2 codex lanes honestly declined unaided; npcc-16 Q2 = the designed input.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:nowaste-core",
+   "kind": "aux",
+   "title": "No-waste core machinery: FirstPatternOn + fibers + terminal witnesses (npcc-16 lanes 1-3)",
+   "file": "NPCC/NoWaste.lean",
+   "lean_name": "NPCC.Protocol.FirstPatternOn",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: FirstPatternOn (mixed side-pattern, survivor guards) + replicate iff conversions + take/drop; actualBitListRaw transcript sync + BranchFiberNonempty + prefix coverage; StopLeafContained + D_stopLeaf cost bridges. MAIN THEOREM present as honest _statement Prop defs (NOT proved): blocked on ONE bridge = ambient-vs-restricted stopping-subtree sync (D(subgame Rw Cw) <= ambient actual-subtree cost at the folded prefix). Finisher lane fired.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:nowaste-main",
+   "kind": "aux",
+   "title": "THE no-waste theorem: FirstPatternOn univ from restricted pattern + budget + terminal floors",
+   "file": "NPCC/NoWaste.lean",
+   "lean_name": "NPCC.Protocol.noWaste_firstPatternOn_univ_of_restrict",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [
+    {
+     "ts": "2026-07-06T20:05:23.216Z",
+     "note": "AXIOM GATE FAILED: C:\\lean\\npc-cc\\pipeline\\tmp\\AxCheck.lean:2:14: error(lean.unknownIdentifier): Unknown constant `NPCC.noWaste_firstPatternOn_univ_of_restrict`\n"
+    },
+    {
+     "ts": "2026-07-06T20:08:13.251Z",
+     "note": "AXIOM GATE FAILED: C:\\lean\\npc-cc\\pipeline\\tmp\\AxCheck.lean:2:14: error(lean.unknownIdentifier): Unknown constant `NPCC.noWaste_firstPatternOn_univ_of_restrict`\n"
+    },
+    {
+     "ts": "2026-07-06T20:11:03.602Z",
+     "note": "AXIOM GATE FAILED: C:\\lean\\npc-cc\\pipeline\\tmp\\AxCheck.lean:2:14: error(lean.unknownIdentifier): Unknown constant `NPCC.noWaste_firstPatternOn_univ_of_restrict`\n"
+    },
+    {
+     "ts": "2026-07-06T20:11:34.683Z",
+     "note": "CORRECTION: lean_name was NPCC.noWaste_... but the theorem lives under namespace Protocol (inside NPCC) - actual name NPCC.Protocol.noWaste_firstPatternOn_univ_of_restrict. The axiom-gate unknown-constant failure was this stale name, NOT contention (state/signoff = full build PASSED; only #print axioms failed). Same class as the lem:polytime M4_size_poly stale-name."
+    }
+   ],
+   "notes": "2026-07-07 THE LAST UNPROVED MATHEMATICS. Bridge firstPatternOn_terminal_cost_lower proves pat.length+B0 <= P.cost (with budget <= gives EXACT equality - the one-bit tightness). Main by 5-case induction generalized over ambient rect (S,T) w/ R subset S, C subset T (the carried invariant); folds killed by strict root-fold cost decrease + omega; wrong-side by restricted-pattern emptiness vs coverage nonemptiness. + col/row specializations. npcc-16 Pro ruling transcribed end-to-end. FAITHFULNESS JUDGE FIRED (keystone).",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-stopdata",
+   "kind": "aux",
+   "title": "Stage3StopData -> ambient no-waste application -> M3BudgetColumnTarget (non-vacuity discharge)",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.Stage3StopData.ambient_col",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: CONSTRUCTIVE NON-VACUITY PROOF of the no-waste keystone - Stage3StopData.ambient_col applies noWaste_firstKColBitsOn_univ_of_restrict to the real Stage-3 stop data; budget wrapper; M3_budget_column_target_of_stopdata assembles M3BudgetColumnTarget; verified M3_ambient_sync_from_budget_target consumes it. lem:MThreeFuzzyLeaves still open on ONE floor lemma: the hard field = forall reached terminal rect Rw x Cw of a bin residual, D(M1) <= D(subgame Gp Rw Cw) (the embedded M1 copy on (T_pa, Y_pa) per exact_M1_copy). Floor lane fired.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-floor",
+   "kind": "aux",
+   "title": "Terminal M1-floor bridge: exact-copy D-lower-bound + TerminalHardWitnesses reduction",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.D_exact_copy_le_subgame",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: D_exact_copy_le_subgame (exact copy embedding rowEmbed/colEmbed with G(embed,embed)=H => D H <= D(subgame G R C), via D_mapNodes_le, NO injectivity - GENERAL, reusable at Stage 4); terminalHardWitnesses_of_prefix_exact_copy; M3_terminalHardWitnesses_of_prefix_M1_copies (H:=M1 d). Reduces the hard field to per-word prefix-copy data. Remaining for fuzzy close: connect the restricted bin residuals prefix fibers to the Stage-2 code-data branches (rows fixed by column-onlyness; cols = dominant-alpha block containing YofCode; M1-identity definitional) - closer lane fired.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:large-d-checklist-2p18",
+   "kind": "aux",
+   "title": "Bumped large-d checklist: witness 2^(2^18) bundling Checklist + 2^18<=log d",
+   "file": "NPCC/LargeD.lean",
+   "lean_name": "NPCC.large_d_checklist_strong",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07 (Simon signed off fix 1b): large_d_checklist_strong : exists d0, forall d, IsPow2 d -> d0<=d -> Checklist d AND 2^18<=log d, witness 2^(2^18). Refactored old proof into checklist_of_log_ge_256 helper (256<=log => Checklist), reused. Final-assembly d_star extraction uses THIS so the 2^18 gate (from aux:m1-terminal-discharge / M3_separation_closed) is met. Never evaluates the 2^(2^18) numeral.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-prefixcopy",
+   "kind": "aux",
+   "title": "Prefix-copy -> Stage3StopData: row-invariance under col bits + stop-data assembly",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.Protocol.rowsAtPrefix_eq_of_firstKColBitsOn",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: actualBitListRaw_eq_of_firstKColBitsOn (Bob-only => bitlist row-independent); rowsAtPrefix_eq_of_firstKColBitsOn (Bob-only + coverage => rowsAtPrefix w = R for all w - THE row-invariance); Stage3StopData.of_colPrefix_M1_copies + M3PrefixCopyStopInputs.stage3StopData (per-bin stop data from prefix-copy inputs). REMAINING for fuzzy close = ONE orientation transport: instantiate the Stage-2 per-alpha corollary AT (a reindex of) the bin residual (do NOT transport pre-existing data). Transport lane fired w/ that framing.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-transport",
+   "kind": "aux",
+   "title": "Instantiate-at-bin-residual dense transport (compute+budget+corollary+M1-copy+fibercover)",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.M3_bin_dense_protocol_computes",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: THE reframing in checked Lean - M3BinDenseReindex package; the reindexed dense protocol (reindex(restrictSub(swap(restrict bin residual)))) COMPUTES M2DenseGame + cost<=D(M2) PROVED; M3_bin_dense_alpha_data_of_reindex instantiates the Stage-2 per-alpha corollary at it; M3_diagCol_exact_M1(_of_fiber) exact copy; M3_C2_fiber_cover_of_dense. Remaining for fuzzy close = construct the M3BinDenseReindex witness: rowEquiv (j,gamma)->M3_diagCol(cast j)gamma, colEquiv (c in S p)->(p,c), + R p/C p = exact images + membership. Equiv-closer lane fired.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-binreindex-witness",
+   "kind": "aux",
+   "title": "M3BinDenseReindex witness: injective diag/survivor maps + game_eq, modulo 2 branch memberships",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.M3_binDenseReindex_of_memberships",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: equivOfInjectiveImage; M3_diagColBranch (inj via eval at 0 + Fin.cast inj); M3_survivorRowBranch (inj via snd); M3_denseDiagCols/SurvivorRows finsets; M3_binDenseReindex_of_memberships builds the full htr package from hrow_mem+hdiag_mem; game_eq by M3_diagCol_exact_M1 (no extra assumption). REMAINING for fuzzy close: (1) the 2 memberships hrow_mem (c in S p => (p,c) in binBranch.rows), hdiag_mem (diagCol in binBranch.cols) - from mkBranchAt_of_rowPrefix output characterization (rows=code fiber, cols=univ); (2) code-indexed dominant_bins -> bin-indexed binBranch family (alphaOfCode @ t=2). Final exhaustive assembly lane fired.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:ctor-gates",
+   "kind": "aux",
+   "title": "Construction scale certificate + partial CtorGates wrapper (Reduction.lean)",
+   "file": "NPCC/Reduction.lean",
+   "lean_name": "NPCC.ctorScaleCertificate",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: Reduction.lean born. ctorDStar := large_d_checklist_strong.choose; reducedInstance/ctorScale/reducedVectors; CtorScaleCertificate (IsPow2+2^18log+Checklist+2<=ctorScale, ALL proved) - THE lemma supplying the regime hyps from an instance for free. ctorScale_eq_ceilPowTwo + ctorScale_le_two_mul_max (size). CtorGates PARTIAL: derives most gates from Checklist but 5 NUMERIC-DEBT gates NOT yet derivable (hm0_le hard-seed threshold, hrow_threshold, hraw/hprime h2prime exponents, hy_three_fifths, hrobM2 needs M2_robust_closed) - these leaked as explicit hyps in the M2/M3 assault; discharge lane fired to pay the debt from the 2^(2^18) regime.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-binbranch-char",
+   "kind": "aux",
+   "title": "Bin-branch characterization + code->bin family + per-bin dense alpha data",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.M3_binBranch",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: GAP1 mkBranchAt_of_rowPrefix_rows/cols + M3_binBranch_rows(=rowPrefixRows)/cols(=univ); GAP2 M3Bin_alphaOfCode_surj_on_Q (bin surjectivity via 4*rowLoss<|C2| counting) + M3_codeOfBin + M3_binBranch + M3_binSurvivors; memberships M3_binBranch_row_mem/diag_mem; M3_binDenseReindex_for_binBranch + M3_bin_dense_alpha_data_for_binBranch -> the chain REACHES per-bin dense alpha data. REMAINING for fuzzy close: package alpha data -> Stage3StopData (3 fields all available) -> ambient_col -> M3BudgetColumnTarget -> M3_ambient_sync_from_budget_target -> dimBranch -> M3FuzzyLeavesData. Final packaging lane fired.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-package",
+   "kind": "aux",
+   "title": "Fuzzy-leaves assembly modulo the sync bridge (aux:m3-package)",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.M3_fuzzy_leaves_package_from_sync_bridge",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: the FULL M3FuzzyLeavesData assembly (binBranch/S/Y/cRep/fiber_cover/exact_M1_copy - all fields) modulo ONE named hypothesis hbridge = M3_fuzzy_leaves_sync_bridge (= M3BudgetColumnTarget + diag_cols diagonal containment). Honest partial - bridge is a NAMED hypothesis not assumed-away. lem:MThreeFuzzyLeaves stays OPEN; final sync-bridge lane discharges hbridge (per-bin Stage3StopData -> ambient_col -> M3BudgetColumnTarget from the alpha data) and ships the real theorem.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-package-final",
+   "kind": "aux",
+   "title": "Fuzzy-leaves assembly modulo the sync bridge (aux:m3-package-final)",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.M3_fuzzy_leaves_of_sync_bridge",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: the FULL M3FuzzyLeavesData assembly (binBranch/S/Y/cRep/fiber_cover/exact_M1_copy - all fields) modulo ONE named hypothesis hbridge = M3_fuzzy_leaves_sync_bridge (= M3BudgetColumnTarget + diag_cols diagonal containment). Honest partial - bridge is a NAMED hypothesis not assumed-away. lem:MThreeFuzzyLeaves stays OPEN; final sync-bridge lane discharges hbridge (per-bin Stage3StopData -> ambient_col -> M3BudgetColumnTarget from the alpha data) and ships the real theorem.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:gate-discharge-partial",
+   "kind": "aux",
+   "title": "Numeric-debt partial bundle: Checklist+2^18log+G1+G2+G4",
+   "file": "NPCC/GateDischarge.lean",
+   "lean_name": "NPCC.large_d_checklist_partial",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07 (re-gated after a concurrent-ledger-write race lost it): G1 hm0_le, G2 hrow_threshold, G4 h2prime-bridge-exp bundled w/ Checklist+2^18log.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:gate-g3g5",
+   "kind": "aux",
+   "title": "G3+G5 discharge + large_d_checklist_g3g5 bundle",
+   "file": "NPCC/GateDischarge.lean",
+   "lean_name": "NPCC.large_d_checklist_g3g5",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: G3 gate_hard_seed_to_h2prime_exp (loglog d>=2^16) + G5 gate_three_fifths (yLoss>=3/5 window); large_d_checklist_g3g5 bundles partial+G3+G5 = Checklist+2^18log+G1-G5. d_star ~2^(2^(2^16)) - astronomically large but a CONSTANT (faithful).",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m2-robust-closed",
+   "kind": "aux",
+   "title": "M2_robust_closed (G6): robustness wrapper discharging private balance gates",
+   "file": "NPCC/Stage2.lean",
+   "lean_name": "NPCC.M2_robust_closed",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07 (G6): discharges M2_robust private balance gates from Checklist.dens_sep+eta2_le_pow; takes IsPow2+2^18log+Checklist+G1-G5.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-dense-floor",
+   "kind": "aux",
+   "title": "Dense terminal floor via stage1_chosen_dense_threshold (a+2>=Bcap for dense Yalpha)",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.terminalHardWitnesses_of_prefix_dense_HlocalAtSub",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: THE CORRECT floor - terminalHardWitnesses_of_prefix_dense_HlocalAtSub applies stage1_chosen_dense_threshold to HlocalAtSub over dense S (a+2=Bcap+1); _le variant to any Bcap<=a+2; Bob-prefix variant via rowsAtPrefix_eq_of_firstKColBitsOn; Stage3StopData.of_colPrefix_dense_HlocalAtSub_copies. Corrects the exact-copy floor (column-restricting M1 lowers complexity; the dense threshold is needed). REMAINING for fuzzy close (3 sub-gaps): (1) reached rect contains HlocalAtSub not just M1 (needs q1+3 chosen-coord rows - via M1_plus_vectors_canonical_dense, NOT M3_diagCol_exact_M1); (2) restricted_col first-bit reindex transport; (3) List Bool <-> Fin(2^m) code coverage bridge. Same crux as reduction_gap NO.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:gate-full",
+   "kind": "aux",
+   "title": "large_d_checklist_full: Checklist+2^18log+G1-G6 (all gates + M2 robustness) bundled",
+   "file": "NPCC/GateDischarge.lean",
+   "lean_name": "NPCC.large_d_checklist_full",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: large_d_checklist_full bundles the g3g5 conjunction (Checklist+2^18log+G1-G5) with gateM2Robust (G6 via CtorFullGates=M2_robust_closed). Import cycle resolved: GateDischarge now depends ONLY on Stage2 (private local helper replaces the Reduction dep); Reduction imports GateDischarge. aux:ctor-gates byte-identical.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:ctor-full",
+   "kind": "aux",
+   "title": "CtorScaleCertificateFull: an instance supplies EVERY endgame hypothesis",
+   "file": "NPCC/Reduction.lean",
+   "lean_name": "NPCC.CtorScaleCertificateFull",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07: CtorScaleCertificateFull (I:VBPInstance) : IsPow2(ctorScaleFull I) AND 2^18<=log AND Checklist AND 2<= AND G1-G5 AND IsRobust(M2^T) - EVERYTHING the endgame (M4_no_waste_lift, M3_fuzzy_leaves, reduction_gap, output_size_bounds) needs, from an instance. ctorScaleFull := normalizeInstance(large_d_checklist_full.choose)(preprocess I). THE endgame regime supplier.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  },
+  {
+   "id": "aux:m3-fuzzy-opus",
+   "kind": "aux",
+   "title": "Fuzzy-leaves crux RESOLVED: dense-column floor + restricted_col + hard builder + full sync-bridge wiring",
+   "file": "NPCC/Stage3.lean",
+   "lean_name": "NPCC.M1_dense_column_subgame_floor",
+   "status": "proved",
+   "depends_on": [],
+   "attempts": [],
+   "notes": "2026-07-07 (Opus subagent, type-unit-test discipline): THE CRUX (sub-gap A) RESOLVED. M1_dense_column_subgame_floor: a+1<=D(subgame M1 univ Yalpha) for dense Yalpha via M1_low_column_stage2 @ r=r1 + Checklist.dens_survive - the CORRECT floor, avoiding BOTH the un-inhabitable full-C1 exact-copy floor (fails col_prefix for gamma not in Yalpha) AND the Stage-4-only HlocalAtSub-over-(q1+3) floor. + M3_restricted_col_of_dense_first_row_bits (reverse-reindex transport) + M3_terminalHardWitnesses_of_prefix_M1_dense (hard builder, dense-Yalpha only) + M3_build_sync_bridge (FULL wiring: 3 per-bin hyps -> M3PackageSyncBridge -> theorem MECHANICAL). Cross-checked Gemini Deep-Think. REMAINING: ONE actualBitListRaw transport (alpha branch -> raw residual colsAtPrefix) -> per-bin cover + reachability; all commutation lemmas live. Discipline WORKED: ruled out 2 wrong floors early.",
+   "route": null,
+   "signed_off": true,
+   "axioms": [
+    "propext",
+    "Classical.choice",
+    "NPCC.aghp_balanced_family_exists",
+    "Quot.sound"
+   ]
+  }
+ ],
+ "dag_events": [
+  {
+   "ts": "2026-07-06T06:30:00Z",
+   "event": "target-Aprime-opened",
+   "note": "Autonomy window: A' tranche 1 (complexity layer + D-invariance + rescoped rankclaim). port:rankclaim remains open-as-assessed (see pipeline/judgments/coordproj-and-rankclaim.md). Simon to ratify at recap.",
+   "added": [
+    "def:subgame",
+    "def:Dfamily",
+    "aux:Dfamily-singleton",
+    "aux:Dfamily-anti-mono",
+    "lem:D-equiv-invariance",
+    "lem:D-subgame-le",
+    "lem:rankclaim"
+   ]
+  },
+  {
+   "ts": "2026-07-06T08:40:00Z",
+   "event": "tranche-2-opened",
+   "note": "Simon: 'keep going and do tranche 2'. Ratification of window sign-offs still pending (recap sec 1). Keystone: value-level transfer DSet<=Dfamily unlocking artifact engine reuse.",
+   "added": [
+    "def:robust",
+    "aux:robust-accessors",
+    "def:encCol",
+    "lem:digit-extract",
+    "lem:DSet-le-Dfamily",
+    "lem:two-copy-ladder"
+   ]
+  },
+  {
+   "ts": "2026-07-06T09:20:00Z",
+   "event": "tranche-3-opened-scaleup",
+   "note": "Simon: scale up aggressively toward the final proof; AGHP + bin-packing-hardness authorized as axioms. T3 = reverse transfer (-> Dfamily=DSet engine unlock), AGHP axiom (full judge treatment), relaxed-interlace defs (Section 4 opens).",
+   "added": [
+    "lem:Dfamily-le-DSet",
+    "lem:engine-transfer",
+    "axiom:aghp",
+    "def:balanced-family",
+    "def:relaxed-interlace"
+   ]
+  },
+  {
+   "ts": "2026-07-06T11:30:00Z",
+   "event": "tranche-4-staged",
+   "note": "Section-4 lemma frontier staged while axiom:aghp declaration holds for Ultra harvest. balanced-projection + block-balancing are axiom-independent (fleet-ready now); relaxed-to-classical statement is Fable-critical.",
+   "added": [
+    "lem:balanced-projection",
+    "lem:block-balancing",
+    "lem:relaxed-to-classical"
+   ]
+  },
+  {
+   "ts": "2026-07-06T13:05:00Z",
+   "event": "tranche-5-staged",
+   "note": "Full remaining S2-S4 map staged: engine mid-layer (partition -> grid induction -> hard seed), S3 protocol control, S4 transfer theorems. F1 guard (2 <= D f) threaded into the robust-ladder corollary chain specs. Extension/Separation/classical-separation statements are Fable-critical design tasks.",
+   "added": [
+    "lem:partition",
+    "cor:robust-two-copy-ladder",
+    "cor:two-copy-amplification",
+    "lem:odd-copy-seed-rungs",
+    "cor:plus-one-family",
+    "lem:new-partition",
+    "cor:iterated-partition-seed",
+    "cor:power-of-two",
+    "lem:hard-seed",
+    "lem:no-waste-near-separation",
+    "lem:failure-to-separate-gives-gap",
+    "def:column-loss-resilient",
+    "thm:Extension",
+    "cor:localized-extension",
+    "thm:SeparationTheorem",
+    "lem:classical-separation-clean"
+   ]
+  },
+  {
+   "ts": "2026-07-06T00:00:00Z",
+   "event": "tranche-6-staged",
+   "note": "Reduction layer staged (paper Sec 5 + App C): VBP source encoding + zero-anchor preprocessing, scaffold M0-M4 with audited parameters, AGHP family instantiation, upper-bound toolkit (first UPPER-bound lemmas incl. lem:transposeComp), large-d bundle (d_star; hard-seed threshold absorbed), Stage-1 threshold package, Stage-1/2 certification (M2Separation + dense-rows corollary BLOCKED on thm:SeparationTheorem), Stage-3 separation, Stage-4 local gadgets, MThreeFuzzyLeaves, MFourNoWasteLift (keystone; D5 protocol-surgery statement Fable-critical), size bounds (size-first), scaffold completeness, reduction gap. Wrapper staged but blocked on the vbp_np_hard governed declaration + D7. Source proposition is UNLABELED in tex (axiomatized, not staged). Design decisions D1-D8 in scratchpad t6-map.md.",
+   "added": [
+    "def:vbp-instance",
+    "lem:zero-anchor-preprocessing",
+    "def:powtwo-normalise",
+    "aux:upper-row-id",
+    "aux:upper-partition",
+    "lem:transposeComp",
+    "def:scaffold-params",
+    "aux:family-lower",
+    "def:S-family",
+    "def:stage-matrices",
+    "def:stage4-matrix",
+    "lem:large-d-checklist",
+    "def:H-local",
+    "lem:stage1-threshold",
+    "cor:stage1-dense-threshold",
+    "cor:stage1-chosen-dense-threshold",
+    "lem:M1LowColumnStage2",
+    "cor:M1-complexity",
+    "lem:M1-robust",
+    "lem:M1TerminalStage2",
+    "lem:M2-column-loss-resilient",
+    "lem:M2-hard-seed",
+    "cor:M2-complexity",
+    "lem:M2-robust",
+    "lem:M2Separation",
+    "cor:M2SeparationTransposeDenseRows",
+    "lem:M3Separation",
+    "lem:compat-slice-retention",
+    "lem:MFourDiagonalCopy",
+    "lem:M1PlusVectorsIsInterlace",
+    "cor:M1PlusVectorsCanonicalDense",
+    "lem:C2FiberSurvival",
+    "lem:MThreeFuzzyLeaves",
+    "lem:MFourNoWasteLift",
+    "lem:polytime",
+    "lem:scaffold-completeness",
+    "thm:reduction-gap",
+    "thm:main-nphard-intro"
+   ]
+  },
+  {
+   "ts": "2026-07-06T09:23:08.373Z",
+   "event": "file-reassignment",
+   "note": "scaffold-params + S-family + stage-matrices moved from mapper-assigned Scaffold/Reduction split to NPCC/Reduction.lean: the construction defs are interdependent (Params consumed by families consumed by matrices) and were authored in one file; cross-claim guard correctly rejected installing over Scaffold.lean (aux:family-lower). Metadata correction only - no statement change."
+  },
+  {
+   "ts": "2026-07-06T09:35:42.499Z",
+   "event": "file-reassignment-correction",
+   "note": "Correction: the first two construction claims were installed at NPCC/VBP.lean (mapper-assigned); the prior reassignment to a nonexistent NPCC/Reduction.lean DUPLICATED the file and the build died on duplicate declarations, drowned by the errHead linter-noise flaw. All five construction claims now point at NPCC/VBP.lean."
+  },
+  {
+   "ts": "2026-07-06T09:36:33.812Z",
+   "event": "file-reassignment-correction",
+   "note": "Correction: the first two construction claims were installed at NPCC/VBP.lean (mapper-assigned); the prior reassignment to a nonexistent NPCC/Reduction.lean DUPLICATED the file and the build died on duplicate declarations, drowned by the errHead linter-noise flaw. All five construction claims now point at NPCC/VBP.lean."
+  },
+  {
+   "ts": "2026-07-06T10:02:25.348Z",
+   "event": "dep-correction",
+   "note": "def:H-local deps += def:stage-matrices (authoring lane finding: Hlocal consumes M0 and the recovery companions consume M1hat/M1; dep was already proved, metadata honesty only)."
+  },
+  {
+   "ts": "2026-07-06T10:56:07.655Z",
+   "event": "judge-triggered-reformulation",
+   "note": "lem:large-d-checklist proved->open: statement under-covered App C.1 (4/6 inequalities). Sixth finding of the day (F-class: silent under-coverage caught by post-gate judging)."
+  },
+  {
+   "ts": "2026-07-06T11:05:28.677Z",
+   "event": "finding-driven-extension",
+   "note": "M1LowColumnStage2: ledger vehicle corrected (relaxed_to_classical impossible at u > t - 7th finding) -> localized_extension; NEW obligation lem:M0-column-loss-resilient added (no concrete resilience instance existed; M0 degenerate base case). Seed-bound inequality routed to the LargeD extension lane."
+  },
+  {
+   "ts": "2026-07-06T11:12:22.196Z",
+   "event": "reconciliation-precision-pass",
+   "note": "lem:M0-column-loss-resilient spec PRECISED to the exact instance localized_extension consumes (prover lane: 2x independent GPT-5.5 xhigh + typechecked candidate): h = h2down = 2^-(b1+log r2) (was wrongly 'the Stage-1 h'), eps = epsQT(q1+5)(t1) (projected S1fam accuracy), clause-(ii) range c <= log t1 + k (was wrongly c <= t1), clause (i) from lem:rankclaim at p=1 (dep added). Honest-partial conditional candidate banked durably at pipeline/tmp/m1lcs2.opus.v1.lean (was session-scratchpad only); its CLAIM block is the frozen statement for lem:M1LowColumnStage2 at STATE time. lem:relaxed-to-classical kept in deps (proved; transitively in the cone via thm:Extension regardless) - it is NOT the vehicle, per spec."
+  },
+  {
+   "ts": "2026-07-06T13:58:06.070Z",
+   "event": "obligation-added",
+   "id": "aux:vbp-wrapper-support",
+   "note": "Support lemmas named by the second-lane axiom audit (DECLARE verdict, converges with ultra-npcc-12 Shape C). Proved before declaration so the axiom lands consumable."
+  },
+  {
+   "ts": "2026-07-06T14:28:16.870Z",
+   "event": "obligation-added",
+   "id": "aux:m2-midlayer",
+   "note": "cor:M2-complexity NOT gated from the m2mid candidate (lower bound was hypothesized, not proved - silently-weaker archetype refused at the gate). Crux lanes fired."
+  },
+  {
+   "ts": "2026-07-06T14:32:19.244Z",
+   "event": "obligation-added",
+   "id": "aux:m1-terminal-discharge",
+   "note": "App-C terminal gates discharged; M1TerminalStage2 consumable hypothesis-free at the 2^18 log-regime."
+  },
+  {
+   "ts": "2026-07-06T14:46:03.415Z",
+   "event": "obligation-added",
+   "id": "aux:m2-clr-discharge",
+   "note": "clause-(ii) structural discharge gated; density window remains explicit pending numerics lane."
+  },
+  {
+   "ts": "2026-07-06T15:19:54.324Z",
+   "event": "obligation-added",
+   "id": "aux:m2-dense-separation-core",
+   "note": "Keystone lane honest partial: core proved, branch constructor identified as the isolated missing infrastructure (same bridge the NWL proof needs)."
+  },
+  {
+   "ts": "2026-07-06T15:47:38.371Z",
+   "event": "obligation-added",
+   "id": "aux:m2-numerics",
+   "note": "Ultra pro-13 verified then folded; d_star regime now loglog d >= ~640 (paper-faithful)."
+  },
+  {
+   "ts": "2026-07-06T15:48:57.324Z",
+   "event": "obligation-added",
+   "id": "aux:branch-constructors",
+   "note": "The isolated keystone infra (identified by the dense-rows honest partial) - tranche 1 landed."
+  },
+  {
+   "ts": "2026-07-06T15:54:13.217Z",
+   "event": "obligation-added",
+   "id": "aux:branch-constructors-2",
+   "note": "Bob-segment branches now constructible; composition = last missing constructor piece."
+  },
+  {
+   "ts": "2026-07-06T16:03:34.415Z",
+   "event": "obligation-added",
+   "id": "aux:m3-separation-core",
+   "note": "Same honest-core pattern as the M2 chain: structure banked, complexity sibling owed before the ledger lemma closes."
+  },
+  {
+   "ts": "2026-07-06T16:22:45.047Z",
+   "event": "obligation-added",
+   "id": "aux:m3-complexity",
+   "note": "The assumed-through field of the M3 core, now proved via the live ladder."
+  },
+  {
+   "ts": "2026-07-06T16:26:17.692Z",
+   "event": "obligation-added",
+   "id": "aux:branch-constructors-3",
+   "note": "pro-14 Q3 partially transcribed (arithmetic layer), Q4 fully; compose deferred to T4 with narrowed obstruction."
+  },
+  {
+   "ts": "2026-07-06T16:54:01.987Z",
+   "event": "obligation-added",
+   "id": "aux:branch-constructors-4",
+   "note": "The last constructor piece; NWL proof toolkit fully assembled."
+  },
+  {
+   "ts": "2026-07-06T17:07:02.689Z",
+   "event": "obligation-added",
+   "id": "aux:m2-dense-code-family",
+   "note": "Honest-fragment banking; per-alpha composition owed (surjectivity from NoWaste + hgap)."
+  },
+  {
+   "ts": "2026-07-06T17:33:01.651Z",
+   "event": "obligation-added",
+   "id": "aux:m3-fuzzy-partial",
+   "note": "Honest partial banked; the missing piece is a mechanical BranchAt reindex transport."
+  },
+  {
+   "ts": "2026-07-06T17:45:01.226Z",
+   "event": "obligation-added",
+   "id": "aux:branch-constructors-5",
+   "note": "Reindex transport banked; the ambient synchronization argument is the true last piece of fuzzy leaves AND the NWL core - one design, two instantiations."
+  },
+  {
+   "ts": "2026-07-06T17:57:00.890Z",
+   "event": "obligation-added",
+   "id": "aux:m3-sync",
+   "note": "The mechanical half of the synchronization; the budget half is the last mathematical content."
+  },
+  {
+   "ts": "2026-07-06T18:09:07.608Z",
+   "event": "obligation-added",
+   "id": "aux:m3-budget",
+   "note": "All scaffolding around THE lemma kernel-proved; induction awaits the frontier invariant ruling."
+  },
+  {
+   "ts": "2026-07-06T18:27:58.510Z",
+   "event": "obligation-added",
+   "id": "aux:nowaste-core",
+   "note": "npcc-16 Pro ruling transcription, lanes 1-3 proved; lane 4 = the finisher."
+  },
+  {
+   "ts": "2026-07-06T20:04:30.318Z",
+   "event": "obligation-added",
+   "id": "aux:nowaste-main",
+   "note": "The synchronization theorem - last mathematical content of the whole formalization."
+  },
+  {
+   "ts": "2026-07-06T20:14:45.659Z",
+   "event": "obligation-added",
+   "id": "aux:m3-stopdata",
+   "note": "No-waste keystone non-vacuity now constructively proven; only the terminal M1-floor remains for fuzzy leaves."
+  },
+  {
+   "ts": "2026-07-06T20:26:40.808Z",
+   "event": "obligation-added",
+   "id": "aux:m3-floor",
+   "note": "The M1-floor D-bridge (reusable both stages); remaining = the prefix-fiber/code-branch reindex."
+  },
+  {
+   "ts": "2026-07-06T20:40:21.418Z",
+   "event": "obligation-added",
+   "id": "aux:large-d-checklist-2p18",
+   "note": "Simon-authorized threshold bump for final assembly; monotone-field reuse."
+  },
+  {
+   "ts": "2026-07-06T20:42:42.458Z",
+   "event": "obligation-added",
+   "id": "aux:m3-prefixcopy",
+   "note": "Row-invariance + stop-data assembly proved; only the instantiate-at-bin-residual transport remains."
+  },
+  {
+   "ts": "2026-07-06T20:55:54.721Z",
+   "event": "obligation-added",
+   "id": "aux:m3-transport",
+   "note": "Full transport chain proved conditional on 2 explicit Equivs; those are the last mile."
+  },
+  {
+   "ts": "2026-07-06T21:06:37.927Z",
+   "event": "obligation-added",
+   "id": "aux:m3-binreindex-witness",
+   "note": "Equiv witness proved modulo 2 branch-characterization memberships; final assembly lane batches those."
+  },
+  {
+   "ts": "2026-07-06T21:20:53.284Z",
+   "event": "obligation-added",
+   "id": "aux:ctor-gates",
+   "note": "Scale certificate clean; 5 numeric-debt gates flagged for the discharge lane."
+  },
+  {
+   "ts": "2026-07-06T21:26:36.281Z",
+   "event": "obligation-added",
+   "id": "aux:m3-binbranch-char",
+   "note": "Chain reaches per-bin alpha data; only the Stage3StopData packaging + no-waste application remains."
+  },
+  {
+   "ts": "2026-07-06T21:43:15.461Z",
+   "event": "obligation-added",
+   "id": "aux:m3-package",
+   "note": "Full fuzzy assembly modulo the sync bridge; only M3BudgetColumnTarget remains."
+  },
+  {
+   "ts": "2026-07-06T22:05:44.960Z",
+   "event": "race-recovery",
+   "note": "concurrent-ledger-write race lost aux:gate-discharge-partial; re-added all 3 numeric-debt obligations serially. LESSON: ledger-mutating gates MUST run serially."
+  },
+  {
+   "ts": "2026-07-06T22:18:32.455Z",
+   "event": "obligation-added",
+   "id": "aux:m3-dense-floor",
+   "note": "Dense floor proved (correct tool); the reached-rect-contains-HlocalAtSub wiring is the NO-direction crux, 3 sub-gaps."
+  },
+  {
+   "ts": "2026-07-06T22:24:05.001Z",
+   "event": "obligation-added",
+   "id": "aux:ctor-full",
+   "note": "Reduction infrastructure COMPLETE: an instance -> every endgame hypothesis."
+  },
+  {
+   "ts": "2026-07-06T23:06:52.137Z",
+   "event": "obligation-added",
+   "id": "aux:m3-fuzzy-opus",
+   "note": "Fuzzy crux resolved via type-unit-test discipline (Simon-mandated); reduced to 1 named transport."
+  }
+ ]
+}

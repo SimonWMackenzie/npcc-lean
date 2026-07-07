@@ -1,0 +1,21 @@
+-- CLAIM-BEGIN cor:robust-two-copy-ladder
+/-- Paper `cor:robust-two-copy-ladder`, WITH the F1 repair: the paper states
+this for `(δ,b)`-robust `M` with `b ≥ 1` only, instantiating the two-copy
+ladder at `H = comp M` — but R1 supplies only `comp M ≥ 1`, and the ladder is
+FALSE at `H = 1` (machine-verified countermodel, see PAPER-FINDINGS.md F1).
+The hypothesis `2 ≤ D f` (equivalently the ladder's guard `1 < H`) is
+therefore added; every downstream use in the paper satisfies it. Densities:
+row `2^(1-b)` (= `2·2^{-b}`), columns `y₀²/4, y₀²/2, y₀²` for
+`y₀ = 1/2 + δ`; levels `comp M − 1, comp M, comp M + 1`. `δ ≤ 1/2` is the
+paper's standing `δ ∈ (0,1/2)` side condition. -/
+theorem robust_two_copy_ladder {X Y : Type*} [Fintype X] [Fintype Y]
+    {f : X → Y → Bool} {δ b : ℝ}
+    (h : IsRobust f δ b) (hb : 1 ≤ b) (hδ0 : 0 < δ) (hδ : δ ≤ 1 / 2)
+    (hD : 2 ≤ D f) :
+    (D f : ℝ) - 1 ≤ (Dfamily (interlaceFun f 2)
+        (bracketGE X Y 2 ((2 : ℝ) ^ (1 - b)) ((1 / 2 + δ) ^ 2 / 4)) : ℝ) ∧
+    (D f : ℝ) ≤ (Dfamily (interlaceFun f 2)
+        (bracketGE X Y 2 ((2 : ℝ) ^ (1 - b)) ((1 / 2 + δ) ^ 2 / 2)) : ℝ) ∧
+    (D f : ℝ) + 1 ≤ (Dfamily (interlaceFun f 2)
+        (bracketGE X Y 2 ((2 : ℝ) ^ (1 - b)) ((1 / 2 + δ) ^ 2)) : ℝ) :=
+-- CLAIM-END cor:robust-two-copy-ladder

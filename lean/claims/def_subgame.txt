@@ -1,0 +1,12 @@
+-- CLAIM-BEGIN def:subgame
+/-- Induced subgame of a two-party game `f : A → B → Bool` by extraction data
+`(R, C)`: the game on the subtypes of the selected rows and columns,
+`(a, c) ↦ f a c`. Typed analogue of the artifact's `extract`; with
+`f = interlaceFun M p` and `(R, C) ∈ bracketGE X Y p x y` this realizes the
+paper's "submatrix of the `p`-fold interlace". The subtype domains are
+`Fintype` via `FinsetCoe`, so the artifact's polymorphic complexity `D`
+applies directly. -/
+def subgame {A B : Type*} (f : A → B → Bool) (R : Finset A) (C : Finset B) :
+    {a // a ∈ R} → {c // c ∈ C} → Bool :=
+  fun a c => f a.val c.val
+-- CLAIM-END def:subgame

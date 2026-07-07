@@ -1,0 +1,13 @@
+-- CLAIM-BEGIN lem:balanced-projection
+/-- Paper `lem:balanced-projection` (Projection closure of balanced
+families): pulling an indexed `(q,t)`-balanced family back along an
+injection of coordinates `e : Fin q₀ → Fin q` yields a `(q₀,t)`-balanced
+family with the SAME accuracy. The paper phrases this for subsets
+`J ⊆ [q]` and their projections; the injection form subsumes it (take `e`
+enumerating `J`) and composes with the reindexings used downstream. -/
+theorem IsBalancedFamily.projection {Y : Type*} [DecidableEq Y] [Fintype Y]
+    {q q₀ L t : ℕ} {S : Fin L → Fin q → Y} {ε : ℝ}
+    (h : IsBalancedFamily t S ε)
+    (e : Fin q₀ → Fin q) (he : Function.Injective e) :
+    IsBalancedFamily t (fun j i₀ => S j (e i₀)) ε :=
+-- CLAIM-END lem:balanced-projection

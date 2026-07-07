@@ -1,0 +1,25 @@
+-- CLAIM-BEGIN lem:hard-seed
+/-- Paper `lem:hard-seed`, REFORMULATED per finding F2 (PAPER-FINDINGS.md):
+fix `j ≥ 2` AND the robustness margin `δ` (paper's OPEN bound `0 < δ < 1/2`);
+the threshold `m₀ = m₀(j, δ)` is then uniform in the GAME and in `b` (both
+quantified inside — `b` grows with the downstream instance, while `δ` is a
+fixed constant of the reduction's construction). The original rendering
+hoisted `δ` inside the threshold and is unprovable: as `δ → 1/2⁻` the
+required density-amplification depth diverges (`log₂(1/η)` with
+`η = −2·log₂(1/2+δ)`) while the copy-count budget caps the grid depth at
+`O(√m)` — a two-sided squeeze, machine-confirmed by two independent
+re-derivations. Content otherwise unchanged: `t = 2^m` (`log = log₂`), copy
+count `(2^(j−1)+2)·2^(m−j)` = `((2^(j−1)+2)t)/2^j`, row density
+`2^m·2^{−b} = t·2^{−b}`, column density `2^{−2^{(49/100)·√m}}`, conclusion
+`D f + m = comp M + log t`, hypotheses `D f ≥ 3` (paper), `t ≤ 2^b`. -/
+theorem hard_seed.{u} (j : ℕ) (hj : 2 ≤ j) (δ : ℝ) (hδ0 : 0 < δ)
+    (hδ : δ < 1 / 2) :
+    ∃ m₀ : ℕ, j ≤ m₀ ∧ ∀ m : ℕ, m₀ ≤ m →
+      ∀ (X Y : Type u) [Fintype X] [Fintype Y]
+        (f : X → Y → Bool) (b : ℝ),
+        IsRobust f δ b → 1 ≤ b → 3 ≤ D f → (m : ℝ) ≤ b →
+        D f + m ≤ Dfamily (interlaceFun f ((2 ^ (j - 1) + 2) * 2 ^ (m - j)))
+          (bracketGE X Y ((2 ^ (j - 1) + 2) * 2 ^ (m - j))
+            ((2 : ℝ) ^ (m : ℕ) * (2 : ℝ) ^ (-b))
+            ((2 : ℝ) ^ (-((2 : ℝ) ^ ((49 / 100 : ℝ) * Real.sqrt (m : ℕ)))))) :=
+-- CLAIM-END lem:hard-seed

@@ -1,0 +1,13 @@
+-- CLAIM-BEGIN lem:transposeComp
+/-- Transpose symmetry (paper `lem:transposeComp`, arXiv:2508.05597 §2):
+for every Boolean matrix `M`, `comp(Mᵀ) = comp(M)`. Under the depth
+convention `comp = D` (the paper's deterministic communication complexity is
+the artifact's protocol-tree depth `D`), a Boolean matrix is its game
+`M : X → Y → Bool` and its transpose `Mᵀ` is the party-swapped game
+`fun y x => M x y`; the equality is `D` of a game equals `D` of its swap.
+Vehicle: the artifact's protocol-transpose bijection on achievable costs
+(`Workspace.UpperBound.D_swap`), repackaged so the two orientations agree as
+`GameIso.transpose` would apply. -/
+theorem comp_transpose {X Y : Type*} [Fintype X] [Fintype Y] (M : X → Y → Bool) :
+    D (fun y x => M x y) = D M :=
+-- CLAIM-END lem:transposeComp

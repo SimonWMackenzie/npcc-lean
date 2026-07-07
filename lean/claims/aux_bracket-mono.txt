@@ -1,0 +1,14 @@
+-- CLAIM-BEGIN aux:bracket-mono
+/-- Unit test: parameter monotonicity of the bracket family in SUBSET form.
+Because both defining conditions of `bracketGE` are `≥`-thresholds whose
+thresholds `⌈card X · x⌉₊` and `⌈card Y ^ p · y⌉₊` are *monotone* in the
+real parameters `x` and `y` (the cardinalities are nonnegative, so scaling
+by a smaller factor gives a smaller ceiling), lowering the parameters to
+`x2 ≤ x` and `y2 ≤ y` only weakens the membership requirements. Hence every
+member of the tighter family `bracketGE X Y p x y` is still a member of the
+looser family `bracketGE X Y p x2 y2`, i.e. the family is monotone under
+parameter decrease. -/
+theorem bracketGE.anti_mono_params {X Y : Type*} [Fintype X] [Fintype Y]
+    (p : ℕ) {x y x2 y2 : ℝ} (hx : x2 ≤ x) (hy : y2 ≤ y) :
+    bracketGE X Y p x y ⊆ bracketGE X Y p x2 y2 :=
+-- CLAIM-END aux:bracket-mono

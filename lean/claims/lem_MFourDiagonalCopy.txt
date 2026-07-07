@@ -1,0 +1,14 @@
+-- CLAIM-BEGIN lem:MFourDiagonalCopy
+/-- Paper `lem:MFourDiagonalCopy` (arXiv:2508.05597, Canonical diagonal copy),
+game form.  Identifying each canonical diagonal column `ĵ_{α,γ}` of `X̂_{p,α}`
+with the Stage-2 column `(α,γ) ∈ [q₂]×C₁ = R₂`, the restriction of `M₄` to the
+template rows `{p}×C₂` (indexed by `c ∈ C₂`) and the columns
+`D̂_p = ⋃_α X̂_{p,α}` (indexed by `r = (α,γ) ∈ R₂`) is EXACTLY the transpose
+`M₂ᵀ`, i.e. `(c, r) ↦ M₂(r, c)`.  Holds for every attached vector family `v`
+(the template rows ignore the vector rows and the gadget coordinate). -/
+theorem M4_diagonal_copy (d : ℕ) {n : ℕ}
+    (v : Fin n → Fin (Params.q2 d) → Bool) (p : Fin 4) :
+    (fun (c : C2 d) (r : R2 d) =>
+      M4 d v (Sum.inl (p, c)) (diagCopyCol d r.1 r.2))
+      = (fun (c : C2 d) (r : R2 d) => M2 d r c) :=
+-- CLAIM-END lem:MFourDiagonalCopy

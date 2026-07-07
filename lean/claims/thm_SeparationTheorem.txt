@@ -1,0 +1,64 @@
+-- CLAIM-BEGIN thm:SeparationTheorem
+/-- Paper `thm:SeparationTheorem` (Relaxed Near-Exact Separation, §4).
+Renderings follow `thm:Extension` verbatim: `t = 2^T`, `r = 2^R` powers of
+two (`q = r·t = 2^(R+T)`, so `log q = R + T`, `log t = T`, `log = log₂`);
+`t ≤ 2^b` is `(T:ℝ) ≤ b`; `t/2 ≤ p_seed ≤ t` is `2^T ≤ 2·p_seed` and
+`p_seed ≤ 2^T`; the relaxed interlace `Ŝ = ⟨M⟩_{q,S_{q,t}(Cols M)}` is
+`relaxedInterlace f S` for an ARBITRARY `(q,t)`-balanced family `S` with
+accuracy `ε` (safe-stronger generalization; `|Cols Ŝ| = L`). The paper's
+`x_seed ≤ 1/r` is `xseed ≤ 2^(−(R:ℝ))` (rpow); `t ≥ 2` is `1 ≤ T`; the
+robustness hypothesis is named `hrob` (`h` is the Extension column density);
+`q⌈2^{−b+1}m⌉ < m` is `hgap` with `m = Fintype.card X`.
+`N = Ŝ[Rows(Ŝ), C']` keeps ALL rows: the row set is
+`(univ : Finset (Fin (2^(R+T)) × X))`, so every block fiber holds all `m`
+rows and the no-waste threshold is `T₀ = Fintype.card X` EXACTLY (not
+`⌈m·x⌉₊`) — the paper's dominant-fiber bound
+`|R_{i*}| ≥ m − (q−1)⌈2^{−b+1}m⌉` is `NoWasteConclusion` at
+`T₀ = Fintype.card X`, `T = ⌈2^(1−b)·m⌉₊`, `|Q| = q = 2^(R+T)`.
+Conclusion (a) is the rectangle-threaded surviving-branch
+`FirstKRowBitsOn` adjudicated in `bakeoff-protocol-layer-2026-07-06.md`:
+a syntactic "no `bNode`/early `leaf` above depth `R+T`" conclusion is
+UNPROVABLE (unreachable junk subtrees carry Bob nodes / leaves without
+changing `eval` or `cost`), so Bob nodes and early leaves are forbidden only
+on NONEMPTY current rectangles, vacuous on dead ones. Conclusion (b) labels
+rows by `prefixLabelFinQ` (its junk→`0` branch is dead here since
+`Rin = univ`: every row gets its genuine transcript code). The δ endpoint
+`δ ≤ 1/√2 − 1/2` is kept SYMBOLIC, as in `classical_separation`. -/
+theorem relaxed_separation {X Y : Type*} [Fintype X] [Fintype Y]
+    [DecidableEq Y] (f : X → Y → Bool) {δ b ε : ℝ} (hb : 1 ≤ b) (hε : 0 ≤ ε)
+    (T R : ℕ) (hTb : (T : ℝ) ≤ b)
+    {L : ℕ} (S : Fin L → Fin (2 ^ (R + T)) → Y)
+    (hS : IsBalancedFamily (2 ^ T) S ε)
+    (pseed : ℕ) {xseed h hseed : ℝ}
+    (hx1 : (2 : ℝ) ^ (-b) ≤ xseed) (hx2 : xseed ≤ (2 : ℝ) ^ (-(R : ℝ)))
+    (hh0 : 0 < h) (hh1 : h ≤ 1) (hs0 : 0 < hseed) (hs1 : hseed ≤ 1)
+    (hp1 : 2 ^ T ≤ 2 * pseed) (hp2 : pseed ≤ 2 ^ T)
+    (hres : IsColumnLossResilient f b ε (R + T) T h)
+    (hseedbd : D f + T ≤ Dfamily (interlaceFun f pseed)
+        (bracketGE X Y pseed xseed hseed))
+    (hbridge : hseed ≤ h * (2 : ℝ) ^ (-((T + D f : ℕ) : ℝ)) / (1 + ε))
+    (hrob : IsRobust f δ b) (hδ0 : 0 < δ)
+    (hδ : δ ≤ 1 / Real.sqrt 2 - 1 / 2)
+    (hD : 2 ≤ D f) (hT1 : 1 ≤ T)
+    (hband : 2 * (1 / 2 + δ) ^ 2 ≤ h / (1 + ε))
+    (hgap : 2 ^ (R + T) * ⌈(2 : ℝ) ^ (1 - b) * (Fintype.card X : ℝ)⌉₊
+        < Fintype.card X)
+    (C' : Finset (Fin L)) (hC' : h * (L : ℝ) ≤ (C'.card : ℝ)) :
+    ∀ P : Protocol {a // a ∈ (Finset.univ : Finset (Fin (2 ^ (R + T)) × X))}
+        {c // c ∈ C'} Bool,
+      P.Computes (subgame (relaxedInterlace f S)
+        (Finset.univ : Finset (Fin (2 ^ (R + T)) × X)) C') →
+      P.cost ≤ D f + (R + T) →
+      Protocol.FirstKRowBitsOn
+          (Finset.univ :
+            Finset {a // a ∈ (Finset.univ : Finset (Fin (2 ^ (R + T)) × X))})
+          (Finset.univ : Finset {c // c ∈ C'})
+          (R + T) P
+      ∧ NoWasteConclusion
+          (Finset.univ : Finset (Fin (2 ^ (R + T))))
+          (Finset.univ : Finset (Fin (2 ^ (R + T)) × X))
+          (Protocol.prefixLabelFinQ
+            (Finset.univ : Finset (Fin (2 ^ (R + T)) × X)) P)
+          (Fintype.card X)
+          ⌈(2 : ℝ) ^ (1 - b) * (Fintype.card X : ℝ)⌉₊ :=
+-- CLAIM-END thm:SeparationTheorem

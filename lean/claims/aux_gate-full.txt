@@ -1,0 +1,34 @@
+-- CLAIM-BEGIN aux:gate-full
+
+theorem CtorFullGates (d : Nat) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 <= Nat.log 2 d) (hchk : Checklist d)
+    (hm0_le :
+      (Classical.choose
+        (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+          Params.delta (by norm_num [Params.delta])
+          (by norm_num [Params.delta])) : Nat) <= Nat.log 2 (Params.t2 d))
+    (hrow_threshold : gateRowThreshold d)
+    (hraw : M2_hard_seed_to_h2prime_exp d)
+    (hprime : M2_h2prime_bridge_exp d)
+    (hy_three_fifths : gateThreeFifths d) :
+    gateM2Robust d := by
+  have hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d) :=
+    ctor_r2_eq_two_pow_log hpow hchk
+  unfold gateM2Robust
+  exact M2_robust_closed d hpow hlog hchk hm0_le hr2pow
+    hrow_threshold hraw hprime hy_three_fifths
+
+theorem large_d_checklist_full :
+    exists d0 : Nat, forall d : Nat, IsPow2 d -> d0 <= d ->
+      (GateDischargePartial d /\ M2_hard_seed_to_h2prime_exp d /\
+        gateThreeFifths d) /\ gateM2Robust d := by
+  refine ⟨large_d_checklist_g3g5.choose, ?_⟩
+  intro d hpow hge
+  have hgates := large_d_checklist_g3g5.choose_spec d hpow hge
+  rcases hgates with ⟨hpartial, hraw, hy_three_fifths⟩
+  have hrob : gateM2Robust d :=
+    CtorFullGates d hpow hpartial.hlog hpartial.hchk hpartial.hm0_le
+      hpartial.hrow_threshold hraw hpartial.hprime hy_three_fifths
+  exact ⟨⟨hpartial, hraw, hy_three_fifths⟩, hrob⟩
+
+-- CLAIM-END aux:gate-full

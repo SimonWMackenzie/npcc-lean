@@ -1,0 +1,23 @@
+-- CLAIM-BEGIN def:bracket-ge
+/-- Paper `def:bracket` (Bracket family `⟨M,p,x,y⟩`), `≥`-form, typed.
+
+For an `m × n` matrix `M : X → Y → Bool` (`m = Fintype.card X`,
+`n = Fintype.card Y`) the `p`-fold interlace has rows `Fin p × X` and columns
+`Fin p → Y` (the paper's `Y^p`); cf. `Workspace.Types.Interlace.interlaceFun`.
+A member of the bracket family is recorded by its extraction data: the pair
+`(R, C)` of a row subset and a column subset of the interlace. The paper's
+two conditions: the row set is `([p], T)`-equipartitioned with `T = ⌈m·x⌉`
+(here `IsEquipartitionedGE` over `Q = Finset.univ`), and the column set has
+size at least `S = ⌈n^p·y⌉` (note `Fintype.card (Fin p → Y) = n^p`). The
+submatrix itself is the subgame of `interlaceFun M p` induced by `(R, C)`,
+and the family complexity `comp ⟨M,p,x,y⟩ = min` over members is a
+downstream definition; the family itself depends only on the row/column
+TYPES of `M`, not its entries — matching the paper, whose two conditions
+constrain only the extracted row and column sets. Side conditions `p ≥ 1`,
+`0 < x, y ≤ 1` are use-site hypotheses. -/
+def bracketGE (X Y : Type*) [Fintype X] [Fintype Y] (p : ℕ) (x y : ℝ) :
+    Set (Finset (Fin p × X) × Finset (Fin p → Y)) :=
+  { RC | IsEquipartitionedGE RC.1 (Finset.univ : Finset (Fin p))
+           ⌈(Fintype.card X : ℝ) * x⌉₊
+         ∧ ⌈((Fintype.card Y : ℝ) ^ p) * y⌉₊ ≤ RC.2.card }
+-- CLAIM-END def:bracket-ge

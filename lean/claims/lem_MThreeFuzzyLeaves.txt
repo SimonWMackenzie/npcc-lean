@@ -1,0 +1,247 @@
+-- CLAIM-BEGIN lem:MThreeFuzzyLeaves
+
+theorem M3_fuzzy_leaves
+    (d : Nat) (hd : 2 <= d) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 <= Nat.log 2 d) (hchk : Checklist d)
+    (hrobM2 :
+      IsRobust (fun (c : C2 d) (r : R2 d) => M2 d r c)
+        Params.delta (Params.b2 d))
+    (hm0_le : (Classical.choose
+        (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+          Params.delta (by norm_num [Params.delta])
+          (by norm_num [Params.delta])) : Nat) <= Nat.log 2 (Params.t2 d))
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hp1 : 2 ^ M2_T d <= 2 * M2_hard_seed_copies d)
+    (hp2 : M2_hard_seed_copies d <= 2 ^ M2_T d)
+    (hxseed_le_one : M2_hard_seed_rowDensity d <= 1)
+    (hrow_threshold :
+      Nat.ceil ((2 : Real) ^ (Nat.log 2 (Params.r2 d) : Nat) *
+        M2_hard_seed_rowDensity d * (Fintype.card (C1 d) : Real))
+          <= Fintype.card (C1 d))
+    (hseed_bridge : M2_hard_seed_columnDensity d <=
+      Params.h2 d *
+        (2 : Real) ^ (-((M2_T d + D (M1T d) : Nat) : Real)) /
+          (1 + epsQT (Params.q2 d) (Params.t2 d)))
+    (hy_le_one : M1_stage2_terminal_density d <= 1)
+    (hrowTerm : 9 * Params.t1 d <=
+      16 * Nat.ceil ((Fintype.card (R1 d) : Real) *
+        M1_stage2_terminal_density d))
+    (hcolTerm : (2 : Real) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : Int))
+        * (Fintype.card (C1 d) : Real) <=
+      (Nat.ceil ((Fintype.card (C1 d) : Real) *
+        ((2 : Real) ^ (-(Params.b1 d : Int)))) : Real))
+    (hresidual_density : forall c, c <= M2_T d + D (M1T d) ->
+      1 / 2 + Params.delta <=
+          yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c /\
+        yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c <= 1)
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (hsigma0 : 0 < 1 - 8 * Params.h2 d)
+    (hsigma1 : 1 - 8 * Params.h2 d <= 1)
+    (hres_dense : IsColumnLossResilient (M1T d) (Params.b1 d : Real)
+      (epsQT (Params.q2 d) (Params.t2 d))
+      (Nat.log 2 (Params.q2 d)) (M2_T d) (1 - 8 * Params.h2 d))
+    (hxseed_le_inv_r : M2_hard_seed_rowDensity d <=
+      (2 : Real) ^ (-(Nat.log 2 (Params.r2 d) : Real)))
+    (hseed_bridge_dense : M2_hard_seed_columnDensity d <=
+      (1 - 8 * Params.h2 d) *
+        (2 : Real) ^ (-((M2_T d + D (M1T d) : Nat) : Real)) /
+          (1 + epsQT (Params.q2 d) (Params.t2 d)))
+    (hT1 : 1 <= M2_T d)
+    (hgap_dense :
+      2 ^ M2DenseDepth d *
+        Nat.ceil ((2 : Real) ^ (1 - (Params.b1 d : Real)) *
+          (Fintype.card (C1 d) : Real)) < Fintype.card (C1 d))
+    (hraw : M2_hard_seed_to_h2prime_exp d)
+    (hprime : M2_h2prime_bridge_exp d)
+    (hy_three_fifths :
+      forall c, c <= M2_T d + D (M1T d) ->
+        (3 : Real) / 5 <=
+          yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c)
+    (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hcost : P.cost <= D (M2 d) + 2) :
+    M3FuzzyLeavesConclusion d P := by
+  classical
+  have hlog64 : 64 <= Nat.log 2 d := by omega
+  let hpartial :=
+    M3_fuzzy_leaves_dense_alpha_partial d hpow hlog hchk hrobM2
+      hm0_le hr2pow hp1 hp2 hxseed_le_one hrow_threshold hseed_bridge
+      hy_le_one hrowTerm hcolTerm hresidual_density hqcast hsigma0
+      hsigma1 hres_dense hxseed_le_inv_r hseed_bridge_dense hT1
+      hgap_dense hraw hprime hy_three_fifths P hP hcost
+  let hsep := hpartial.1
+  let hStage2 := hpartial.2
+  let hgap := M3_stage3_gap d hlog hchk
+  let hC3 := M3_C3_univ_nonempty d hchk
+  let binBranch := M3_binBranch d P hP hsep hgap hC3
+  let hsurj := M3Bin_alphaOfCode_surj_on_Q d P hsep.dominant_bins hgap
+  let S : Fin 4 -> Finset (C2 d) :=
+    fun p => M3_binSurvivors d P hsep.dominant_bins hsurj p
+  have hrow_mem :
+      forall p, forall c, c ∈ S p -> (p, c) ∈ (binBranch p).rows := by
+    intro p c hc
+    dsimp [S, binBranch] at hc ⊢
+    exact M3_binBranch_row_mem d P hP hsep hgap hC3 p c hc
+  have hdiag_mem :
+      forall p, forall a : M2DenseRows d,
+        M3_diagCol d (Fin.cast hqcast a.val.1) a.val.2 ∈
+          (binBranch p).cols := by
+    intro p a
+    dsimp [binBranch]
+    exact M3_binBranch_diag_mem d P hP hsep hgap hC3 p hqcast a
+  let R : forall p, Finset {a // a ∈ (binBranch p).rows} :=
+    fun p => M3_denseSurvivorRows d P binBranch p (S p) (hrow_mem p)
+  let C : forall p, Finset {b // b ∈ (binBranch p).cols} :=
+    fun p => M3_denseDiagCols d P binBranch p hqcast (hdiag_mem p)
+  let htr : forall p, M3BinDenseReindex d P binBranch p (S p)
+      (R p) (C p) hqcast :=
+    fun p =>
+      M3_binDenseReindex_of_memberships d P binBranch p (S p) hqcast
+        (hrow_mem p) (hdiag_mem p)
+  let ad := fun p =>
+    Classical.choice
+      (M3_bin_dense_alpha_data_for_binBranch d P hP hsep hchk hgap hC3
+        p hqcast hStage2 hcost)
+  have hfiberCover :
+      forall p alpha,
+        (S p).image (fun c : C2 d => S2fam d c alpha) =
+          (Finset.univ : Finset (R1 d)) := by
+    intro p alpha
+    exact
+      M3_C2_fiber_cover_of_dense d hchk (S p)
+        (by
+          change
+            (1 - 8 * Params.h2 d) * (Fintype.card (C2 d) : Real) <=
+              ((M3_binSurvivors d P hsep.dominant_bins hsurj p).card : Real)
+          exact
+            M3_binSurvivors_dense d P hchk hsep.dominant_bins hsurj hgap p)
+        alpha
+  have hR1_nonempty : Nonempty (R1 d) := by
+    have hq1pos : 0 < Params.q1 d :=
+      lt_of_lt_of_le Nat.zero_lt_one hchk.one_le_q1
+    exact ⟨(⟨0, hq1pos⟩, 0)⟩
+  let r0 : R1 d := Classical.choice hR1_nonempty
+  have hSnonempty : forall p, (S p).Nonempty := by
+    intro p
+    let alpha0 : Fin (Params.q2 d) := ⟨0, Params.q2_pos d⟩
+    have hr0 :
+        r0 ∈ (S p).image (fun c : C2 d => S2fam d c alpha0) := by
+      rw [hfiberCover p alpha0]
+      exact Finset.mem_univ r0
+    rcases Finset.mem_image.mp hr0 with ⟨c, hc, _⟩
+    exact ⟨c, hc⟩
+  have hdata :
+      forall p,
+        Stage3StopData
+          (subgame (M3 d) (binBranch p).rows (binBranch p).cols)
+          (binBranch p).residual (R p) (C p)
+          (Nat.clog 2 (Params.q2 d)) (D (M1 d)) := by
+    intro p
+    dsimp [R, C, htr, ad]
+    exact
+      M3_stage3StopData_for_dense_bin d hpow hlog64 hchk P binBranch p
+        (S p) hqcast (hrow_mem p) (hdiag_mem p) (hSnonempty p)
+        (hfiberCover p) (ad p)
+  have hM2 :
+      D (M2 d) = D (M1 d) + Nat.log 2 (Params.q2 d) :=
+    M2_complexity_h2prime d hpow hlog hchk hm0_le hr2pow
+      hrow_threshold hraw hprime hy_three_fifths
+  have hbudget :
+      forall p,
+        (binBranch p).residual.cost <=
+          Nat.clog 2 (Params.q2 d) + D (M1 d) := by
+    exact
+      stage3_bin_residual_budget d P binBranch (D (M1 d))
+        hcost hM2 hchk.clog_q2_eq rfl
+  have hcol :
+      forall p,
+        Protocol.FirstKColBitsOn
+          (Finset.univ : Finset {a // a ∈ (binBranch p).rows})
+          (Finset.univ : Finset {b // b ∈ (binBranch p).cols})
+          (Nat.clog 2 (Params.q2 d)) (binBranch p).residual := by
+    intro p
+    exact
+      stage3_binResidual_firstKColBitsOn_ambient d P binBranch p
+        (D (M1 d)) (R p) (C p) (hbudget p) (hdata p)
+  have hYnonempty :
+      forall p alpha, ((ad p).Yalpha alpha).Nonempty := by
+    intro p alpha
+    exact
+      M1_dense_columns_nonempty d hpow hlog64 hchk
+        ((ad p).Yalpha alpha) ((ad p).Yalpha_dense alpha)
+  let gammaRep : forall p alpha, C1 d :=
+    fun p alpha => Classical.choose (hYnonempty p alpha)
+  have gammaRep_mem :
+      forall p alpha, gammaRep p alpha ∈ (ad p).Yalpha alpha := by
+    intro p alpha
+    exact Classical.choose_spec (hYnonempty p alpha)
+  let diagSub :
+      forall p alpha gamma, {b // b ∈ (binBranch p).cols} :=
+    fun p alpha gamma =>
+      ⟨M3_diagCol d alpha gamma, by
+        let rho : M2DenseRows d :=
+          ⟨(Fin.cast hqcast.symm alpha, gamma), by simp [M2DenseRin]⟩
+        have h := hdiag_mem p rho
+        simpa [rho] using h⟩
+  let codeOfAlpha :
+      Fin 4 -> Fin (Params.q2 d) -> Fin (2 ^ Nat.clog 2 (Params.q2 d)) :=
+    fun p alpha =>
+      Protocol.prefixCodeRaw (Nat.clog 2 (Params.q2 d))
+        (Protocol.swap (binBranch p).residual)
+        (diagSub p alpha (gammaRep p alpha))
+  have hcols :
+      forall p alpha,
+        (Protocol.colPrefixCols (Nat.clog 2 (Params.q2 d))
+          (binBranch p).residual (codeOfAlpha p alpha)).Nonempty := by
+    intro p alpha
+    refine ⟨diagSub p alpha (gammaRep p alpha), ?_⟩
+    simp [Protocol.colPrefixCols, Protocol.rowPrefixRows, codeOfAlpha]
+  have htarget :
+      M3BudgetColumnTarget d P binBranch codeOfAlpha := by
+    exact
+      M3_budget_column_target_of_stopdata d P binBranch codeOfAlpha
+        (D (M1 d)) R C hbudget hdata hcols
+  have hdiag :
+      forall p alpha gamma, gamma ∈ (ad p).Yalpha alpha ->
+        exists (hb : M3_diagCol d alpha gamma ∈ (binBranch p).cols),
+          (⟨M3_diagCol d alpha gamma, hb⟩ :
+            {b // b ∈ (binBranch p).cols}) ∈
+            Protocol.colPrefixCols (Nat.clog 2 (Params.q2 d))
+              (binBranch p).residual (codeOfAlpha p alpha) := by
+    intro p alpha gamma hgamma
+    refine ⟨(diagSub p alpha gamma).property, ?_⟩
+    change diagSub p alpha gamma ∈
+      Protocol.colPrefixCols (Nat.clog 2 (Params.q2 d))
+        (binBranch p).residual (codeOfAlpha p alpha)
+    rw [Protocol.colPrefixCols, Protocol.rowPrefixRows, Finset.mem_filter]
+    refine ⟨Finset.mem_univ _, ?_⟩
+    have hprefix :=
+      M3_raw_prefix_eq_of_dense_Yalpha d P binBranch p (S p)
+        (R p) (C p) hqcast (htr p) (ad p) (hcol p)
+        (hSnonempty p) hgamma (gammaRep_mem p alpha)
+    simpa [codeOfAlpha, diagSub, htr,
+      M3_binDenseReindex_of_memberships, equivOfInjectiveImage,
+      M3_diagColBranch, M3_diagCol] using hprefix
+  let bridge :
+      M3_fuzzy_leaves_sync_bridge d hpow hlog hchk hrobM2
+        hm0_le hr2pow hp1 hp2 hxseed_le_one hrow_threshold hseed_bridge
+        hy_le_one hrowTerm hcolTerm hresidual_density hqcast hsigma0
+        hsigma1 hres_dense hxseed_le_inv_r hseed_bridge_dense hT1
+        hgap_dense hraw hprime hy_three_fifths P hP hcost := by
+    dsimp [M3_fuzzy_leaves_sync_bridge]
+    exact
+      M3_build_sync_bridge d P binBranch
+        (fun p alpha => (ad p).Yalpha alpha)
+        codeOfAlpha htarget.1 htarget.2 hdiag
+  exact
+    M3_fuzzy_leaves_of_sync_bridge d hd hpow hlog hchk hrobM2
+      hm0_le hr2pow hp1 hp2 hxseed_le_one hrow_threshold hseed_bridge
+      hy_le_one hrowTerm hcolTerm hresidual_density hqcast hsigma0
+      hsigma1 hres_dense hxseed_le_inv_r hseed_bridge_dense hT1
+      hgap_dense hraw hprime hy_three_fifths P hP hcost bridge
+
+
+-- CLAIM-END lem:MThreeFuzzyLeaves

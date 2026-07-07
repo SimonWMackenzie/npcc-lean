@@ -1,0 +1,8 @@
+-- CLAIM-BEGIN lem:digit-extract
+/-- The base-`n` digit laws for `encCol`: the numeral is below `n^p`, and
+extracting digit `q` the artifact's way recovers the tuple entry. (Injectivity
+of `encCol` follows and lives as a companion lemma below.) -/
+theorem encCol_digit {p n : ℕ} (hn : 0 < n) (c : Fin p → Fin n) :
+    encCol c < n ^ p ∧
+    ∀ q : Fin p, (encCol c / n ^ (q : ℕ)) % n = (c q : ℕ) :=
+-- CLAIM-END lem:digit-extract

@@ -1,0 +1,122 @@
+-- CLAIM-BEGIN lem:large-d-checklist
+/-- **`lem:large-d-checklist`** (existential-threshold / Nonempty form, D3):
+there is an explicit power-of-two threshold `d₀ = 2^{64}` such that every
+power of two `d ≥ d₀` satisfies the bundled `Checklist`. The witness is the
+huge explicit `d₀` (hard-seed `m₀`-witness pattern); this is exactly the
+`Nonempty` fact D3 requires proved BEFORE `d_star` is extracted by
+`Classical.choice`. -/
+theorem large_d_checklist :
+    ∃ d₀ : ℕ, ∀ d : ℕ, IsPow2 d → d₀ ≤ d → Checklist d := by
+  refine ⟨2 ^ 64, ?_⟩
+  intro d hpow hge
+  obtain ⟨k, rfl⟩ := hpow
+  -- `2^64 ≤ 2^k` forces `k ≥ 64`.
+  have hk : 64 ≤ k := by
+    by_contra hlt
+    have hlt' : k < 64 := by omega
+    have : (2 : ℕ) ^ k < 2 ^ 64 := Nat.pow_lt_pow_right (by norm_num) hlt'
+    omega
+  have hlogk : Nat.log 2 (2 ^ k) = k := log_two_pow k
+  have hlog64 : 64 ≤ Nat.log 2 (2 ^ k) := by rw [hlogk]; exact hk
+  have hlog2 : 2 ≤ Nat.log 2 (2 ^ k) := by omega
+  have hlog6 : 6 ≤ Nat.log 2 (2 ^ k) := by omega
+  have hloglog : 1 ≤ Nat.log 2 (Nat.log 2 (2 ^ k)) :=
+    Params.loglog_pos hlog2
+  -- loglog (2^k) = log k ≥ log 64 = 6 (since k ≥ 64)
+  have hloglog6 : 6 ≤ Nat.log 2 (Nat.log 2 (2 ^ k)) := by
+    rw [hlogk]
+    calc 6 = Nat.log 2 64 := by norm_num [Nat.log]
+      _ ≤ Nat.log 2 k := Nat.log_mono_right hk
+  have hpow2 : IsPow2 (2 ^ k) := ⟨k, rfl⟩
+  -- accuracy handles: ε₂ ≤ 1/4 (n = 2 ≤ q₂·t₂), ε₁ ≤ 1/4.
+  have hq2t2 : (2 : ℕ) ≤ q2 (2 ^ k) * t2 (2 ^ k) := by
+    have : 2 ≤ q2 (2 ^ k) := by
+      rw [q2_eq_self rfl]; exact Nat.one_lt_two_pow (by omega)
+    have ht2 : 1 ≤ t2 (2 ^ k) := t2_pos _
+    calc 2 ≤ q2 (2 ^ k) := this
+      _ = q2 (2 ^ k) * 1 := (Nat.mul_one _).symm
+      _ ≤ q2 (2 ^ k) * t2 (2 ^ k) := by gcongr
+  have hε2 : epsQT (q2 (2 ^ k)) (t2 (2 ^ k)) ≤ 1 / 4 := by
+    have := epsQT_le_inv_mul (q2_pos _) (t2_pos _) hq2t2 (by norm_num)
+    simpa using this.trans (by norm_num)
+  have hε2pos : 0 < epsQT (q2 (2 ^ k)) (t2 (2 ^ k)) :=
+    epsQT_pos (q2_pos _) (t2_pos _)
+  -- ε₁ = epsQT (2^a+3) t1 ≤ 1/4
+  have hε1n : (2 : ℕ) ≤ (2 ^ a (2 ^ k) + 3) * t1 (2 ^ k) := by
+    have : 1 ≤ t1 (2 ^ k) := t1_pos _
+    nlinarith [Nat.one_le_iff_ne_zero.mpr (by positivity : (2:ℕ) ^ a (2^k) ≠ 0)]
+  have hε1 : epsQT (2 ^ a (2 ^ k) + 3) (t1 (2 ^ k)) ≤ 1 / 4 := by
+    have := epsQT_le_inv_mul (q := 2 ^ a (2 ^ k) + 3) (t := t1 (2 ^ k))
+      (by positivity) (t1_pos _) hε1n (by norm_num)
+    simpa using this.trans (by norm_num)
+  have hε1pos : 0 < epsQT (2 ^ a (2 ^ k) + 3) (t1 (2 ^ k)) :=
+    epsQT_pos (by positivity) (t1_pos _)
+  -- `8 h₂ ≤ 1/32`
+  have hh2 : 8 * h2 (2 ^ k) ≤ 1 / 32 := by
+    have hb := h2_le_pow (M := 6) hloglog6
+    have hval : (2 : ℝ) ^ (-(3 * (6 : ℕ) : ℤ)) = 1 / 262144 := by norm_num
+    rw [hval] at hb
+    nlinarith [h2_pos (d := 2 ^ k)]
+  refine
+    { t1_le_q1_add_five := Params.t1_le_q1_add_five hlog64
+      one_le_q1 := Params.one_le_q1 hlog2
+      t2_le_q2 := Params.t2_le_q2 hpow2 hlog6
+      t2_le_pow_b1 := Params.t2_le_pow_b1 hlog6
+      q1_add_two_eq := Params.q1_add_two_eq_r1_mul_t1 hlog64
+      q2_eq := Params.q2_eq_r2_mul_t2 hpow2 hlog6
+      clog_q2_eq := Params.clog_q2_eq_log_q2 hpow2
+      q2_eq_self := q2_eq_self rfl
+      loglog_pos := hloglog
+      a_ge_two := ?_
+      L1_ge := L1_ge_pow _ (Params.t1_le_q1_add_five hlog64)
+      L2_ge := L2_ge_pow _ (Params.t2_le_q2 hpow2 hlog6) ?_
+      dens_sep := ?_
+      dens_sep_dense := ?_
+      dens_eta_lt := ?_
+      dens_survive := ?_ }
+  · -- a ≥ 2 : 2^a = q1+2 ≥ 2 log²d ≥ 2·64² ≥ 2^13, so a ≥ 13 ≥ 2
+    have h2a : q1 (2 ^ k) + 2 = 2 ^ a (2 ^ k) := Params.q1_add_two_pow (by omega)
+    have hlow : 2 * Nat.log 2 (2 ^ k) ^ 2 ≤ q1 (2 ^ k) + 2 :=
+      Params.le_q1_add_two (by omega)
+    rw [h2a] at hlow
+    rw [hlogk] at hlow
+    have hbig : (2 : ℕ) ^ 2 ≤ 2 ^ a (2 ^ k) := by
+      calc (2 : ℕ) ^ 2 = 4 := by norm_num
+        _ ≤ 2 * k ^ 2 := by nlinarith
+        _ ≤ 2 ^ a (2 ^ k) := hlow
+    exact (Nat.pow_le_pow_iff_right (by norm_num)).mp hbig
+  · -- 2 ≤ q1 for L2
+    have := Params.le_q1_add_two (d := 2 ^ k) (by omega)
+    rw [hlogk] at this
+    nlinarith
+  · -- dens_sep : 0.72 ≤ 1/(1+ε₂)
+    have : 2 * (1 / 2 + delta) ^ 2 = 0.72 := by unfold delta; norm_num
+    rw [this]
+    rw [le_div_iff₀ (by linarith)]
+    nlinarith
+  · -- dens_sep_dense
+    intro σ hσ
+    have hσlb : (0.95 : ℝ) ≤ σ := by
+      have : (1 : ℝ) - 8 * h2 (2 ^ k) ≤ σ := hσ
+      linarith
+    have hval : 2 * (1 / 2 + delta) ^ 2 = 0.72 := by unfold delta; norm_num
+    rw [hval, le_div_iff₀ (by linarith)]
+    nlinarith
+  · -- dens_eta_lt : η₂ < (1-ε₁)/2
+    have hη : eta2 (2 ^ k) ≤ (2 : ℝ) ^ (-(2 : ℤ)) := by
+      have := Params.eta2_le_pow (d := 2 ^ k) hpow2 (N := 2) (by rw [hlogk]; omega)
+      simpa using this
+    have hηval : (2 : ℝ) ^ (-(2 : ℤ)) = 1 / 4 := by norm_num
+    rw [hηval] at hη
+    rw [lt_div_iff₀ (by norm_num)]
+    nlinarith
+  · -- dens_survive : 2^{-(b1+log r2)} ≤ 1 - η₂
+    have hη : eta2 (2 ^ k) ≤ 1 / 2 := Params.eta2_le_half hpow2 hlog2
+    have hlhs : (2 : ℝ) ^ (-((b1 (2 ^ k) : ℤ) + Nat.log 2 (r2 (2 ^ k)))) ≤ 1 / 2 := by
+      rw [show (1 / 2 : ℝ) = (2 : ℝ) ^ (-1 : ℤ) by norm_num]
+      apply zpow_le_zpow_right₀ (by norm_num : (1 : ℝ) ≤ 2)
+      have hb1 : 1 ≤ b1 (2 ^ k) := by
+        unfold b1; rw [hlogk]; omega
+      omega
+    linarith
+-- CLAIM-END lem:large-d-checklist

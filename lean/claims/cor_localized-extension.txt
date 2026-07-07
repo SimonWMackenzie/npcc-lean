@@ -1,0 +1,27 @@
+-- CLAIM-BEGIN cor:localized-extension
+/-- Paper `cor:localized-extension`: under the Extension theorem's
+hypotheses, a localized submatrix — `r' = 2^R'` with `R' ≤ R`, block set of
+exact size `r'·p_seed`, equipartition threshold `⌈r'·x_seed·m⌉`, and column
+fraction `h·2^{−a}` for `a ∈ {0,1}` — has `comp ≥ comp M + log(r'·t)
+= D f + (R' + T)`. Same renderings as `thm:Extension`. -/
+theorem localized_extension {X Y : Type*} [Fintype X] [Fintype Y]
+    [DecidableEq Y] (f : X → Y → Bool) {b ε : ℝ} (hb : 1 ≤ b) (hε : 0 ≤ ε)
+    (T R : ℕ) (hTb : (T : ℝ) ≤ b)
+    {L : ℕ} (S : Fin L → Fin (2 ^ (R + T)) → Y)
+    (hS : IsBalancedFamily (2 ^ T) S ε)
+    (pseed : ℕ) {xseed h hseed : ℝ}
+    (hx1 : (2 : ℝ) ^ (-b) ≤ xseed) (hx2 : xseed ≤ 1)
+    (hh0 : 0 < h) (hh1 : h ≤ 1) (hs0 : 0 < hseed) (hs1 : hseed ≤ 1)
+    (hp1 : 2 ^ T ≤ 2 * pseed) (hp2 : pseed ≤ 2 ^ T)
+    (hres : IsColumnLossResilient f b ε (R + T) T h)
+    (hseedbd : D f + T ≤ Dfamily (interlaceFun f pseed)
+        (bracketGE X Y pseed xseed hseed))
+    (hbridge : hseed ≤ h * (2 : ℝ) ^ (-((T + D f : ℕ) : ℝ)) / (1 + ε))
+    (a R'e : ℕ) (ha : a ≤ 1) (hR'R : R'e ≤ R)
+    (Rs : Finset (Fin (2 ^ (R + T)) × X)) (Cs : Finset (Fin L))
+    (hRs : ∃ Qs : Finset (Fin (2 ^ (R + T))), Qs.card = 2 ^ R'e * pseed ∧
+        IsEquipartitionedGE Rs Qs
+          ⌈(2 : ℝ) ^ (R'e : ℕ) * xseed * (Fintype.card X : ℝ)⌉₊)
+    (hCs : h * (2 : ℝ) ^ (-(a : ℝ)) * (L : ℝ) ≤ (Cs.card : ℝ)) :
+    D f + (R'e + T) ≤ D (subgame (relaxedInterlace f S) Rs Cs) :=
+-- CLAIM-END cor:localized-extension

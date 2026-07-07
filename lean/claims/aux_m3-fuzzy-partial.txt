@@ -1,0 +1,98 @@
+-- CLAIM-BEGIN aux:m3-fuzzy-partial
+/-- Certified partial for paper `lem:MThreeFuzzyLeaves`.
+
+This block reaches the two live inputs needed by the fuzzy-leaves construction:
+the Stage-3 separation package for the ambient protocol, and the per-alpha
+dense-row Stage-2 corollary at the Stage-3 survivor density
+`sigma = 1 - 8 * h2`.  The remaining, intentionally unstated target theorem
+requires a branch-transport lemma turning the mapped swapped bin residual into a
+`BranchAt` of the original bin residual, so that `BranchAt.compose` can produce
+the `dimBranch` field of `M3FuzzyLeavesData`. -/
+theorem M3_fuzzy_leaves_dense_alpha_partial
+    (d : Nat) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 <= Nat.log 2 d) (hchk : Checklist d)
+    (hrobM2 :
+      IsRobust (fun (c : C2 d) (r : R2 d) => M2 d r c)
+        Params.delta (Params.b2 d))
+    (hm0_le : (Classical.choose
+        (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+          Params.delta (by norm_num [Params.delta])
+          (by norm_num [Params.delta])) : Nat) <= Nat.log 2 (Params.t2 d))
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hp1 : 2 ^ M2_T d <= 2 * M2_hard_seed_copies d)
+    (hp2 : M2_hard_seed_copies d <= 2 ^ M2_T d)
+    (hxseed_le_one : M2_hard_seed_rowDensity d <= 1)
+    (hrow_threshold :
+      Nat.ceil ((2 : Real) ^ (Nat.log 2 (Params.r2 d) : Nat) *
+        M2_hard_seed_rowDensity d * (Fintype.card (C1 d) : Real))
+          <= Fintype.card (C1 d))
+    (hseed_bridge : M2_hard_seed_columnDensity d <=
+      Params.h2 d *
+        (2 : Real) ^ (-((M2_T d + D (M1T d) : Nat) : Real)) /
+          (1 + epsQT (Params.q2 d) (Params.t2 d)))
+    (hy_le_one : M1_stage2_terminal_density d <= 1)
+    (hrowTerm : 9 * Params.t1 d <=
+      16 * Nat.ceil ((Fintype.card (R1 d) : Real) *
+        M1_stage2_terminal_density d))
+    (hcolTerm : (2 : Real) ^ (-(Params.b1 d + Nat.log 2 (Params.r2 d) : Int))
+        * (Fintype.card (C1 d) : Real) <=
+      (Nat.ceil ((Fintype.card (C1 d) : Real) *
+        ((2 : Real) ^ (-(Params.b1 d : Int)))) : Real))
+    (hresidual_density : forall c, c <= M2_T d + D (M1T d) ->
+      1 / 2 + Params.delta <=
+          yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c /\
+        yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c <= 1)
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (hsigma0 : 0 < 1 - 8 * Params.h2 d)
+    (hsigma1 : 1 - 8 * Params.h2 d <= 1)
+    (hres_dense : IsColumnLossResilient (M1T d) (Params.b1 d : Real)
+      (epsQT (Params.q2 d) (Params.t2 d))
+      (Nat.log 2 (Params.q2 d)) (M2_T d) (1 - 8 * Params.h2 d))
+    (hxseed_le_inv_r : M2_hard_seed_rowDensity d <=
+      (2 : Real) ^ (-(Nat.log 2 (Params.r2 d) : Real)))
+    (hseed_bridge_dense : M2_hard_seed_columnDensity d <=
+      (1 - 8 * Params.h2 d) *
+        (2 : Real) ^ (-((M2_T d + D (M1T d) : Nat) : Real)) /
+          (1 + epsQT (Params.q2 d) (Params.t2 d)))
+    (hT1 : 1 <= M2_T d)
+    (hgap_dense :
+      2 ^ M2DenseDepth d *
+        Nat.ceil ((2 : Real) ^ (1 - (Params.b1 d : Real)) *
+          (Fintype.card (C1 d) : Real)) < Fintype.card (C1 d))
+    (hraw : M2_hard_seed_to_h2prime_exp d)
+    (hprime : M2_h2prime_bridge_exp d)
+    (hy_three_fifths :
+      forall c, c <= M2_T d + D (M1T d) ->
+        (3 : Real) / 5 <=
+          yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c)
+    (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hcost : P.cost <= D (M2 d) + 2) :
+    M3SeparationConclusion d P /\
+      forall (Sdense : Finset (C2 d))
+        (Pdense : Protocol (M2DenseRows d) (M2DenseCols d Sdense) Bool),
+          (1 - 8 * Params.h2 d) * (L2 d : Real) <=
+              (Sdense.card : Real) ->
+          Pdense.Computes (M2DenseGame d hqcast Sdense) ->
+          Pdense.cost <= D (M2 d) ->
+          Nonempty
+            (M2SeparationTransposeDenseRowsAlphaData d hqcast Sdense Pdense) := by
+  classical
+  refine ⟨?_, ?_⟩
+  · exact
+      M3_separation_closed d hpow hlog hchk hrobM2 hm0_le hr2pow
+        hrow_threshold hraw hprime hy_three_fifths P hP hcost
+  · intro Sdense Pdense hSdense hPdense hcostDense
+    have hlog256 : 256 <= Nat.log 2 d := by omega
+    exact
+      M2_separation_transpose_dense_rows_alpha d hpow hlog256 hchk
+        hm0_le hr2pow hp1 hp2 hxseed_le_one hrow_threshold hseed_bridge
+        hy_le_one hrowTerm hcolTerm hresidual_density hqcast
+        (1 - 8 * Params.h2 d) hsigma0 hsigma1 (le_refl _)
+        hres_dense hxseed_le_inv_r hseed_bridge_dense M3_delta_sep hT1
+        hgap_dense Sdense hSdense Pdense hPdense hcostDense
+
+-- CLAIM-END aux:m3-fuzzy-partial

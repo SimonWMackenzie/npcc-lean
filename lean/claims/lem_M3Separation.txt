@@ -1,0 +1,32 @@
+-- CLAIM-BEGIN lem:M3Separation
+/-- Closed Stage-3 separation composition.  The theorem supplies the live
+`M3_separation` core with the exact Stage-3 complexity, the transposed Stage-2
+complexity floor, the numeric delta separation, and the Stage-3 row-loss gap.
+The remaining robustness input is the public Stage-2 robustness conclusion. -/
+theorem M3_separation_closed
+    (d : Nat) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 <= Nat.log 2 d) (hchk : Checklist d)
+    (hrobM2 :
+      IsRobust (fun (c : C2 d) (r : R2 d) => M2 d r c)
+        Params.delta (Params.b2 d))
+    (hm0_le : (Classical.choose
+        (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+          Params.delta (by norm_num [Params.delta])
+          (by norm_num [Params.delta])) : Nat) <= Nat.log 2 (Params.t2 d))
+    (hr2pow : Params.r2 d = 2 ^ Nat.log 2 (Params.r2 d))
+    (hrow_threshold :
+      Nat.ceil ((2 : Real) ^ (Nat.log 2 (Params.r2 d) : Nat) *
+        M2_hard_seed_rowDensity d * (Fintype.card (C1 d) : Real))
+          <= Fintype.card (C1 d))
+    (hraw : M2_hard_seed_to_h2prime_exp d)
+    (hprime : M2_h2prime_bridge_exp d)
+    (hy_three_fifths :
+      forall c, c <= M2_T d + D (M1T d) ->
+        (3 : Real) / 5 <=
+          yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+            (Params.h2 d) c)
+    (P : Protocol (R3 d) (C3 d) Bool)
+    (hP : P.Computes (M3 d))
+    (hcost : P.cost <= D (M2 d) + 2) :
+    M3SeparationConclusion d P := by
+-- CLAIM-END lem:M3Separation

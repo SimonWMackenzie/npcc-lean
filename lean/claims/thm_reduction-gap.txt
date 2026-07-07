@@ -1,0 +1,15 @@
+-- CLAIM-BEGIN thm:reduction-gap
+/-- Paper `thm:main-nphard-intro` gap pair (§5 reduction): for a promise
+`{0,1}`-Vector-Bin-Packing instance `I`, the reduction target `M₄` at the full
+constructor scale separates YES from NO at the budget `B_yes`. YES yields a
+protocol of cost `≤ B_yes` (`scaffold_completeness`); NO forces cost `> B_yes`
+(the four-step no-waste kill: `M4_no_waste_lift` partition → `zero_anchor_preprocessing`
+overloaded `(p,α)` → `|Q_{p,α}| ≥ 2^a+1 = q₁+3` → `stage1_chosen_dense_threshold`
+gives residual floor `a+2`, contradicting the `≤ Bcap = a+1` budget on the
+reached branch). -/
+theorem reduction_gap (I : VBPInstance) (hI : I.Promise) :
+    (I.IsYes →
+        D (M4 (ctorScaleFull I) (reducedVectorsFull I)) ≤ Byes (ctorScaleFull I)) ∧
+    (¬ I.IsYes →
+        Byes (ctorScaleFull I) < D (M4 (ctorScaleFull I) (reducedVectorsFull I))) :=
+-- CLAIM-END thm:reduction-gap

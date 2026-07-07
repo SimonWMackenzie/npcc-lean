@@ -1,0 +1,224 @@
+-- CLAIM-BEGIN aux:gate-discharge-partial
+
+noncomputable def gateHardSeedM0 : Nat :=
+  Classical.choose
+    (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+      Params.delta (by norm_num [Params.delta])
+      (by norm_num [Params.delta]))
+
+noncomputable def gateHardSeedThreshold : Nat :=
+  2 ^ (2 ^ (2 ^ gateHardSeedM0))
+
+def gateRowThreshold (d : Nat) : Prop :=
+  Nat.ceil ((2 : Real) ^ (Nat.log 2 (Params.r2 d) : Nat) *
+    M2_hard_seed_rowDensity d * (Fintype.card (C1 d) : Real)) <=
+      Fintype.card (C1 d)
+
+def gateThreeFifths (d : Nat) : Prop :=
+  forall c, c <= M2_T d + D (M1T d) ->
+    (3 : Real) / 5 <=
+      yLoss (epsQT (Params.q2 d) (Params.t2 d)) (Params.t2 d)
+        (Params.h2 d) c
+
+def gateM2Robust (d : Nat) : Prop :=
+  IsRobust (fun (c : C2 d) (r : R2 d) => M2 d r c)
+    Params.delta (Params.b2 d)
+
+theorem gate_hard_seed_threshold (d : Nat) (hpow : IsPow2 d)
+    (hlog256 : 256 <= Nat.log 2 d)
+    (hge : gateHardSeedThreshold <= d) :
+    gateHardSeedM0 <= Nat.log 2 (Params.t2 d) := by
+  rcases hpow with ⟨k, rfl⟩
+  have hk256 : 256 <= k := by
+    simpa [log_two_pow] using hlog256
+  have hk_ne : k ≠ 0 := by omega
+  have hkbig : 2 ^ (2 ^ gateHardSeedM0) <= k := by
+    have hge' : 2 ^ (2 ^ (2 ^ gateHardSeedM0)) <= 2 ^ k := hge
+    exact (Nat.pow_le_pow_iff_right (by norm_num : 1 < 2)).mp hge'
+  have hlogk_big : 2 ^ gateHardSeedM0 <= Nat.log 2 k := by
+    exact (Nat.le_log_iff_pow_le (by norm_num : 1 < 2) hk_ne).2 hkbig
+  have ht2ge : 3 * Nat.log 2 (Nat.log 2 (2 ^ k)) + 2 <=
+      Params.t2 (2 ^ k) :=
+    Params.t2_ge (d := 2 ^ k) (by simpa [log_two_pow] using hk256)
+  have hpow_le_t2 : 2 ^ gateHardSeedM0 <= Params.t2 (2 ^ k) := by
+    rw [log_two_pow] at ht2ge
+    omega
+  exact
+    (Nat.le_log_iff_pow_le (by norm_num : 1 < 2)
+      (Nat.ne_of_gt (Params.t2_pos (2 ^ k)))).2 hpow_le_t2
+
+theorem gate_row_density_scaled_le_one (d : Nat) (hpow : IsPow2 d)
+    (hchk : Checklist d) :
+    (2 : Real) ^ (Nat.log 2 (Params.r2 d) : Nat) *
+      M2_hard_seed_rowDensity d <= 1 := by
+  rcases hpow with ⟨k, rfl⟩
+  have hr2pow : Params.r2 (2 ^ k) = 2 ^ Nat.log 2 (Params.r2 (2 ^ k)) :=
+    ctor_r2_eq_two_pow_log (d := 2 ^ k) ⟨k, rfl⟩ hchk
+  have hprod : Params.r2 (2 ^ k) * Params.t2 (2 ^ k) = 2 ^ k := by
+    calc
+      Params.r2 (2 ^ k) * Params.t2 (2 ^ k) = Params.q2 (2 ^ k) := hchk.q2_eq.symm
+      _ = 2 ^ k := hchk.q2_eq_self
+  have hb1 : Params.b1 (2 ^ k) = 2 * k := by
+    unfold Params.b1
+    rw [log_two_pow]
+  have hr2real :
+      (2 : Real) ^ (Nat.log 2 (Params.r2 (2 ^ k)) : Nat) =
+        (Params.r2 (2 ^ k) : Real) := by
+    exact_mod_cast hr2pow.symm
+  have ht2real :
+      (2 : Real) ^ (Nat.log 2 (Params.t2 (2 ^ k)) : Nat) =
+        (Params.t2 (2 ^ k) : Real) := by
+    rw [M2num_log2_t2_eq_M2_T]
+    exact_mod_cast (M2num_t2_eq_two_pow_M2_T (2 ^ k)).symm
+  calc
+    (2 : Real) ^ (Nat.log 2 (Params.r2 (2 ^ k)) : Nat) *
+        M2_hard_seed_rowDensity (2 ^ k)
+        = (Params.r2 (2 ^ k) : Real) *
+            ((Params.t2 (2 ^ k) : Real) *
+              (2 : Real) ^ (-(Params.b1 (2 ^ k) : Real))) := by
+          simp [M2_hard_seed_rowDensity, hr2real, ht2real]
+    _ = ((Params.r2 (2 ^ k) * Params.t2 (2 ^ k) : Nat) : Real) *
+          (2 : Real) ^ (-(Params.b1 (2 ^ k) : Real)) := by
+          norm_num [Nat.cast_mul]
+          ring
+    _ = ((2 ^ k : Nat) : Real) * (2 : Real) ^ (-((2 * k : Nat) : Real)) := by
+          rw [hprod, hb1]
+    _ = (2 : Real) ^ (-(k : Real)) := by
+          rw [show ((2 ^ k : Nat) : Real) = (2 : Real) ^ k by norm_num]
+          rw [<- Real.rpow_natCast]
+          have hcast : ((2 * k : Nat) : Real) = 2 * (k : Real) := by norm_num
+          rw [hcast]
+          rw [<- Real.rpow_add (by norm_num : (0 : Real) < 2)]
+          congr 1
+          ring
+    _ <= 1 := by
+          exact Real.rpow_le_one_of_one_le_of_nonpos
+            (by norm_num : (1 : Real) <= 2)
+            (neg_nonpos.mpr (Nat.cast_nonneg k))
+
+theorem gate_row_threshold_proved (d : Nat) (hpow : IsPow2 d)
+    (hchk : Checklist d) :
+    gateRowThreshold d := by
+  have hscale := gate_row_density_scaled_le_one d hpow hchk
+  unfold gateRowThreshold
+  apply Nat.ceil_le.mpr
+  have hcard_nonneg : 0 <= (Fintype.card (C1 d) : Real) := by positivity
+  calc
+    (2 : Real) ^ (Nat.log 2 (Params.r2 d) : Nat) *
+        M2_hard_seed_rowDensity d * (Fintype.card (C1 d) : Real)
+        <= 1 * (Fintype.card (C1 d) : Real) := by
+          exact mul_le_mul_of_nonneg_right hscale hcard_nonneg
+    _ = (Fintype.card (C1 d) : Real) := by ring
+
+theorem gate_M1T_complexity (d : Nat) (hpow : IsPow2 d)
+    (hlog64 : 64 <= Nat.log 2 d) :
+    D (M1T d) = Params.a d + 1 := by
+  simpa [M1T] using (comp_transpose (M1 d)).trans (M1_complexity d hpow hlog64)
+
+theorem gate_M2_T_le_loglog_add_four (d : Nat) (hpow : IsPow2 d)
+    (hlog256 : 256 <= Nat.log 2 d) :
+    M2_T d <= Nat.log 2 (Nat.log 2 d) + 4 := by
+  rcases hpow with ⟨k, rfl⟩
+  have hk256 : 256 <= k := by
+    simpa [log_two_pow] using hlog256
+  have hk_ne : k ≠ 0 := by omega
+  set ell := Nat.log 2 k with hell
+  have hell_pos : 1 <= ell := by
+    rw [hell]
+    exact (Nat.le_log_iff_pow_le (by norm_num : 1 < 2) hk_ne).2 (by omega)
+  have ht2_le : Params.t2 (2 ^ k) <= 6 * k := by
+    have hll : 1 <= Nat.log 2 (Nat.log 2 (2 ^ k)) := by
+      simpa [log_two_pow, hell] using hell_pos
+    simpa [log_two_pow] using Params.t2_le (d := 2 ^ k) hll
+  have hk_lt : k < 2 ^ (ell + 1) := by
+    simpa [hell, Nat.succ_eq_add_one] using
+      Nat.lt_pow_succ_log_self (b := 2) (by norm_num : 1 < 2) k
+  have h6k_lt : 6 * k < 2 ^ (ell + 4) := by
+    calc
+      6 * k < 6 * 2 ^ (ell + 1) := Nat.mul_lt_mul_of_pos_left hk_lt (by norm_num)
+      _ <= 2 ^ (ell + 4) := by
+        have hrewrite : 2 ^ (ell + 4) = 8 * 2 ^ (ell + 1) := by
+          rw [show ell + 4 = 3 + (ell + 1) by omega, pow_add]
+          norm_num
+        rw [hrewrite]
+        exact Nat.mul_le_mul_right (2 ^ (ell + 1)) (by norm_num : 6 <= 8)
+  have hpowT_lt : 2 ^ M2_T (2 ^ k) < 2 ^ (ell + 4) := by
+    rw [<- M2num_t2_eq_two_pow_M2_T (2 ^ k)]
+    exact lt_of_le_of_lt ht2_le h6k_lt
+  have hT_lt : M2_T (2 ^ k) < ell + 4 :=
+    (Nat.pow_lt_pow_iff_right (by norm_num : 1 < 2)).mp hpowT_lt
+  rw [log_two_pow]
+  omega
+
+theorem gate_a_le_two_loglog_add_three (d : Nat) (hpow : IsPow2 d)
+    (hlog256 : 256 <= Nat.log 2 d) :
+    Params.a d <= 2 * Nat.log 2 (Nat.log 2 d) + 3 := by
+  rcases hpow with ⟨k, rfl⟩
+  have hk256 : 256 <= k := by
+    simpa [log_two_pow] using hlog256
+  set ell := Nat.log 2 k with hell
+  have hk_lt : k < 2 ^ (ell + 1) := by
+    simpa [hell, Nat.succ_eq_add_one] using
+      Nat.lt_pow_succ_log_self (b := 2) (by norm_num : 1 < 2) k
+  unfold Params.a
+  rw [log_two_pow]
+  rw [<- hell]
+  apply Nat.clog_le_of_le_pow
+  exact le_of_lt (by
+  calc
+    2 * k ^ 2 < 2 * (2 ^ (ell + 1)) ^ 2 := by
+      exact Nat.mul_lt_mul_of_pos_left (Nat.pow_lt_pow_left hk_lt (by norm_num : (2 : Nat) ≠ 0))
+        (by norm_num)
+    _ = 2 ^ (2 * ell + 3) := by
+      rw [show 2 * (2 ^ (ell + 1)) ^ 2 = 2 ^ 1 * (2 ^ (ell + 1)) ^ 2 by norm_num]
+      rw [<- pow_mul, <- pow_add]
+      congr 1
+      omega)
+
+theorem gate_h2prime_bridge_exp (d : Nat) (hpow : IsPow2 d)
+    (hlog : 2 ^ 18 <= Nat.log 2 d) :
+    M2_h2prime_bridge_exp d := by
+  have hlog256 : 256 <= Nat.log 2 d := by omega
+  have hlog64 : 64 <= Nat.log 2 d := by omega
+  unfold M2_h2prime_bridge_exp Params.b2 Params.b2'
+  rw [gate_M1T_complexity d hpow hlog64]
+  have hT := gate_M2_T_le_loglog_add_four d hpow hlog256
+  have ha := gate_a_le_two_loglog_add_three d hpow hlog256
+  have hell18 : 18 <= Nat.log 2 (Nat.log 2 d) := by
+    rcases hpow with ⟨k, rfl⟩
+    have hk : 2 ^ 18 <= k := by
+      simpa [log_two_pow] using hlog
+    rw [log_two_pow]
+    exact (Nat.le_log_iff_pow_le (by norm_num : 1 < 2)
+      (by omega : k ≠ 0)).2 hk
+  omega
+
+structure GateDischargePartial (d : Nat) : Prop where
+  hchk : Checklist d
+  hlog : 2 ^ 18 <= Nat.log 2 d
+  hm0_le :
+    (Classical.choose
+      (hard_seed.{0} Params.jSurplus (by norm_num [Params.jSurplus])
+        Params.delta (by norm_num [Params.delta])
+        (by norm_num [Params.delta])) : Nat) <= Nat.log 2 (Params.t2 d)
+  hrow_threshold : gateRowThreshold d
+  hprime : M2_h2prime_bridge_exp d
+
+theorem large_d_checklist_partial :
+    exists d0 : Nat, forall d : Nat, IsPow2 d -> d0 <= d ->
+      GateDischargePartial d := by
+  refine ⟨max large_d_checklist_strong.choose gateHardSeedThreshold, ?_⟩
+  intro d hpow hge
+  have hge_strong : large_d_checklist_strong.choose <= d := le_trans (Nat.le_max_left _ _) hge
+  have hge_seed : gateHardSeedThreshold <= d := le_trans (Nat.le_max_right _ _) hge
+  have hbase := large_d_checklist_strong.choose_spec d hpow hge_strong
+  exact
+    { hchk := hbase.1
+      hlog := hbase.2
+      hm0_le := by
+        simpa [gateHardSeedM0] using
+          gate_hard_seed_threshold d hpow (by omega) hge_seed
+      hrow_threshold := gate_row_threshold_proved d hpow hbase.1
+      hprime := gate_h2prime_bridge_exp d hpow hbase.2 }
+
+-- CLAIM-END aux:gate-discharge-partial

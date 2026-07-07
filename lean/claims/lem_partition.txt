@@ -1,0 +1,25 @@
+-- CLAIM-BEGIN lem:partition
+/-- Paper `lem:partition` (One-step partition): the paper's raw first-bit
+trichotomy over the typed bracket families. Vehicle: verbatim transfer of the
+artifact's `old_partition` (Workspace/BracketLemmas.lean) via `Dfamily_eq_DSet`
+— the artifact statement IS the paper statement (its `δ` is the paper's `σ`;
+its middle term is the same `sInf` over `(ℓ, a ∈ [0,1])` of the max of the two
+children, with `p + δ + ℓ` for the paper's `p + ℓ + σ`). The inner minimum is
+rendered as `sInf` on ℕ, nonempty at `ℓ = 0, a = 0` since `1 ≤ p`. -/
+theorem one_step_partition {X Y : Type*} [Fintype X] [Fintype Y]
+    (f : X → Y → Bool) (p σ : ℕ) (hp : 1 ≤ p) (hσ : σ ≤ 1) {x y : ℝ}
+    (hx0 : 0 < x) (hx : x ≤ 1 / 2) (hy0 : 0 < y) (hy1 : y ≤ 1)
+    (h1 : 1 ≤ Dfamily (interlaceFun f (2 * p + σ))
+        (bracketGE X Y (2 * p + σ) (2 * x) y)) :
+    1 + min (Dfamily (interlaceFun f (2 * p + σ))
+          (bracketGE X Y (2 * p + σ) x y))
+        (min (sInf { d : ℕ | ∃ (ℓ : ℕ) (a : ℝ), ℓ < p ∧ 0 ≤ a ∧ a ≤ 1 ∧
+              d = max (Dfamily (interlaceFun f (p + ℓ + σ))
+                    (bracketGE X Y (p + ℓ + σ) x (y ^ a)))
+                  (Dfamily (interlaceFun f (p - ℓ))
+                    (bracketGE X Y (p - ℓ) x (y ^ (1 - a)))) })
+          (Dfamily (interlaceFun f (2 * p + σ))
+            (bracketGE X Y (2 * p + σ) (2 * x) (y / 2))))
+      ≤ Dfamily (interlaceFun f (2 * p + σ))
+          (bracketGE X Y (2 * p + σ) (2 * x) y) :=
+-- CLAIM-END lem:partition

@@ -1,0 +1,24 @@
+-- CLAIM-BEGIN lem:compat-slice-retention
+/-- Paper `lem:compat-slice-retention` (arXiv:2508.05597), packaged.  Fix a
+bin `p` and a dimension `α`.  The diagonal outer-block family `D_{p,α}`
+(`Dfam`, independent of `p`) is the disjoint union of the `2⁵` EQUAL shifted
+compatibility slices `X^{(s)}_{p,α}` (`sliceX`).  Hence: (i) equal-cardinality
+disjoint cover, (ii) density-retention pigeonhole — a `(1−η)`-dense subset
+keeps `(1−2⁵η)`-density in some slice, and (iii) the shift `k ↦ k ⊕ s` is a
+column permutation of the 5-row local gadget, so the shift-`s` subgame is
+isomorphic to the shift-`0` subgame. -/
+theorem compat_slice_retention (d : ℕ) (p : Fin 4) (α : Fin (Params.q2 d)) :
+    (Dfam d α = (Finset.univ : Finset (Fin (2 ^ 5))).biUnion (sliceX d p α)) ∧
+    (∀ s s' : Fin (2 ^ 5), s ≠ s' →
+      Disjoint (sliceX d p α s) (sliceX d p α s')) ∧
+    (∀ s : Fin (2 ^ 5), (sliceX d p α s).card = (L1 d) ^ 4) ∧
+    (Dfam d α).card = 2 ^ 5 * (L1 d) ^ 4 ∧
+    (∀ {η : ℝ}, 0 ≤ η → ∀ C : Finset (C4 d), C ⊆ Dfam d α →
+      (1 - η) * ((Dfam d α).card : ℝ) ≤ (C.card : ℝ) →
+      ∃ s : Fin (2 ^ 5),
+        (1 - 2 ^ 5 * η) * ((sliceX d p α s).card : ℝ)
+          ≤ ((C ∩ sliceX d p α s).card : ℝ)) ∧
+    (∀ s : Fin (2 ^ 5), Function.Bijective (fun k => shiftK k s)) ∧
+    (∀ (slot : Fin 5) (s k : Fin (2 ^ 5)),
+      localGadget slot (shiftPerm s k) = localGadget slot (shiftK k s)) :=
+-- CLAIM-END lem:compat-slice-retention

@@ -1,0 +1,42 @@
+-- CLAIM-BEGIN lem:MFourNoWasteLift
+/-- Paper `lem:MFourNoWasteLift`, staged with semantic branch data. A depth
+`Byes` protocol for `M4` induces an actual two-bit bin transcript partition of
+the vector rows. For every bin `p` and Stage-2 dimension `alpha`, the branch
+after the next `Nat.clog 2 (Params.q2 d)` actual Bob bits is a genuine
+descendant of the two-bit branch, has vector survivors exactly `B p`, retains a
+`(1 - eta2)`-dense diagonal subset of the `alpha` column block (dominant/fuzzy
+survival - exact block isolation is deliberately NOT asserted; the paper's
+Stage-2 control only delivers the dense witness), leaves actual residual cost
+at most `Bcap d`, and the actual residual protocol computes a duplicate
+expansion of the extracted local Stage-1 subgame on that dense diagonal set. -/
+theorem M4_no_waste_lift
+    (d : Nat) (hd : 2 <= d) (hchk : Checklist d) {n : Nat}
+    (v : Fin n -> Fin (Params.q2 d) -> Bool)
+    (hactive : ∀ alpha : Fin (Params.q2 d), (activeSet v alpha).card <= 4)
+    (P : Protocol (R4 d n) (C4 d) Bool)
+    (hP : P.Computes (M4 d v))
+    (hcost : P.cost <= Byes d)
+    (k0 : Fin (2 ^ 5)) :
+    ∃ B : Fin 4 -> Finset (Fin n),
+      IsPartition4 B ∧
+      ∃ binBr : ∀ p : Fin 4, Protocol.BranchAt P (M4 d v) 2,
+        Function.Bijective (fun p : Fin 4 => (binBr p).transcript) ∧
+        (∀ p : Fin 4,
+          (binBr p).sideTrace =
+            [Protocol.ActualBitSide.alice, Protocol.ActualBitSide.alice]) ∧
+        (∀ p : Fin 4, ∀ y : C4 d, y ∈ (binBr p).cols) ∧
+        (∀ p i, (Sum.inr i : R4 d n) ∈ (binBr p).rows ↔ i ∈ B p) ∧
+        (∀ p, (binBr p).residual.cost <=
+          Nat.clog 2 (Params.q2 d) + Bcap d) ∧
+        ∀ p : Fin 4, ∀ alpha : Fin (Params.q2 d),
+          ∃ br : Protocol.BranchAt P (M4 d v)
+              (2 + Nat.clog 2 (Params.q2 d)),
+            Protocol.BranchExtends (binBr p) br ∧
+            br.sideTrace =
+              (binBr p).sideTrace ++
+                List.replicate (Nat.clog 2 (Params.q2 d))
+                  Protocol.ActualBitSide.bob ∧
+            (∀ i : Fin n,
+              (Sum.inr i : R4 d n) ∈ br.rows ↔ i ∈ B p) ∧
+            M4LocalBranch d v P B p alpha br :=
+-- CLAIM-END lem:MFourNoWasteLift

@@ -1,0 +1,18 @@
+-- CLAIM-BEGIN lem:no-waste-near-separation
+/-- Paper `lem:no-waste-near-separation` (No-waste row-only partition), in
+the abstract-labeling rendering: if `Rin` is `(Q,T₀)`-equipartitioned-≥,
+rows are labeled into `L ≤ |Q|` parts, `|Q|·T < T₀`, and no part holds `T`
+rows from each of two distinct outer blocks, then every part has a unique
+dominant block per `NoWasteConclusion` (fiber ≥ `T₀ − (|Q|−1)T`, all other
+fibers `< T`). Power-of-two `|Q|` and `Rin ⊆ Q × X` are dropped (safe
+strengthenings; pure counting). -/
+theorem no_waste_row_partition {ι X : Type*} [DecidableEq ι]
+    (Q : Finset ι) (Rin : Finset (ι × X)) (T₀ T L : ℕ) (hL : L ≤ Q.card)
+    (lab : ι × X → Fin L)
+    (hEq : IsEquipartitionedGE Rin Q T₀)
+    (hT : Q.card * T < T₀)
+    (hNoTwo : ∀ j : Fin L, ¬ ∃ i₁ ∈ Q, ∃ i₂ ∈ Q, i₁ ≠ i₂ ∧
+        T ≤ (Rin.filter (fun p => lab p = j ∧ p.1 = i₁)).card ∧
+        T ≤ (Rin.filter (fun p => lab p = j ∧ p.1 = i₂)).card) :
+    NoWasteConclusion Q Rin lab T₀ T :=
+-- CLAIM-END lem:no-waste-near-separation

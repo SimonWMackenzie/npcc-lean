@@ -1,0 +1,115 @@
+-- CLAIM-BEGIN aux:m3-floor
+/-- If a rectangle contains a pointwise copy of a game `H`, then its
+communication complexity is at least that of `H`.
+
+The maps need not be injective: if two source rows or columns collide, the
+pointwise copy hypothesis already says the corresponding rows or columns of
+`H` agree. -/
+theorem D_exact_copy_le_subgame
+    {A B A0 B0 : Type*} [Fintype A] [Fintype B] [Fintype A0] [Fintype B0]
+    (G : A -> B -> Bool) (H : A0 -> B0 -> Bool)
+    (rowEmbed : A0 -> A) (colEmbed : B0 -> B)
+    (R : Finset A) (C : Finset B)
+    (hrow : forall a, rowEmbed a ∈ R) (hcol : forall b, colEmbed b ∈ C)
+    (hcopy : forall a b, G (rowEmbed a) (colEmbed b) = H a b) :
+    D H <= D (subgame G R C) := by
+  let rho : A0 -> {a // a ∈ R} := fun a => ⟨rowEmbed a, hrow a⟩
+  let sigma : B0 -> {b // b ∈ C} := fun b => ⟨colEmbed b, hcol b⟩
+  have hD :
+      D (fun a b => (subgame G R C) (rho a) (sigma b)) <=
+        D (subgame G R C) := by
+    exact D_mapNodes_le (subgame G R C) rho sigma
+  have hfun : (fun a b => (subgame G R C) (rho a) (sigma b)) = H := by
+    funext a b
+    exact hcopy a b
+  simpa [hfun] using hD
+
+/-- Build terminal hard witnesses from exact copies contained in every
+stopping prefix fiber.
+
+For each terminal Boolean word `w`, the caller supplies template-row and
+template-column embeddings whose images lie in the corresponding reached
+`rowsAtPrefix` and `colsAtPrefix` sets. The previous copy lemma then gives the
+required lower bound for the chosen subrectangle. -/
+theorem terminalHardWitnesses_of_prefix_exact_copy
+    {A B A0 B0 : Type*} [Fintype A] [Fintype B] [Fintype A0] [Fintype B0]
+    [Nonempty A0] [Nonempty B0]
+    (G : A -> B -> Bool) (H : A0 -> B0 -> Bool)
+    (R : Finset A) (C : Finset B) (Q : Protocol A B Bool)
+    (pat : List Protocol.ActualBitSide) (Bcap : Nat)
+    (rowEmbed : List Bool -> A0 -> A)
+    (colEmbed : List Bool -> B0 -> B)
+    (hrowPrefix :
+      forall w, w.length = pat.length ->
+        forall a, rowEmbed w a ∈ Protocol.rowsAtPrefix R C Q w)
+    (hcolPrefix :
+      forall w, w.length = pat.length ->
+        forall b, colEmbed w b ∈ Protocol.colsAtPrefix R C Q w)
+    (hcopy :
+      forall w, w.length = pat.length ->
+        forall a b, G (rowEmbed w a) (colEmbed w b) = H a b)
+    (hcap : Bcap <= D H) :
+    Protocol.TerminalHardWitnesses G R C Q pat Bcap := by
+  classical
+  intro w hw
+  let Rw : Finset A := (Finset.univ : Finset A0).image (rowEmbed w)
+  let Cw : Finset B := (Finset.univ : Finset B0).image (colEmbed w)
+  refine ⟨Rw, Cw, ?_, ?_⟩
+  · refine
+      { rows_subset := ?_
+        cols_subset := ?_
+        rows_nonempty := ?_
+        cols_nonempty := ?_ }
+    · intro a ha
+      rcases Finset.mem_image.mp ha with ⟨a0, _ha0, rfl⟩
+      exact hrowPrefix w hw a0
+    · intro b hb
+      rcases Finset.mem_image.mp hb with ⟨b0, _hb0, rfl⟩
+      exact hcolPrefix w hw b0
+    · obtain ⟨a0⟩ := (inferInstance : Nonempty A0)
+      exact ⟨rowEmbed w a0,
+        Finset.mem_image.mpr ⟨a0, Finset.mem_univ a0, rfl⟩⟩
+    · obtain ⟨b0⟩ := (inferInstance : Nonempty B0)
+      exact ⟨colEmbed w b0,
+        Finset.mem_image.mpr ⟨b0, Finset.mem_univ b0, rfl⟩⟩
+  · exact le_trans hcap
+      (D_exact_copy_le_subgame G H (rowEmbed w) (colEmbed w) Rw Cw
+        (by
+          intro a
+          exact Finset.mem_image.mpr ⟨a, Finset.mem_univ a, rfl⟩)
+        (by
+          intro b
+          exact Finset.mem_image.mpr ⟨b, Finset.mem_univ b, rfl⟩)
+        (hcopy w hw))
+
+/-- Stage-3-facing specialization of the terminal floor: if each reached
+prefix rectangle contains an exact `M1 d` copy, then it supplies the
+`Stage3StopData.hard` lower bound with budget `D (M1 d)`. -/
+theorem M3_terminalHardWitnesses_of_prefix_M1_copies
+    (d : Nat)
+    {A B : Type*} [Fintype A] [Fintype B]
+    (hR1 : Nonempty (R1 d)) (hC1 : Nonempty (C1 d))
+    (G : A -> B -> Bool)
+    (R : Finset A) (C : Finset B) (Q : Protocol A B Bool)
+    (pat : List Protocol.ActualBitSide)
+    (rowEmbed : List Bool -> R1 d -> A)
+    (colEmbed : List Bool -> C1 d -> B)
+    (hrowPrefix :
+      forall w, w.length = pat.length ->
+        forall r, rowEmbed w r ∈ Protocol.rowsAtPrefix R C Q w)
+    (hcolPrefix :
+      forall w, w.length = pat.length ->
+        forall gamma, colEmbed w gamma ∈ Protocol.colsAtPrefix R C Q w)
+    (hcopy :
+      forall w, w.length = pat.length ->
+        forall r gamma,
+          G (rowEmbed w r) (colEmbed w gamma) = M1 d r gamma) :
+    Protocol.TerminalHardWitnesses G R C Q pat (D (M1 d)) := by
+  letI : Nonempty (R1 d) := hR1
+  letI : Nonempty (C1 d) := hC1
+  exact
+    terminalHardWitnesses_of_prefix_exact_copy
+      G (M1 d) R C Q pat (D (M1 d)) rowEmbed colEmbed
+      hrowPrefix hcolPrefix hcopy (le_refl _)
+
+-- CLAIM-END aux:m3-floor

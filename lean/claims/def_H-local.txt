@@ -1,0 +1,25 @@
+-- CLAIM-BEGIN def:H-local
+/-- Paper `sec:control`, paragraph "Local Stage 1 threshold" (paragraph-level
+def, no label): the local threshold games `𝓗_r(T)`. For an ARBITRARY indexed
+column family `T : Fin L → (Fin (q₁+5) → Fin 2)` over the seed alphabet
+`Cols(M₀) = Fin 2` (arbitrariness is load-bearing: the dense variants feed in
+subfamilies `S' ⊆ S₁`, which are NOT balanced) and any `r ≤ q₁+5`, `𝓗_r(T)`
+is the restriction of the full `(q₁+5)`-coordinate relaxed interlace
+`⟨M₀⟩^{q₁+5, T}` to its first `r` outer row blocks — ALL columns (family
+indices) kept, rows embedded through `Fin.castLE` exactly as `M₁` embeds
+through `baseIdx` (never a raw ℕ offset).
+
+Threshold-risk spelling (binding ruling): the ambient coordinate count is
+`Params.q1 d + 5` — definitionally the carrier of `S1fam`/`M1hat`, so
+`𝓗_{q₁+5}(C₁) = M̂₁` and `𝓗_{q₁}(C₁) = M₁` hold by `rfl` — not the paper's
+`2^a+3`, which equals it only propositionally under `2 ≤ d`
+(`Params.two_pow_a`). Likewise the threshold rows enter downstream as
+`r = q₁+2` (`= 2^a`) and `r = q₁+3` (`= 2^a+1`): both are underflow-free and
+in range for EVERY `d`, so no consumer ever writes `2^a − c`. The paper's
+lower end `1 ≤ r` is a use-site hypothesis, not baked in (`r = 0` is the
+harmless empty-row degenerate). -/
+def Hlocal (d : ℕ) {L : ℕ} (T : Fin L → Fin (Params.q1 d + 5) → Fin 2)
+    (r : ℕ) (hr : r ≤ Params.q1 d + 5) :
+    (Fin r × Fin 1) → Fin L → Bool :=
+  fun a j => relaxedInterlace M0 T (Fin.castLE hr a.1, a.2) j
+-- CLAIM-END def:H-local

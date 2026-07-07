@@ -1,0 +1,164 @@
+-- CLAIM-BEGIN aux:m3-transport
+
+theorem M3_diagCol_exact_M1
+    (d : Nat) (p : Fin 4) (c : C2 d)
+    (alpha : Fin (Params.q2 d)) (gamma : C1 d) :
+    M3 d (p, c) (M3_diagCol d alpha gamma) =
+      M1 d (S2fam d c alpha) gamma := by
+  rfl
+
+theorem M3_diagCol_exact_M1_of_fiber
+    (d : Nat) (p : Fin 4) (c : C2 d)
+    (alpha : Fin (Params.q2 d)) (gamma : C1 d) (r : R1 d)
+    (hc : S2fam d c alpha = r) :
+    M3 d (p, c) (M3_diagCol d alpha gamma) = M1 d r gamma := by
+  rw [M3_diagCol_exact_M1, hc]
+
+theorem M3_C2_fiber_cover_of_dense
+    (d : Nat) (hchk : Checklist d)
+    (S : Finset (C2 d))
+    (hS :
+      (1 - 8 * Params.h2 d) * (Fintype.card (C2 d) : Real) <=
+        (S.card : Real))
+    (alpha : Fin (Params.q2 d)) :
+    S.image (fun c : C2 d => S2fam d c alpha) =
+      (Finset.univ : Finset (R1 d)) := by
+  classical
+  have hLpos_nat : 0 < L2 d :=
+    L2_pos d hchk.t2_le_q2 hchk.one_le_q1
+  have hLpos : 0 < (L2 d : Real) := by
+    exact_mod_cast hLpos_nat
+  have hcardR :
+      (Fintype.card (Prod (Fin (Params.q1 d)) (Fin 1)) : Real) =
+        (Params.q1 d : Real) := by
+    simp
+  have hthreshold :
+      (1 -
+          (1 - epsQT (Params.q2 d) (Params.t2 d)) /
+            (Fintype.card (Prod (Fin (Params.q1 d)) (Fin 1)) : Real)) *
+          (L2 d : Real) <
+        (S.card : Real) := by
+    have hstrict :
+        (1 -
+            (1 - epsQT (Params.q2 d) (Params.t2 d)) /
+              (Fintype.card (Prod (Fin (Params.q1 d)) (Fin 1)) : Real)) *
+            (L2 d : Real) <
+          (1 - 8 * Params.h2 d) * (L2 d : Real) := by
+      rw [hcardR]
+      nlinarith [hchk.dens_fiber_survival, hLpos]
+    have hSdense :
+        (1 - 8 * Params.h2 d) * (L2 d : Real) <=
+          (S.card : Real) := by
+      simpa [C2] using hS
+    exact lt_of_lt_of_le hstrict hSdense
+  exact
+    (C2_fiber_survival d hchk.t2_le_q2 hchk.one_le_q1 S hthreshold
+      alpha).2
+
+structure M3BinDenseReindex
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (Sdense : Finset (C2 d))
+    (R : Finset {a // a ∈ (binBranch p).rows})
+    (C : Finset {b // b ∈ (binBranch p).cols})
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d) where
+  rowEquiv : M2DenseRows d ≃ {b // b ∈ C}
+  colEquiv : M2DenseCols d Sdense ≃ {a // a ∈ R}
+  game_eq :
+    forall a b,
+      subgame (M3 d) (binBranch p).rows (binBranch p).cols
+          (colEquiv b).val (rowEquiv a).val =
+        M2DenseGame d hqcast Sdense a b
+
+noncomputable def M3_bin_dense_protocol
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (Sdense : Finset (C2 d))
+    (R : Finset {a // a ∈ (binBranch p).rows})
+    (C : Finset {b // b ∈ (binBranch p).cols})
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (htr : M3BinDenseReindex d P binBranch p Sdense R C hqcast) :
+    Protocol (M2DenseRows d) (M2DenseCols d Sdense) Bool :=
+  Protocol.reindex htr.rowEquiv htr.colEquiv
+    (Protocol.restrictSub C R
+      (Protocol.swap (Protocol.restrict R C (binBranch p).residual)))
+
+theorem M3_bin_dense_protocol_computes
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (Sdense : Finset (C2 d))
+    (R : Finset {a // a ∈ (binBranch p).rows})
+    (C : Finset {b // b ∈ (binBranch p).cols})
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (htr : M3BinDenseReindex d P binBranch p Sdense R C hqcast) :
+    (M3_bin_dense_protocol d P binBranch p Sdense R C hqcast htr).Computes
+      (M2DenseGame d hqcast Sdense) := by
+  intro a b
+  unfold M3_bin_dense_protocol
+  rw [Protocol.eval_reindex]
+  rw [Protocol.eval_restrictSub]
+  rw [Protocol.eval_swap]
+  rw [Protocol.eval_restrict_of_mem R C (binBranch p).residual
+    (htr.colEquiv b).property (htr.rowEquiv a).property]
+  calc
+    (binBranch p).residual.eval (htr.colEquiv b).val (htr.rowEquiv a).val =
+        subgame (M3 d) (binBranch p).rows (binBranch p).cols
+          (htr.colEquiv b).val (htr.rowEquiv a).val := by
+      exact (binBranch p).residual_computes
+        (htr.colEquiv b).val (htr.rowEquiv a).val
+    _ = M2DenseGame d hqcast Sdense a b := htr.game_eq a b
+
+theorem M3_bin_dense_protocol_cost_le
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (Sdense : Finset (C2 d))
+    (R : Finset {a // a ∈ (binBranch p).rows})
+    (C : Finset {b // b ∈ (binBranch p).cols})
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (hcost : P.cost <= D (M2 d) + 2)
+    (htr : M3BinDenseReindex d P binBranch p Sdense R C hqcast) :
+    (M3_bin_dense_protocol d P binBranch p Sdense R C hqcast htr).cost <=
+      D (M2 d) := by
+  unfold M3_bin_dense_protocol
+  rw [Protocol.cost_reindex]
+  rw [Protocol.cost_restrictSub]
+  rw [Protocol.cost_swap]
+  exact le_trans
+    (Protocol.cost_restrict_le R C (binBranch p).residual)
+    (M3_binResidual_cost_le_M2 d P binBranch hcost p)
+
+theorem M3_bin_dense_alpha_data_of_reindex
+    (d : Nat) (P : Protocol (R3 d) (C3 d) Bool)
+    (binBranch : Fin 4 -> Protocol.BranchAt P (M3 d) 2)
+    (p : Fin 4) (Sdense : Finset (C2 d))
+    (R : Finset {a // a ∈ (binBranch p).rows})
+    (C : Finset {b // b ∈ (binBranch p).cols})
+    (hqcast : 2 ^ M2DenseDepth d = Params.q2 d)
+    (hStage2 :
+      forall (Sdense' : Finset (C2 d))
+        (Pdense :
+          Protocol (M2DenseRows d) (M2DenseCols d Sdense') Bool),
+          (1 - 8 * Params.h2 d) * (L2 d : Real) <=
+              (Sdense'.card : Real) ->
+          Pdense.Computes (M2DenseGame d hqcast Sdense') ->
+          Pdense.cost <= D (M2 d) ->
+          Nonempty
+            (M2SeparationTransposeDenseRowsAlphaData d hqcast Sdense'
+              Pdense))
+    (hSdense :
+      (1 - 8 * Params.h2 d) * (L2 d : Real) <=
+        (Sdense.card : Real))
+    (hcost : P.cost <= D (M2 d) + 2)
+    (htr : M3BinDenseReindex d P binBranch p Sdense R C hqcast) :
+    Nonempty
+      (M2SeparationTransposeDenseRowsAlphaData d hqcast Sdense
+        (M3_bin_dense_protocol d P binBranch p Sdense R C hqcast htr)) := by
+  exact
+    hStage2 Sdense
+      (M3_bin_dense_protocol d P binBranch p Sdense R C hqcast htr)
+      hSdense
+      (M3_bin_dense_protocol_computes d P binBranch p Sdense R C hqcast htr)
+      (M3_bin_dense_protocol_cost_le d P binBranch p Sdense R C hqcast
+        hcost htr)
+
+-- CLAIM-END aux:m3-transport
