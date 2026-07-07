@@ -4,16 +4,25 @@ A complete, machine-checked **Lean 4** formalization of *NP-Completeness of Dete
 Communication Complexity via Relaxed Interlacing* (Gaspers, He, Mackenzie; arXiv:2508.05597 v4),
 with an interactive **paper &harr; Lean explorer**.
 
-## Live explorer
-### https://imlard.github.io/npcc-lean/
+## Live explorers
 
-Read the whole paper with every formalized statement highlighted in place; click any statement
-for its plain-English summary and the exact kernel-checked Lean theorem; and navigate the full
-dependency graph — bidirectionally (paper &harr; Lean &harr; graph). Inspired by
+**Term inspector (recommended) — for readers who don't know Lean:**
+### https://imlard.github.io/npcc-lean/inspector/
+Every identifier in a Lean statement is clickable and hoverable → a definition card in plain
+English *and* the source, with the mathematics **typeset**; a **"check these translations by
+hand"** panel on the main theorem and the two axioms; draggable multi-windows; and a **UI-size**
+control to calibrate the text for your screen.
+
+**Original explorer:**
+### https://imlard.github.io/npcc-lean/
+The dependency graph + PDF tracer, with every formalized statement highlighted in place.
+
+Both are bidirectional (paper &harr; Lean &harr; graph), inspired by
 [formalarXiv](https://beyondthelibrary.github.io/formal_arxiv/).
 
 ## What's in here
-- `index.html`, `pages/`, `paper.pdf` — the explorer site (served by GitHub Pages).
+- `inspector/index.html` — the term-inspector explorer (self-contained single page).
+- `index.html`, `pages/`, `paper.pdf` — the original explorer site (served by GitHub Pages).
 - `lean/` — the complete Lean 4 project, browsable source.
 - `npcc-lean-formalization.zip` — the same project as a one-click download.
 
