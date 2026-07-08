@@ -566,11 +566,11 @@
   },
   {
    "id": "axiom:vbp-np-hard",
-   "kind": "axiom-decl",
+   "kind": "def",
    "deps": [],
    "lean_name": "NPCC.vbp_np_hard",
    "file": "NPCC/Wrapper.lean",
-   "spec": "CITATION AXIOM (second and last): NP-hardness of the promised {0,1}-VBP endpoint (c=1,m=4) as a size-bounded YES-preserving many-one reduction from edge-list 4-Colouring, packaged VBP4PromiseHardnessPackage (Shape C, npcc-12). Governed declaration: Simon-authorized 2026-07-07; adversarial 5-lens audit CLEAR_TO_DECLARE (audit-vbp-np-hard-governed-2026-07-07.md; satisfiability judge gave a positive truth certificate). Runtime/NP-membership/NP-completeness stay Layer-B prose.",
+   "spec": "FORMALIZED reduction (discharged 2026-07-09 — no longer an axiom): the 4-Colouring to {0,1}-VBP (c=1, m=4) many-one reduction, packaged as VBP4PromiseHardnessPackage. Machine-checked in Lean: the construction toVBP (one vector per vertex, one coordinate per edge), the YES-iff-YES correctness (toVBP_yes_iff), the per-coordinate promise (toVBP_promise), and the monomial size bounds. The kernel footprint of main_np_hardness no longer lists vbp_np_hard (it is propext, Classical.choice, Quot.sound, aghp only). Left to prose/external (Layer-B, unchanged): the map's polynomial runtime (trivial by inspection; paper Prop 42 leaves it implicit) and 4-Colouring's own NP-hardness. Previously a citation axiom; its satisfiability had been independently certified at declaration (brute-forced 251 small graphs plus the K_k boundary).",
    "status": "proved",
    "signed_off": true,
    "attempts": [

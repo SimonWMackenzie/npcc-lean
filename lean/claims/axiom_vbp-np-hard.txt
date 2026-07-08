@@ -1,15 +1,17 @@
 -- CLAIM-BEGIN axiom:vbp-np-hard
-/-- CITATION AXIOM [arXiv:2508.05597 Proposition 42; the cited NP-completeness of
-the restricted `{0,1}`-`d`-Dimension Vector Bin Packing problem with capacity
-`c = 1` and `m = 4` bins, proved there by a size-bounded many-one reduction from
-4-Colouring — one vector per vertex, one coordinate per edge]: there is a
-size-bounded many-one reduction from edge-list 4-Colouring to the promised
-endpoint, packaged as a `VBP4PromiseHardnessPackage`. The reduction preserves
-YES exactly (`toVBP_yes_iff`), always lands in the promise class
-(`toVBP_promise`), and blows up size only monomially (`toVBP_numItems_bound`,
-`toVBP_numDims_bound`, `toVBP_matrixSize_bound`). This is the ONLY Layer-B
-citation axiom; like `aghp_balanced_family_exists`, it imports a cited external
-result. It deliberately does NOT formalize polynomial-time constructibility, the
-class NP, or any statement about non-promised inputs (all Layer-B prose). -/
-axiom vbp_np_hard : VBP4PromiseHardnessPackage
+/-- FORMALIZED reduction package from edge-list 4-Colouring to the promised
+`{0,1}`-`d`-Dimension Vector Bin Packing endpoint with capacity `c = 1` and
+`m = 4` bins. The package is now a proved Lean definition, no longer a citation
+axiom: it uses `toVBP`, proves the promise, proves YES preservation, and proves
+the stated item, dimension, and matrix-size bounds. The cited NP-hardness and
+polynomial-time constructibility of 4-Colouring remain Layer-B prose, unchanged.
+-/
+def vbp_np_hard : VBP4PromiseHardnessPackage := {
+  toVBP := toVBP
+  toVBP_promise := toVBP_promise
+  toVBP_yes_iff := toVBP_yes_iff
+  toVBP_numItems_bound := toVBP_numItems_bound
+  toVBP_numDims_bound := toVBP_numDims_bound
+  toVBP_matrixSize_bound := toVBP_matrixSize_bound
+}
 -- CLAIM-END axiom:vbp-np-hard

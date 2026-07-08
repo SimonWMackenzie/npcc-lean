@@ -50,6 +50,116 @@ def hardnessMatrixSize (I : VBPInstance) : Nat :=
 
 end VBPInstance
 
+/-- The endpoint-incidence VBP instance associated to an edge-list
+4-colouring instance: one vector per vertex and one coordinate per edge. -/
+def toVBP (G : FourColorInstance) : VBPInstance where
+  d := G.numEdges
+  n := G.numVerts
+  v := fun u e => decide (G.edgeL e = u) || decide (G.edgeR e = u)
+
+/-- The endpoint-incidence VBP encoding is feasible exactly when the graph is
+4-colourable. -/
+theorem toVBP_yes_iff (G : FourColorInstance) :
+    G.IsYes ↔ (toVBP G).IsYes := by
+  classical
+  constructor
+  · intro hG
+    obtain ⟨colour, hcolour⟩ := hG
+    refine ⟨colour, ?_⟩
+    intro p α
+    apply Finset.card_le_one.mpr
+    intro x hx y hy
+    rw [Finset.mem_filter] at hx hy
+    obtain ⟨-, hxcol, hxv⟩ := hx
+    obtain ⟨-, hycol, hyv⟩ := hy
+    have hxedge : (G.edgeL α = x) ∨ (G.edgeR α = x) := by
+      simpa [toVBP, Bool.or_eq_true] using hxv
+    have hyedge : (G.edgeL α = y) ∨ (G.edgeR α = y) := by
+      simpa [toVBP, Bool.or_eq_true] using hyv
+    rcases hxedge with hxedge | hxedge <;> rcases hyedge with hyedge | hyedge
+    · exact hxedge.symm.trans hyedge
+    · exfalso
+      exact hcolour α (by
+        rw [hxedge, hyedge, hxcol, hycol])
+    · exfalso
+      exact hcolour α (by
+        rw [hyedge, hxedge, hycol, hxcol])
+    · exact hxedge.symm.trans hyedge
+  · intro hI
+    change ∃ σ : Fin G.numVerts → Fin 4, ∀ (p : Fin 4) (α : Fin G.numEdges),
+        (Finset.univ.filter
+          (fun i => σ i = p ∧
+            (decide (G.edgeL α = i) || decide (G.edgeR α = i)) = true)).card ≤ 1 at hI
+    obtain ⟨σ, hσ⟩ := hI
+    refine ⟨σ, ?_⟩
+    intro e hsame
+    have hLmem :
+        G.edgeL e ∈ Finset.univ.filter
+          (fun i => σ i = σ (G.edgeL e) ∧
+            (decide (G.edgeL e = i) || decide (G.edgeR e = i)) = true) := by
+      rw [Finset.mem_filter]
+      refine ⟨Finset.mem_univ _, rfl, ?_⟩
+      simp
+    have hRmem :
+        G.edgeR e ∈ Finset.univ.filter
+          (fun i => σ i = σ (G.edgeL e) ∧
+            (decide (G.edgeL e = i) || decide (G.edgeR e = i)) = true) := by
+      rw [Finset.mem_filter]
+      refine ⟨Finset.mem_univ _, hsame.symm, ?_⟩
+      simp
+    have hend_eq : G.edgeL e = G.edgeR e :=
+      Finset.card_le_one.mp (hσ (σ (G.edgeL e)) e)
+        (G.edgeL e) hLmem (G.edgeR e) hRmem
+    exact G.edge_ne e hend_eq
+
+/-- The endpoint-incidence VBP instance always satisfies the source promise:
+each coordinate is hit only by the two endpoint vectors of the corresponding
+edge, hence by at most four vectors. -/
+theorem toVBP_promise (G : FourColorInstance) : (toVBP G).Promise := by
+  classical
+  change ∀ α : Fin G.numEdges,
+    (Finset.univ.filter
+      (fun i : Fin G.numVerts =>
+        (decide (G.edgeL α = i) || decide (G.edgeR α = i)) = true)).card ≤ 4
+  intro α
+  have hsub :
+      Finset.univ.filter
+        (fun i : Fin G.numVerts =>
+          (decide (G.edgeL α = i) || decide (G.edgeR α = i)) = true) ⊆
+        ({G.edgeL α, G.edgeR α} : Finset (Fin G.numVerts)) := by
+    intro i hi
+    rw [Finset.mem_filter] at hi
+    have hendpoint : (G.edgeL α = i) ∨ (G.edgeR α = i) := by
+      simpa [Bool.or_eq_true] using hi.2
+    rw [Finset.mem_insert, Finset.mem_singleton]
+    exact hendpoint.elim (fun h => Or.inl h.symm) (fun h => Or.inr h.symm)
+  exact (Finset.card_le_card hsub).trans
+    ((Finset.card_le_two (a := G.edgeL α) (b := G.edgeR α)).trans (by norm_num))
+
+/-- The reduction creates one VBP item per graph vertex. -/
+theorem toVBP_numItems_bound (G : FourColorInstance) :
+    (toVBP G).n ≤ G.sourceSize := by
+  simp [toVBP, FourColorInstance.sourceSize]
+  omega
+
+/-- The reduction creates one VBP dimension per graph edge. -/
+theorem toVBP_numDims_bound (G : FourColorInstance) :
+    (toVBP G).d ≤ G.sourceSize := by
+  simp [toVBP, FourColorInstance.sourceSize]
+  omega
+
+/-- The Boolean matrix footprint of the reduced VBP instance is quadratically
+bounded by the source description size. -/
+theorem toVBP_matrixSize_bound (G : FourColorInstance) :
+    (toVBP G).hardnessMatrixSize ≤ (G.sourceSize) ^ 2 := by
+  have hn : G.numVerts + 1 ≤ G.numVerts + G.numEdges + 1 := by
+    omega
+  have hd : G.numEdges + 1 ≤ G.numVerts + G.numEdges + 1 := by
+    omega
+  have hmul := Nat.mul_le_mul hn hd
+  simpa [toVBP, VBPInstance.hardnessMatrixSize, FourColorInstance.sourceSize, pow_two]
+    using hmul
+
 /-- The content of `vbp_np_hard`: a size-bounded many-one reduction from
 edge-list 4-Colouring to the promised `{0,1}`-Vector-Bin-Packing endpoint
 (`c = 1`, `m = 4`). It supplies a map `toVBP` such that every produced instance
@@ -70,19 +180,21 @@ structure VBP4PromiseHardnessPackage where
     ∀ G : FourColorInstance, (toVBP G).hardnessMatrixSize ≤ (G.sourceSize) ^ 2
 
 -- CLAIM-BEGIN axiom:vbp-np-hard
-/-- CITATION AXIOM [arXiv:2508.05597 Proposition 42; the cited NP-completeness of
-the restricted `{0,1}`-`d`-Dimension Vector Bin Packing problem with capacity
-`c = 1` and `m = 4` bins, proved there by a size-bounded many-one reduction from
-4-Colouring — one vector per vertex, one coordinate per edge]: there is a
-size-bounded many-one reduction from edge-list 4-Colouring to the promised
-endpoint, packaged as a `VBP4PromiseHardnessPackage`. The reduction preserves
-YES exactly (`toVBP_yes_iff`), always lands in the promise class
-(`toVBP_promise`), and blows up size only monomially (`toVBP_numItems_bound`,
-`toVBP_numDims_bound`, `toVBP_matrixSize_bound`). This is the ONLY Layer-B
-citation axiom; like `aghp_balanced_family_exists`, it imports a cited external
-result. It deliberately does NOT formalize polynomial-time constructibility, the
-class NP, or any statement about non-promised inputs (all Layer-B prose). -/
-axiom vbp_np_hard : VBP4PromiseHardnessPackage
+/-- FORMALIZED reduction package from edge-list 4-Colouring to the promised
+`{0,1}`-`d`-Dimension Vector Bin Packing endpoint with capacity `c = 1` and
+`m = 4` bins. The package is now a proved Lean definition, no longer a citation
+axiom: it uses `toVBP`, proves the promise, proves YES preservation, and proves
+the stated item, dimension, and matrix-size bounds. The cited NP-hardness and
+polynomial-time constructibility of 4-Colouring remain Layer-B prose, unchanged.
+-/
+def vbp_np_hard : VBP4PromiseHardnessPackage := {
+  toVBP := toVBP
+  toVBP_promise := toVBP_promise
+  toVBP_yes_iff := toVBP_yes_iff
+  toVBP_numItems_bound := toVBP_numItems_bound
+  toVBP_numDims_bound := toVBP_numDims_bound
+  toVBP_matrixSize_bound := toVBP_matrixSize_bound
+}
 -- CLAIM-END axiom:vbp-np-hard
 
 /-- Full-constructor analogue of `ctorScale_le_two_mul_max`. -/
