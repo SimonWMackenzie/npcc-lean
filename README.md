@@ -55,5 +55,8 @@ lake exe cache get      # prebuilt Mathlib cache
 lake build NPCC         # 0 sorries
 ```
 
+GitHub Actions also runs `lake build NPCC` and the axiom-footprint reports in
+`.github/workflows/lean.yml`.
+
 ## Paper
 arXiv:2508.05597 — https://arxiv.org/abs/2508.05597

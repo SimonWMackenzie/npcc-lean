@@ -1,10 +1,12 @@
 import Mathlib
 
 /-! # Citation axioms (authorized by Simon, 2026-07-06)
-Exactly two axioms are permitted in this development beyond Lean's kernel
-(see deployment-pack/01-boundary-certificate.md and pipeline/config.json):
-this file holds the first (AGHP); the second (`vbp_np_hard`) enters only at
-the Layer-B complexity wrapper and is not yet declared. -/
+
+The current development has exactly one project-level citation axiom beyond
+Lean's standard kernel axioms: the AGHP balanced-family existence theorem below.
+The VBP endpoint formerly tracked as `vbp_np_hard` has since been discharged in
+`NPCC.Wrapper` as a proved reduction package, so it is not declared here or
+allowed as a citation axiom. -/
 
 namespace NPCC
 

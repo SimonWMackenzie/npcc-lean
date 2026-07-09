@@ -1,4 +1,13 @@
-import Workspace
+import NPCC.Wrapper
+import Workspace.MainTheorem
+
+#print axioms NPCC.main_np_hardness
+#print axioms NPCC.vbp_np_hard
+#print axioms NPCC.reduction_gap
+#print axioms NPCC.output_size_bounds
+#print axioms NPCC.scaffold_completeness
+#print axioms NPCC.M4_no_waste_lift
+
 #print axioms Workspace.MainTheorem.refutation_of_direct_sum_conjecture
 #print axioms Workspace.MainTheorem.multiplicative_consequence
 #print axioms Workspace.MainTheorem.complexity_invariant_to_transposition

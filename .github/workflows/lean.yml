@@ -1,0 +1,33 @@
+name: Lean proof check
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: lake build NPCC
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Lean formalization
+        uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: lean
+          auto-config: false
+          build: true
+          build-args: NPCC
+          test: false
+          lint: false
+          use-mathlib-cache: true
+
+      - name: Print axiom footprint
+        working-directory: lean
+        shell: pwsh
+        run: |
+          lake env lean AxiomReport.lean
+          lake env lean wrapper_check.lean

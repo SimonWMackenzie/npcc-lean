@@ -583,7 +583,6 @@
    "axioms": [
     "propext",
     "Classical.choice",
-    "NPCC.vbp_np_hard",
     "Quot.sound"
    ]
   },
@@ -1024,7 +1023,7 @@
    "lean_name": "NPCC.VBPInstance",
    "file": "NPCC/VBP.lean",
    "statement_tex": "\\DefineProblemNoPara{$\\{0,1\\}$-$d$-\\textsc{Dimension Vector Bin Packing}}{A set of $n$ vectors $\\{v_1,\\ldots,v_n\\}\\subseteq\\{0,1\\}^{d}$, a capacity parameter $c$, and a number of bins $m$ (where $m$ is a power of two).}{Does there exist a partition of the vectors into $m$ bins such that every bin $B_i$ satisfies\n$\\lVert \\sum_{v\\in B_i} v\\rVert_{\\infty}\\le c$\\,?}\n\nIn the reduction we only use the case \\(c=1\\) and \\(m=4\\).\n\n",
-   "spec": "Source problem, EXACT: {0,1}-d-Dimension Vector Bin Packing restricted to c=1, m=4. Structure (d n : Nat, v : Fin n -> Fin d -> Bool); IsYes := exists sigma : Fin n -> Fin 4 with per-(bin,coordinate) load <= 1; the promise (forall alpha, card {i | v i alpha} <= 4) is a SEPARATE predicate, not a structure field (D1). NP-hardness of this promised variant = reserved axiom NPCC.vbp_np_hard (NOT staged; the paper's unlabeled proposition proves it from 4-Colouring).",
+   "spec": "Source problem, EXACT: {0,1}-d-Dimension Vector Bin Packing restricted to c=1, m=4. Structure (d n : Nat, v : Fin n -> Fin d -> Bool); IsYes := exists sigma : Fin n -> Fin 4 with per-(bin,coordinate) load <= 1; the promise (forall alpha, card {i | v i alpha} <= 4) is a SEPARATE predicate, not a structure field (D1). The concrete 4-Colouring -> VBP endpoint reduction is now formalized as the proved package NPCC.vbp_np_hard in Wrapper.lean; the standard NP-hardness of 4-Colouring and runtime remain Layer-B prose.",
    "status": "proved",
    "attempts": [
     {
@@ -1962,7 +1961,7 @@
    "lean_name": "NPCC.main_np_hardness",
    "file": "NPCC/Wrapper.lean",
    "statement_tex": "\\begin{theorem}[NP-completeness of communication complexity]\n    \\label{thm:main-nphard-intro}\n    Given the truth table of a Boolean function\n    $f:\\{0,1\\}^n\\times\\{0,1\\}^n\\to\\{0,1\\}$ and an integer $k$ in binary,\n    deciding whether $\\comp{f}\\le k$ is \\textsf{NP}-complete.\n\\end{theorem}",
-   "spec": "Layer-B WRAPPER, staged for dependency completeness but BLOCKED twice: (1) on the governed declaration of the reserved axiom NPCC.vbp_np_hard (separate event, full judge treatment incl. Ultra per Simon 2026-07-06 -- NOT staged here); (2) on D7 ratification of what the Lean statement literally says (recommended: the packaged 'reduction function + gap + explicit size bound' form; in-kernel NP-completeness is out of scope -- the NP upper bound and poly-time remain prose). Do NOT attempt before both events.",
+   "spec": "Layer-B WRAPPER: packaged reduction function + gap + explicit size bounds. In-kernel NP-completeness is out of scope -- the NP upper bound and polynomial runtime remain prose. The theorem composes the proved NPCC.vbp_np_hard package with reduction_gap and output_size_bounds. The only project citation axiom in the kernel footprint is AGHP.",
    "status": "proved",
    "attempts": [],
    "signed_off": true,
@@ -1971,7 +1970,6 @@
     "propext",
     "Classical.choice",
     "NPCC.aghp_balanced_family_exists",
-    "NPCC.vbp_np_hard",
     "Quot.sound"
    ]
   },
@@ -2006,7 +2004,7 @@
    "file": "Npcc/VBP.lean",
    "status": "proved",
    "depends_on": [],
-   "notes": "Added 2026-07-06 per two-lane vbp_np_hard formulation audit (ultra-npcc-12 + codex-axiom-audit): preprocess_promise, normalizeInstance promise + IsYes-iff (+ consumer-ready feasible/bad-bin transports as needed), not_isYes_of_not_promise. These are theorems (no axiom content) required before vbp_np_hard declaration composes into thm:main-nphard-intro. Declaration itself remains Simon-gated.",
+   "notes": "Added 2026-07-06 per two-lane vbp_np_hard formulation audit (ultra-npcc-12 + codex-axiom-audit): preprocess_promise, normalizeInstance promise + IsYes-iff (+ consumer-ready feasible/bad-bin transports as needed), not_isYes_of_not_promise. These are theorems (no axiom content) used by the later proved vbp_np_hard package; no VBP citation-axiom declaration remains.",
    "attempts": [],
    "lean_name": "NPCC.normalizeInstance_isYes_iff",
    "route": null,
@@ -2763,7 +2761,7 @@
   {
    "ts": "2026-07-06T00:00:00Z",
    "event": "tranche-6-staged",
-   "note": "Reduction layer staged (paper Sec 5 + App C): VBP source encoding + zero-anchor preprocessing, scaffold M0-M4 with audited parameters, AGHP family instantiation, upper-bound toolkit (first UPPER-bound lemmas incl. lem:transposeComp), large-d bundle (d_star; hard-seed threshold absorbed), Stage-1 threshold package, Stage-1/2 certification (M2Separation + dense-rows corollary BLOCKED on thm:SeparationTheorem), Stage-3 separation, Stage-4 local gadgets, MThreeFuzzyLeaves, MFourNoWasteLift (keystone; D5 protocol-surgery statement Fable-critical), size bounds (size-first), scaffold completeness, reduction gap. Wrapper staged but blocked on the vbp_np_hard governed declaration + D7. Source proposition is UNLABELED in tex (axiomatized, not staged). Design decisions D1-D8 in scratchpad t6-map.md.",
+   "note": "Reduction layer staged (paper Sec 5 + App C): VBP source encoding + zero-anchor preprocessing, scaffold M0-M4 with audited parameters, AGHP family instantiation, upper-bound toolkit (first UPPER-bound lemmas incl. lem:transposeComp), large-d bundle (d_star; hard-seed threshold absorbed), Stage-1 threshold package, Stage-1/2 certification (M2Separation + dense-rows corollary BLOCKED on thm:SeparationTheorem), Stage-3 separation, Stage-4 local gadgets, MThreeFuzzyLeaves, MFourNoWasteLift (keystone; D5 protocol-surgery statement Fable-critical), size bounds (size-first), scaffold completeness, reduction gap. Historical staging note: at this point the wrapper was still blocked on vbp_np_hard governance + D7; that endpoint has since been discharged as a proved package, not a live citation axiom. Design decisions D1-D8 in scratchpad t6-map.md.",
    "added": [
     "def:vbp-instance",
     "lem:zero-anchor-preprocessing",

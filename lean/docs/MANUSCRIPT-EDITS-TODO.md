@@ -1,7 +1,8 @@
 # Manuscript edits surfaced by the Lean formalization — TODO for a future agent
 
 **Purpose.** The Lean 4 formalization of this paper (complete: 125 obligations
-proved, 0 open, on 2 cited axioms — see `RECAP-COMPLETE-2026-07-07.md`) surfaced
+proved, 0 open, on 1 cited axiom after the VBP endpoint was discharged -- see
+`RECAP-COMPLETE-2026-07-07.md`) surfaced
 a small number of issues in the manuscript. This file is the actionable edit list.
 
 **How to apply.** Edit the LIVE manuscript at `manuscript/main.tex`. Line numbers

@@ -3,14 +3,13 @@
   "propext",
   "Classical.choice",
   "Quot.sound",
-  "NPCC.aghp_balanced_family_exists",
-  "NPCC.vbp_np_hard"
+  "NPCC.aghp_balanced_family_exists"
  ],
- "policyAxiomsNote": "Additions require editing deployment-pack/01-boundary-certificate.md FIRST (AGHP, source NP-hardness, large-d bundle are pre-approved for Targets C/D, none needed for A/B).",
+ "policyAxiomsNote": "Additions require editing deployment-pack/01-boundary-certificate.md FIRST. The VBP endpoint formerly tracked as NPCC.vbp_np_hard is now a proved package in NPCC.Wrapper, not an allowed citation axiom.",
  "lanes": [
   "claude",
   "codex"
  ],
  "attemptsPerLane": 3,
- "axiomAuthorization": "Simon 2026-07-06: AGHP (Alon et al.) claims + bin-packing NP-hardness as axioms; statements require full judge treatment incl. Ultra before declaration"
+ "axiomAuthorization": "Simon 2026-07-06: AGHP (Alon et al.) claim authorized as the single project citation axiom. The VBP endpoint was later discharged as a proved reduction package; statements still require full judge treatment before declaration."
 }

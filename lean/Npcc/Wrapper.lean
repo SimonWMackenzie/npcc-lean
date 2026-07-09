@@ -4,10 +4,13 @@ import NPCC.Gap
 import NPCC.Reduction
 import NPCC.Size
 
-/-! # Layer-B citation axiom: NP-hardness of promised {0,1}-Vector Bin Packing
-Governed declaration (Simon-authorized 2026-07-07; design = Ultra npcc-12 Shape C,
-audited twice). Compile-check artifact for the faithfulness audit before the
-real declaration lands in `Npcc/Wrapper.lean`. -/
+/-! # Layer-B reduction wrapper: promised {0,1}-Vector Bin Packing
+
+This file now contains the proved `vbp_np_hard` reduction package, not a
+citation axiom. The Lean kernel checks the endpoint-incidence construction,
+promise preservation, YES equivalence, and size bounds. Polynomial-time
+constructibility and the standard NP-hardness of 4-Colouring remain Layer-B
+prose outside the kernel statement. -/
 
 namespace NPCC
 

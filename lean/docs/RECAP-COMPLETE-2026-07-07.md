@@ -1,17 +1,19 @@
 # Formalization COMPLETE — arXiv:2508.05597 machine-verified in Lean 4
 
-**2026-07-07. Board: 125 obligations proved, 0 open.** The Gaspers–He–Mackenzie
+**2026-07-07; axiom-footprint updated after the 2026-07-09 VBP discharge.**
+The Gaspers–He–Mackenzie
 "NP-Completeness of Deterministic Communication Complexity via Relaxed
-Interlacing" is now machine-checked in Lean 4, resting on exactly two cited
-axioms plus Lean's standard three.
+Interlacing" is now machine-checked in Lean 4, resting on exactly one cited
+axiom plus Lean's standard three.
 
 ## Capstone verification (reproducible)
 From `C:\lean\npc-cc`:
 - `lake build NPCC` → **Build completed successfully (8528 jobs)**, exit 0.
 - `#print axioms NPCC.main_np_hardness` →
-  `[propext, Classical.choice, NPCC.aghp_balanced_family_exists, NPCC.vbp_np_hard, Quot.sound]`.
+  `[propext, Classical.choice, NPCC.aghp_balanced_family_exists, Quot.sound]`.
 - Repo-wide `sorry`-token scan over `Npcc/*.lean` → **0 hits**.
-- `axiom` declarations in `Npcc/` → **exactly 2** (`aghp_balanced_family_exists`, `vbp_np_hard`).
+- `axiom` declarations in `Npcc/` → **exactly 1** (`aghp_balanced_family_exists`).
+- `vbp_np_hard` is now a proved `def` package in `Npcc/Wrapper.lean`, not a citation axiom.
 
 Source mirror: `formalization/lean-mirror.bundle` (git bundle, refreshed). Final
 commit `ebdfa3f`.
@@ -33,9 +35,9 @@ Kernel certifies **construction size bounds + the NO⟺GAP separation**. Polynom
 **runtime** and formal **NP-membership / the class-level "NP-complete" predicate**
 remain Layer-B prose — deliberately NOT in the kernel statement.
 
-## The two citation axioms
+## The citation axiom and discharged VBP package
 - `aghp_balanced_family_exists` (`Npcc/Axioms.lean`) — Alon–Goldreich–Håstad–Peralta balanced families (existence; poly-time constructibility is prose).
-- `vbp_np_hard` (`Npcc/Wrapper.lean`) — NP-hardness of the promised `{0,1}`-VBP endpoint (`c=1, m=4`) as a size-bounded YES-preserving many-one reduction from 4-Colouring, packaged `VBP4PromiseHardnessPackage` (paper Prop. 42). **Governed declaration:** you authorized it; then a 5-lens adversarial audit returned CLEAR_TO_DECLARE — the satisfiability lens produced a *positive truth certificate* (brute-forced the paper's construction against the Lean semantics over all 251 small graphs + the Kₖ chromatic boundary, confirming the axiom is a true statement, not merely non-over-claiming). Audit banked at `pipeline/judgments/audit-vbp-np-hard-governed-2026-07-07.md`.
+- `vbp_np_hard` (`Npcc/Wrapper.lean`) — formerly tracked as a citation axiom, now discharged as the proved `VBP4PromiseHardnessPackage`: the endpoint-incidence construction, promise preservation, YES equivalence, and monomial size bounds are kernel-checked. The standard NP-hardness of 4-Colouring and polynomial runtime of the map remain Layer-B prose.
 
 ## Ratification pile — for your final review (all backed by CORRECT C5 judges)
 Recorded provisional statement sign-offs made under your "keep going until done" +

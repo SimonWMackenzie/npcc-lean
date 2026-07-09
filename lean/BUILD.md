@@ -27,8 +27,13 @@ lake build NPCC         # builds the whole development
 
 ## Axiom footprint
 `main_np_hardness` rests on Lean's `propext`, `Classical.choice`, `Quot.sound`
-plus exactly two cited axioms:
+plus exactly one cited axiom:
 - `aghp_balanced_family_exists` - existence of the balanced column family (AGHP).
-- `vbp_np_hard`                  - NP-hardness of the Vector Bin Packing promise problem.
+
+The 4-Colouring to Vector Bin Packing reduction formerly tracked as
+`vbp_np_hard` is now a proved Lean definition/package in `NPCC.Wrapper`, not a
+citation axiom: the construction, promise preservation, YES equivalence, and
+size bounds are checked in kernel. Polynomial-time constructibility and the
+standard NP-hardness of 4-Colouring remain prose outside the kernel statement.
 
 Verify with `#print axioms NPCC.main_np_hardness` (see `AxiomReport.lean`).
