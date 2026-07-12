@@ -29,7 +29,11 @@ jobs:
           test: false
           lint: false
           use-mathlib-cache: true
-          leanchecker: true
+          leanchecker: false
+
+      - name: Replay all project environments with leanchecker
+        working-directory: lean
+        run: lake env leanchecker NPCC Workspace Tests
 
       - name: Verify claims, axioms, source coverage, and explorer sync
         working-directory: lean
