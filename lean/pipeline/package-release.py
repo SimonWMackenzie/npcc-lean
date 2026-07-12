@@ -42,6 +42,16 @@ def source_entries() -> list[tuple[str, Path]]:
     return sorted(entries)
 
 
+def source_bytes(path: Path) -> bytes:
+    """Return deterministic bytes, normalizing UTF-8 text across platforms."""
+    payload = path.read_bytes()
+    try:
+        payload.decode("utf-8")
+    except UnicodeDecodeError:
+        return payload
+    return payload.replace(b"\r\n", b"\n")
+
+
 def build_archive(entries: list[tuple[str, Path]]) -> bytes:
     temporary = ARCHIVE.with_suffix(ARCHIVE.suffix + ".tmp")
     temporary.unlink(missing_ok=True)
@@ -53,7 +63,7 @@ def build_archive(entries: list[tuple[str, Path]]) -> bytes:
                 info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
                 info.compress_type = zipfile.ZIP_DEFLATED
                 info.external_attr = 0o100644 << 16
-                bundle.writestr(info, path.read_bytes())
+                bundle.writestr(info, source_bytes(path))
         temporary.replace(ARCHIVE)
     finally:
         temporary.unlink(missing_ok=True)
@@ -71,7 +81,7 @@ def verify_archive(entries: list[tuple[str, Path]], payload: bytes) -> None:
             extra = sorted(set(actual_names) - set(expected))
             raise ValueError(f"release archive file set differs: missing={missing}, extra={extra}")
         for name, path in expected.items():
-            if bundle.read(name) != path.read_bytes():
+            if bundle.read(name) != source_bytes(path):
                 raise ValueError(f"release archive has stale bytes for {name}")
     if payload != ARCHIVE.read_bytes():
         raise ValueError("release archive changed while it was being checked")

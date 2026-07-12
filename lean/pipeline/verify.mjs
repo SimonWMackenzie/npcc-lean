@@ -157,6 +157,18 @@ function findPython() {
   return null;
 }
 
+function findLake() {
+  const home = process.env.HOME || process.env.USERPROFILE;
+  if (home) {
+    const executable = process.platform === "win32" ? "lake.exe" : "lake";
+    const elanLake = path.join(home, ".elan", "bin", executable);
+    if (fs.existsSync(elanLake)) return elanLake;
+  }
+  return "lake";
+}
+
+const LAKE = findLake();
+
 // Ledger and frozen claim blocks.
 const ledger = JSON.parse(read(path.join(ROOT, "obligations.json")));
 check(Array.isArray(ledger.obligations), "obligations.json has no obligations array");
@@ -407,8 +419,8 @@ if (glossary) {
 
 // Kernel-level checks are intentionally optional for fast static runs.
 if (WITH_LEAN) {
-  const axiomOutput = run("lake", ["env", "lean", "AxiomReport.lean"]);
-  const wrapperOutput = run("lake", ["env", "lean", "wrapper_check.lean"]);
+  const axiomOutput = run(LAKE, ["env", "lean", "AxiomReport.lean"]);
+  const wrapperOutput = run(LAKE, ["env", "lean", "wrapper_check.lean"]);
   const allOutput = `${axiomOutput}\n${wrapperOutput}`;
   check(!allOutput.includes("sorryAx"), "axiom reports contain sorryAx");
   const allowed = new Set([
@@ -459,7 +471,7 @@ if (WITH_LEAN) {
     const checkFile = path.join(ROOT, "pipeline", "tmp", "AuditGraphNames.lean");
     fs.mkdirSync(path.dirname(checkFile), { recursive: true });
     fs.writeFileSync(checkFile, `import NPCC\nimport Workspace\n${names.map((name) => `#check ${name}`).join("\n")}\n`);
-    run("lake", ["env", "lean", checkFile]);
+    run(LAKE, ["env", "lean", checkFile]);
     fs.rmSync(checkFile, { force: true });
   }
 }
