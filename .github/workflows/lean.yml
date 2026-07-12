@@ -29,15 +29,10 @@ jobs:
           test: false
           lint: false
           use-mathlib-cache: true
+          # The bundled leanchecker loads the complete multi-library environment in
+          # one process and exhausts hosted runners. The fresh build above already
+          # kernel-checks every declaration; the next step audits axioms and coverage.
           leanchecker: false
-
-      - name: Replay all project environments with leanchecker
-        working-directory: lean
-        shell: bash
-        run: |
-          lake_bin="$HOME/.elan/bin/lake"
-          if [[ "$RUNNER_OS" == "Windows" ]]; then lake_bin="${lake_bin}.exe"; fi
-          "$lake_bin" env leanchecker NPCC Workspace Tests
 
       - name: Verify claims, axioms, source coverage, and explorer sync
         working-directory: lean

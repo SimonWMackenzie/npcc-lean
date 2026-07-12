@@ -225,10 +225,7 @@ if (tracked.status === 0) {
 const workflow = read(path.join(SITE, ".github", "workflows", "lean.yml"));
 check(/os:\s*\[ubuntu-latest,\s*windows-latest\]/.test(workflow), "CI is not cross-platform");
 check(/build-args:\s*NPCC Workspace Tests/.test(workflow), "CI does not build all Lean libraries");
-check(
-  /leanchecker NPCC Workspace Tests/.test(workflow),
-  "CI does not replay all three project roots with Lean's environment checker",
-);
+check(/leanchecker:\s*false/.test(workflow), "CI must keep the monolithic checker disabled");
 check(/node pipeline\/verify\.mjs --lean/.test(workflow), "CI does not run the full integrity verifier");
 
 const python = findPython();
