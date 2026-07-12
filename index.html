@@ -54,7 +54,7 @@
   /* ================= proof map ================= */
   .proofmap{flex:0 0 auto;display:flex;align-items:center;gap:7px;min-height:45px;padding:5px 12px;
     overflow-x:auto;overflow-y:hidden;border-bottom:1px solid var(--line);background:#111720;scrollbar-width:thin}
-  .proofmap .pm-label{position:sticky;left:0;z-index:2;align-self:stretch;flex:0 0 116px;display:flex;
+  .proofmap .pm-label{position:sticky;left:0;z-index:2;align-self:stretch;flex:0 0 156px;display:flex;
     flex-direction:column;align-items:flex-start;justify-content:center;padding:0 10px 0 3px;background:#111720;
     color:var(--ink);font-family:var(--mono);font-weight:600;letter-spacing:0;white-space:nowrap}
   .proofmap .pm-label b{font-size:11px;line-height:1.1;overflow:visible;text-overflow:clip}
@@ -288,8 +288,8 @@
     </div>
   </header>
 
-  <nav class="proofmap" aria-label="End-to-end checked proof map">
-    <span class="pm-label"><b>End-to-end proof</b><small>7 checked stages</small></span>
+  <nav class="proofmap" aria-label="Navigation shortcuts through the complete Lean-checked reduction">
+    <span class="pm-label" title="Every formalized dependency in the reduction is checked by Lean. These buttons only navigate to key milestones in the full proof graph."><b>Proof shortcuts</b><small>full reduction Lean-checked</small></span>
     <button data-target="axiom:vbp-np-hard" title="The proved 4-Colouring to vector-bin-packing package"><span class="pm-num">1</span><span class="pm-copy"><b>Source reduction</b><small>4-Colouring to VBP</small></span></button>
     <button data-target="lem:zero-anchor-preprocessing" title="Promise-preserving preprocessing with four canonical zero anchors"><span class="pm-num">2</span><span class="pm-copy"><b>Preprocessing</b><small>promise + zero anchors</small></span></button>
     <button data-target="thm:SeparationTheorem" title="Extension preserves the lower bound; separation constrains every cheap protocol"><span class="pm-num">3</span><span class="pm-copy"><b>Rigidity engine</b><small>extension + separation</small></span></button>
