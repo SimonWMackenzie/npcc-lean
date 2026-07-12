@@ -33,7 +33,11 @@ jobs:
 
       - name: Replay all project environments with leanchecker
         working-directory: lean
-        run: lake env leanchecker NPCC Workspace Tests
+        shell: bash
+        run: |
+          lake_bin="$HOME/.elan/bin/lake"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then lake_bin="${lake_bin}.exe"; fi
+          "$lake_bin" env leanchecker NPCC Workspace Tests
 
       - name: Verify claims, axioms, source coverage, and explorer sync
         working-directory: lean
